@@ -1089,7 +1089,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
     const b=document.createElement("button");b.className="vc";b.setAttribute("aria-pressed",sup.filtro===uid);
     const st=ab?"● Em visita · "+ab.cliente+" desde "+ab.ini:ult?"Última atividade hoje às "+hhDe(ult):v.ultimoAcesso?"Último acesso "+new Date(v.ultimoAcesso).toLocaleDateString("pt-BR")+" "+hhDe(v.ultimoAcesso):"Ainda não usou o app";
     const pu=mine.reduce((a,x)=>a+(x.ped||0),0),tu=mine.reduce((a,x)=>a+(x.tro||0),0);
-    b.innerHTML="<b>"+esc(nomeV(uid))+(v.papel&&v.papel!=="vendedor"?" · "+rotP(v.papel).toLowerCase():"")+"</b><span class='vs"+(ab?" on":"")+"'>"+esc(st)+"</span><span class='vn'><span><b>"+mine.filter(x=>x.ini).length+"</b> visitas</span><span><b>"+mine.filter(x=>x.status!=="rascunho").length+"</b> fechados</span><span><b>"+pu+"</b> un.</span><span><b>"+tu+"</b> troca</span></span>";
+    b.innerHTML="<b>"+esc(nomeV(uid))+" · "+rotP(v.papel).toLowerCase()+"</b><span class='vs"+(ab?" on":"")+"'>"+esc(st)+"</span><span class='vn'><span><b>"+mine.filter(x=>x.ini).length+"</b> visitas</span><span><b>"+mine.filter(x=>x.status!=="rascunho").length+"</b> fechados</span><span><b>"+pu+"</b> un.</span><span><b>"+tu+"</b> troca</span></span>";
     b.onclick=()=>{sup.filtro=sup.filtro===uid?"":uid;supRender()};V.appendChild(b)});
   $("spl").textContent="Visitas e pedidos"+(sup.filtro?" · "+nomeV(sup.filtro)+" (toque no card de novo para ver todos)":"");
   const T=$("spt2");T.innerHTML="";
@@ -1107,7 +1107,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
 }
 function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID;$("sgv").hidden=!dono;if(!dono)return;
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
-    r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+(v.papel&&v.papel!=="vendedor"?" · "+rotP(v.papel).toLowerCase():"")+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
+    r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
       try{await fbAuth.sendPasswordResetEmail(v.email);rs.textContent="E-mail enviado"}catch(e){rs.textContent="Falhou"}};
@@ -2109,7 +2109,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="48";
+const VER="49";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
