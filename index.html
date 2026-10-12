@@ -1745,9 +1745,9 @@ const rotDoc=p=>p==="supervisor"?"Supervisor":(p==="promotor"||p==="developer")?
 let docVend=null;
 function linhaVend(x,W,P){
   const v=docVend||{nome:perfil&&perfil.nome,papel:perfil&&perfil.papel};
-  const n=U((v&&v.nome)||"");if(!n)return;
+  const n=U((v&&v.nome)||"").trim().split(/\s+/)[0]||"";if(!n)return;
   x.save();x.textAlign="right";x.fillStyle=AZ;x.font="800 21px "+FT;
-  x.fillText(rotDoc(v&&v.papel)+": "+n,W-P,298);x.restore();
+  x.fillText(n,W-P,298);x.restore();
 }
 function desenhar(sig,logo,m=mode){
   const q=state[m],lista=ITENS.filter(n=>q[n]>0);
@@ -1999,7 +1999,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="54";
+const VER="55";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
