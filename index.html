@@ -985,7 +985,7 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const sp=!!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer"));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":"Vendedor";
+const rotP=p=>p==="supervisor"?"Supervisor":(p==="promotor"||p==="developer")?"Promotor":"Vendedor";
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
@@ -1989,7 +1989,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="51";
+const VER="52";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
