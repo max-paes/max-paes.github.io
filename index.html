@@ -434,7 +434,7 @@ body.trv #edbar{border-color:#0b7a75}
 </div></div>
 <script>
 let pendEntrada=null,bloqueio=false,stPed="rascunho",eraFat=false,snapFat=null,fechEm=0,perfil=null,fbAuth=null,fbDb=null,nomePend="",lgModo="entrar",unsub=null;
-(function(){try{var t=localStorage.getItem("mpv:tema");if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-theme",t==="claro"?"light":"dark")}catch(e){}})();
+(function(){var t="claro";try{t=localStorage.getItem("mpv:tema")||"claro"}catch(e){}if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-theme",t==="claro"?"light":"dark")})();
 const ITEM_REN={"BOLACHA ÁGUA E SAL 250g":"BOLACHA ÁGUA E SAL 300g"};
 const renI=o=>{if(o&&typeof o==="object")Object.entries(ITEM_REN).forEach(([a,b])=>{if(a in o){o[b]=(o[b]||0)+o[a];delete o[a]}});return o};
 const CX={"BOLO 500g":8,"PÃO COCO 500g":8,"FARINHA DE ROSCA":24,"TORRADAS 220g":20,"TORRADAS 300g":20,"BOLACHA ÁGUA E SAL 300g":20,"BOLACHA AMANTEIGADA 250g":20,"BOLACHA ACEBOLADA 250g":20,"PÃO ÁRABE 400g":12,"BOLACHA INTEGRAL 250g":20,"PÃO HAMBURGUER 400g":9,"PÃO HAMBURGUER 500g":7,"PÃO BRIOCHE 400g":10,"PÃO BRIOCHE C/ GERGELIM 400g":10,"PÃO GUARÚ 350g":10,"PÃO BOLINHA DE LEITE 400g":8,"PÃO HOT DOG 550g":7,"PÃO HOT DOG 400g":8,"PÃO BOLÃO COM GERGELIM 500g":6,"PÃO BOLÃO C/6 UNID. 550g":6,"PÃO DE FORMA INTEGRAL 500g":10,"PÃO DE FORMA 500g":10,"PÃO INTEGRAL MULTIGRÃOS 350g":15,"PÃO MULTIGRÃO S/ AÇÚCAR 350g":15,"PÃO DE REQUEIJÃO 330g":18,"PANETONE CHOCOLATE 400g":16,"PANETONE FRUTAS 400g":16};
@@ -973,13 +973,13 @@ function aplicaCfg(c){
   if(c.precos&&typeof c.precos==="object"){precos=c.precos;salvaPrecos(false)}
   salvaAgRaw();
 }
-function aplicaTema(){let t="auto";try{t=localStorage.getItem("mpv:tema")||"auto"}catch(e){}
+function aplicaTema(){let t="claro";try{t=localStorage.getItem("mpv:tema")||"claro"}catch(e){}
   const h=document.documentElement;if(t==="claro")h.setAttribute("data-theme","light");else if(t==="escuro")h.setAttribute("data-theme","dark");else h.removeAttribute("data-theme");
   const dark=t==="escuro"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=dark?"#0f1626":"#1f4fa8";
   const b=$("tema");if(b)b.textContent="Tema: "+(t==="claro"?"claro":t==="escuro"?"escuro":"automático")}
-$("tema").onclick=()=>{let t="auto";try{t=localStorage.getItem("mpv:tema")||"auto"}catch(e){}
-  const n=t==="auto"?"claro":t==="claro"?"escuro":"auto";try{localStorage.setItem("mpv:tema",n)}catch(e){}aplicaTema()};
+$("tema").onclick=()=>{let t="claro";try{t=localStorage.getItem("mpv:tema")||"claro"}catch(e){}
+  const n=t==="claro"?"escuro":t==="escuro"?"auto":"claro";try{localStorage.setItem("mpv:tema",n)}catch(e){}aplicaTema()};
 aplicaTema();
 function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-gondola").style.display=dono?"":"none";
   const sp=!!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer"));$("rsb").style.display=sp?"":"none";
@@ -1989,7 +1989,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="50";
+const VER="51";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
