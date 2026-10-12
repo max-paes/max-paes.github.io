@@ -985,7 +985,7 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const sp=!!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer"));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const rotP=p=>p==="supervisor"?"Supervisor":p==="developer"?"Representante":p==="promotor"?"Promotor":"Vendedor";
+const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":"Vendedor";
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
@@ -1270,9 +1270,10 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=sup.docs[k];if(!e)return;su
 async function comEntrada(e,fn){
   const bk={p:state.pedido,t:state.troca,g:state.gondola,v:visita,a:{...assin},f:CAMPOS.map(i=>$(i).value),d:$("data").value,cur:curId,st:stPed,fe:fechEm};
   bloqueio=true;clearTimeout(tSalvar);tSalvar=null;
+  docVend={nome:e.vendedor||"",papel:(e.uid&&sup.vend[e.uid]&&sup.vend[e.uid].papel)||(perfil&&perfil.papel)||"vendedor"};
   try{state.pedido={...e.pedido};state.troca={...e.troca};state.gondola={...e.gondola};visita=normVis(e.visita);assin.pedido=e.assin.pedido||"";assin.troca=e.assin.troca||"";
     $("cliente").value=e.cliente;$("endereco").value=e.endereco;$("comprador").value=e.comprador;$("data").value=e.data;return await fn()}
-  finally{state.pedido=bk.p;state.troca=bk.t;state.gondola=bk.g;visita=bk.v;Object.assign(assin,bk.a);CAMPOS.forEach((i,n)=>$(i).value=bk.f[n]);$("data").value=bk.d;curId=bk.cur;stPed=bk.st;fechEm=bk.fe;bloqueio=false}}
+  finally{state.pedido=bk.p;state.troca=bk.t;state.gondola=bk.g;visita=bk.v;Object.assign(assin,bk.a);CAMPOS.forEach((i,n)=>$(i).value=bk.f[n]);$("data").value=bk.d;curId=bk.cur;stPed=bk.st;fechEm=bk.fe;docVend=null;bloqueio=false}}
 async function supJpg(m){const e=entDe(sup.det);if(!e)return;const b=m==="troca"?$("sdtr"):$("sdp"),r=b.textContent;b.textContent="Gerando…";
   try{try{await document.fonts.load("800 28px Archivo")}catch(_){}
     await comEntrada(e,async()=>{const sig=sigOk(m)?await carregaImg(assin[m]):null,logo=await carregaImg(LOGO);const c=desenhar(sig,logo,m);
@@ -1740,6 +1741,14 @@ function cabecalho(x,W,P,logo,tit,campos,dTxt){
   const F=id=>$(id).value.trim();
   (campos||[["Cliente:",F("cliente")],["Endereço:",F("endereco")],["Comprador:",F("comprador")]]).forEach(([r,v],i)=>campo(r,v,P,322+52*i,W-2*P));
 }
+const rotDoc=p=>p==="supervisor"?"Supervisor":(p==="promotor"||p==="developer")?"Promotor":"Vendedor";
+let docVend=null;
+function linhaVend(x,W,P){
+  const v=docVend||{nome:perfil&&perfil.nome,papel:perfil&&perfil.papel};
+  const n=U((v&&v.nome)||"");if(!n)return;
+  x.save();x.textAlign="right";x.fillStyle=AZ;x.font="800 21px "+FT;
+  x.fillText(rotDoc(v&&v.papel)+": "+n,W-P,298);x.restore();
+}
 function desenhar(sig,logo,m=mode){
   const q=state[m],lista=ITENS.filter(n=>q[n]>0);
   const W=900,P=32,RH=58,T=462,H=T+56+Math.max(lista.length,1)*RH+220;
@@ -1747,6 +1756,7 @@ function desenhar(sig,logo,m=mode){
   const x=c.getContext("2d");
   x.fillStyle="#fff";x.fillRect(0,0,W,H);
   cabecalho(x,W,P,logo,m==="troca"?"TROCA":"PEDIDO");
+  linhaVend(x,W,P);
   const tw=W-2*P,qw=150,th=RH*Math.max(lista.length,1);
   x.fillStyle=AZ;rr(x,P,T,tw,56,14);x.fill();
   x.fillStyle="#fff";x.font="800 22px "+FT;x.textAlign="center";x.fillText("QUANT.",P+qw/2,T+37);
@@ -1989,7 +1999,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="53";
+const VER="54";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
