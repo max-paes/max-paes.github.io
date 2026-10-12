@@ -999,7 +999,10 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||mode==="motorista"||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
 const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":"Vendedor";
-function mostraVendedor(){aplicaAcesso();$("vnd").textContent=perfil&&perfil.nome?rotP(perfil.papel)+": "+perfil.nome:"";$("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil)}
+function mostraVendedor(){aplicaAcesso();
+  const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
+  $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
+  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil)}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
   $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud);$("lgsll").textContent=mud?"Senha atual":"Senha";
@@ -1034,7 +1037,7 @@ $("lgb").onclick=async()=>{const b=$("lgb"),nome=U($("lgn").value).trim(),em=$("
 ["lgn","lge","lgs","lgs2","lgs3"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")$("lgb").click()}));
 $("lgn").addEventListener("input",e=>{const el=e.target,u=el.value.toUpperCase();if(u!==el.value)el.value=u});
 $("sair").onclick=async()=>{const b=$("sair");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair da conta"},3000);return}
-  if(tSalvar)salvar();await enviaNuvem();await liberaDisp();if(unsub){unsub();unsub=null}supDesliga();nv.db=null;perfil=null;mostraVendedor();$("hs").classList.remove("on");try{await fbAuth.signOut()}catch(e){}};
+  if(tSalvar)salvar();await enviaNuvem();await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}if(unsub){unsub();unsub=null}supDesliga();nv.db=null;perfil=null;mostraVendedor();$("hs").classList.remove("on");try{await fbAuth.signOut()}catch(e){}};
 function carregaScript(src){return new Promise((ok,er)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=er;document.head.appendChild(s)})}
 const CHAVES_APP=()=>{const l=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^maxpaes:|^mpv:/.test(k))l.push(k)}}catch(e){}return l};
 // ===== Painel do supervisor =====
@@ -1311,7 +1314,7 @@ async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
     stNuvem("Modo sem nuvem: os dados ficam só neste celular. Faça backup com frequência.");return}
   try{for(const m of ["app","auth","firestore"])if(!(window.firebase&&firebase[m==="app"?"initializeApp":m]))await carregaScript("https://www.gstatic.com/firebasejs/"+FBV+"/firebase-"+m+"-compat.js")}
-  catch(e){stNuvem("☁ Sem internet para conectar. Abra o app de novo quando tiver sinal.");const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}
+  catch(e){stNuvem("☁ Sem internet para conectar. Abra o app de novo quando tiver sinal.");const n=lsG("mpv:nome");if(n){perfil={nome:n,papel:lsG("mpv:papel")||"vendedor"};mostraVendedor()}
     window.addEventListener("online",()=>location.reload(),{once:true});return}
   if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
   fbDb=firebase.firestore();try{await fbDb.enablePersistence({synchronizeTabs:true})}catch(e){}
@@ -1323,7 +1326,7 @@ async function entrou(u){
   if(dono&&dono!==u.uid){CHAVES_APP().forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});lsS("mpv:dono",u.uid);location.reload();return}
   lsS("mpv:dono",u.uid);
   const pref=fbDb.collection("vendedores").doc(u.uid);let ps=null;try{ps=await pref.get()}catch(e){}
-  const barra=t=>{perfil=null;mostraVendedor();fbAuth.signOut().catch(()=>{});setTimeout(()=>{mostraLogin("entrar");lgMsg(t)},300)};
+  const barra=t=>{perfil=null;try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}mostraVendedor();fbAuth.signOut().catch(()=>{});setTimeout(()=>{mostraLogin("entrar");lgMsg(t)},300)};
   if(!ps){barra("Sem internet para conferir seu acesso. Conecte e tente de novo.");return}
   var errB="";
   if(!ps.exists&&u.uid===DONO_UID){try{await pref.set({nome:"WESLEY FALCÃO",email:u.email||"",papel:"developer",ativo:true,criadoEm:Date.now()});ps=await pref.get()}catch(e){errB=" ("+(e.code||e.message)+")"}}
@@ -1339,7 +1342,7 @@ async function entrou(u){
     if(!dp){try{await pref.set({disp:meu,dispNome:dispNome(),dispEm:Date.now()},{merge:true});perfil.disp=meu}catch(e){barra("Não deu para registrar este aparelho. Tente de novo.");return}}
   }
   pref.set({ultimoAcesso:Date.now()},{merge:true}).catch(()=>{});
-  lsS("mpv:nome",perfil.nome);mostraVendedor();
+  lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");mostraVendedor();
   const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta()};
   if(perfil.trocarSenha){pendEntrada=seguir;mostraLogin("nova");return}
   await seguir();
@@ -2104,7 +2107,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="46";
+const VER="47";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
