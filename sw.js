@@ -20,3 +20,4 @@ self.addEventListener("fetch", e => {
     e.respondWith(caches.match(r).then(hit => hit || fetch(r).then(res => { if (res.ok || res.type === "opaque") { const c = res.clone(); caches.open(CACHE).then(k => k.put(r, c)); } return res; })));
   }
 });
+
