@@ -383,7 +383,7 @@ body.trv #edbar{border-color:#0b7a75}
 <div class="ov" id="ov"><div class="box">
   <img id="prev" alt="Prévia do pedido em JPG">
   <p id="msg" class="msg">Segure a imagem para salvar ou compartilhar.</p>
-  <div class="acts"><button id="shr" hidden>Enviar no WhatsApp</button><button id="cpl">Copiar legenda</button><button id="sav">Salvar JPG</button><button id="svp" hidden>Salvar PDF</button><button id="tc">Tela cheia</button><button id="fch">Fechar</button></div>
+  <div class="acts"><button id="shr" hidden>Enviar no WhatsApp</button><button id="shrp" hidden>Enviar PDF</button><button id="cpl">Copiar legenda</button><button id="sav">Salvar JPG</button><button id="svp" hidden>Salvar PDF</button><button id="tc">Tela cheia</button><button id="fch">Fechar</button></div>
 </div></div>
 <div class="ov" id="hs"><div class="box">
   <div class="hhead"><b id="htit">Histórico</b><button id="hfx">Fechar</button></div>
@@ -1942,18 +1942,32 @@ async function gerar(b,rot,m){
 }
 function podeCompart(){try{return !!(ultimo&&ultimo.blob&&navigator.canShare&&navigator.canShare({files:[new File([ultimo.blob],ultimo.nome,{type:"image/jpeg"})]}))}catch(e){return false}}
 const legendaArq=()=>(ultimo&&ultimo.nome?ultimo.nome:"").replace(/\.jpg$/,"").replace(/-\d{4}-\d{2}-\d{2}$/,"");
-$("shr").onclick=async()=>{
-  try{await navigator.clipboard.writeText(legendaArq())}catch(e){}
-  try{const fs=[new File([ultimo.blob],ultimo.nome,{type:"image/jpeg"})];if(ultimo.pdf)fs.push(new File([ultimo.pdf],ultimo.nomePdf||ultimo.nome.replace(/\.jpg$/,".pdf"),{type:"application/pdf"}));
-  const ok=navigator.canShare&&navigator.canShare({files:fs})?fs:fs.slice(0,1);await navigator.share({files:ok,title:ultimo.nome})}catch(e){if(e&&e.name!=="AbortError")msg("Não foi possível compartilhar. Use Salvar JPG e envie pelo WhatsApp.")}};
+function copiaFundo(t){try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}}
+function arqShare(blob,nome,tipo){try{return new File([blob],nome,{type:tipo})}catch(e){return null}}
+function podeArq(f){try{return !!(f&&navigator.share&&navigator.canShare&&navigator.canShare({files:[f]}))}catch(e){return false}}
+/* um arquivo por vez e sem texto junto: é o que o WhatsApp aceita sem falhar */
+function enviaArq(f,aviso){
+  if(!podeArq(f)){msg(aviso);return}
+  navigator.share({files:[f]}).catch(err=>{if(err&&err.name==="AbortError")return;msg(aviso)});
+}
+$("shr").onclick=()=>{
+  if(!(ultimo&&ultimo.blob)){msg("Gere o arquivo antes de enviar.");return}
+  copiaFundo(legendaArq());
+  enviaArq(arqShare(ultimo.blob,ultimo.nome,"image/jpeg"),"Não deu para enviar direto. Toque em Salvar JPG e anexe no WhatsApp.");
+};
+$("shrp").onclick=()=>{
+  if(!(ultimo&&ultimo.pdf)){msg("Este arquivo não tem PDF.");return}
+  copiaFundo(legendaArq());
+  enviaArq(arqShare(ultimo.pdf,ultimo.nomePdf||ultimo.nome.replace(/\.jpg$/,".pdf"),"application/pdf"),"Não deu para enviar direto. Toque em Salvar PDF e anexe no WhatsApp.");
+};
 $("cpl").onclick=async()=>{const b=$("cpl");try{await navigator.clipboard.writeText(legendaArq());flash(b,"Copiar legenda","Legenda copiada")}catch(e){flash(b,"Copiar legenda","Não deu para copiar")}};
-$("vwpp").onclick=async()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash($("vwpp"),"Enviar no WhatsApp","Informe o cliente");return}
+function abreWa(t){const u="https://wa.me/?text="+encodeURIComponent(t);let w=null;try{w=window.open(u,"_blank")}catch(e){}if(!w)location.href=u}
+$("vwpp").onclick=()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash($("vwpp"),"Enviar no WhatsApp","Informe o cliente");return}
   salvar();const t=textoChecklist();
-  if(navigator.share){try{await navigator.share({text:t});return}catch(e){if(e&&e.name==="AbortError")return}}
-  try{await navigator.clipboard.writeText(t)}catch(e){}
-  const w=window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank");
-  if(!w)location.href="https://wa.me/?text="+encodeURIComponent(t)};
-function abrirPrev(t){$("shr").hidden=!podeCompart();$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
+  copiaFundo(t);
+  if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;abreWa(t)});return}
+  abreWa(t)};
+function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.pdf&&podeCompart());$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
 function rotGf(m){const n=Object.values(state[m]).filter(v=>v>0).length;return (m==="troca"?"Troca":"Pedido")+" · "+(n?n+(n===1?" item":" itens"):"vazio")}
 $("garq").onclick=()=>{$("gp").textContent=rotGf("pedido");$("gt").textContent=rotGf("troca");$("dup").textContent="Pedido + Troca · folha A4";$("gf").classList.add("on")};
 $("gfx").onclick=()=>$("gf").classList.remove("on");
@@ -2086,7 +2100,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="44";
+const VER="45";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
