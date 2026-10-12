@@ -21,12 +21,13 @@ service cloud.firestore {
       allow update: if dono() || (logado() && request.auth.uid == uid
                       && request.resource.data.papel == resource.data.papel
                       && request.resource.data.get('ativo', true) == resource.data.get('ativo', true));
-      allow delete: if false;
+      allow delete: if dono();
 
       // Pedidos, trocas, visitas, agenda e cadastro do vendedor
       match /docs/{doc} {
         allow read, write: if logado() && request.auth.uid == uid && ativo();
         allow read: if supervisor();
+        allow delete: if dono();
       }
     }
 
