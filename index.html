@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Max Pães · Vendedor</title>
 <meta name="theme-color" content="#1f4fa8">
 <link rel="manifest" href="manifest.webmanifest">
@@ -13,7 +13,7 @@
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 --bg:#f3f6fb;--card:#fff;--ink:#14213d;--mute:#5b6b8c;--line:#c9d6ee;--brand:#1f4fa8;--on:#fff;--hit:#e6eefc}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1626;--card:#172038;--ink:#e8eefc;--mute:#9fb0d3;--line:#2b3a5f;--brand:#6f9bf0;--on:#0f1626;--hit:#1f2d52}}
 :root[data-theme="dark"]{--bg:#0f1626;--card:#172038;--ink:#e8eefc;--mute:#9fb0d3;--line:#2b3a5f;--brand:#6f9bf0;--on:#0f1626;--hit:#1f2d52}
 *{box-sizing:border-box}
@@ -154,8 +154,8 @@ header .vnd:empty{display:none}
 .card img{width:100%;max-height:140px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
 .card button{padding:12px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 15px Archivo,sans-serif}
 #sg{padding:0;overflow:hidden;background:var(--bg)}
-#sgin{position:absolute;top:0;left:0;display:flex;flex-direction:column;gap:8px;padding:10px}
-#sgbar{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:7px;padding:9px 10px calc(9px + env(safe-area-inset-bottom,0px));box-sizing:border-box;background:var(--bg);border-top:1px solid var(--line);z-index:2}
+#sgin{position:absolute;top:0;left:0;display:flex;flex-direction:column;gap:8px;padding:10px;box-sizing:border-box}
+#sgbar{flex:none;display:flex;flex-direction:column;gap:7px}
 #sgbar b{font-size:13px;color:var(--mute);text-align:center;font-weight:700}
 .sgb{display:flex;gap:8px}
 .sgb button{flex:1;padding:14px 8px;border-radius:12px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 16px Archivo,sans-serif}
@@ -433,10 +433,10 @@ body.trv #edbar{border-color:#0b7a75}
   </div>
 </div></div>
 <div class="ov fs" id="fs"><button id="fsx">Fechar</button><img id="fsimg" alt="JPG em tela cheia"></div>
-<div class="ov" id="sg"><div id="sgbar"><b id="sgmsg">Assine com o dedo na área branca</b>
-  <div class="sgb"><button id="sgl">Limpar</button><button id="sgc">Cancelar</button><button id="sgs">Salvar</button></div></div>
-<div id="sgin">
+<div class="ov" id="sg"><div id="sgin">
   <canvas id="pad"></canvas>
+  <div id="sgbar"><b id="sgmsg">Assine com o dedo na área branca</b>
+    <div class="sgb"><button id="sgl">Limpar</button><button id="sgc">Cancelar</button><button id="sgs">Salvar</button></div></div>
 </div></div>
 <script>
 let pendEntrada=null,bloqueio=false,stPed="rascunho",eraFat=false,snapFat=null,fechEm=0,perfil=null,fbAuth=null,fbDb=null,nomePend="",lgModo="entrar",unsub=null;
@@ -1518,6 +1518,9 @@ document.addEventListener("input",e=>{const el=e.target;
   try{if(a!=null)el.setSelectionRange(a,b)}catch(_){}},true);
 ["cliente","endereco","comprador","vctt","vexp","vvp","vopv","ckObs","agn","agb"].forEach(i=>{const el=$(i);if(el)el.setAttribute("autocapitalize","characters")});
 $("avx").onclick=()=>{$("aviso").hidden=true};
+["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
+document.addEventListener("wheel",e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
 document.addEventListener("visibilitychange",salvar);
 window.addEventListener("pagehide",salvar);
 
@@ -2035,9 +2038,8 @@ const pad=$("pad"),pc=pad.getContext("2d");let desenha=false,tocou=false,rot=fal
 const MSG="Assine com o dedo na área branca";
 function limpaPad(){pc.clearRect(0,0,pad.width,pad.height);pc.lineWidth=8;pc.lineCap="round";pc.lineJoin="round";pc.strokeStyle="#000";tocou=false;desenha=false}
 function layoutSg(){
-  const W=innerWidth,H=innerHeight,el=$("sgin"),bar=$("sgbar");rot=H>W;
-  const B=Math.min(bar&&bar.offsetHeight?bar.offsetHeight:92,Math.round(H*0.3));
-  el.style.width=(rot?H-B:W)+"px";el.style.height=(rot?W:H-B)+"px";
+  const W=innerWidth,H=innerHeight,el=$("sgin");rot=H>W;
+  el.style.width=(rot?H:W)+"px";el.style.height=(rot?W:H)+"px";
   el.style.transformOrigin="0 0";el.style.transform=rot?"translateX("+W+"px) rotate(90deg)":"none";
 }
 function ajustaPad(){pad.width=Math.round(pad.clientWidth*2);pad.height=Math.round(pad.clientHeight*2);limpaPad()}
@@ -2107,7 +2109,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="47";
+const VER="48";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
