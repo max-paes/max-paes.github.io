@@ -1499,6 +1499,18 @@ function renderChk(){
 }
 $("ckObs").addEventListener("input",()=>{chk.obs=$("ckObs").value;mudouChk()});
 CAMPOS.forEach(i=>$(i).addEventListener("input",agenda));
+const SEM_CAIXA=new Set(["lge","lgs","lgs2","lgs3","nve","nvs","hq"]);
+const TIPO_FORA=new Set(["password","email","number","date","time","month","file","checkbox","radio","range","color"]);
+document.addEventListener("input",e=>{const el=e.target;
+  if(!el||(el.tagName!=="INPUT"&&el.tagName!=="TEXTAREA"))return;
+  if(TIPO_FORA.has((el.type||"").toLowerCase()))return;
+  if((el.inputMode||"")==="numeric"||(el.inputMode||"")==="email")return;
+  if(SEM_CAIXA.has(el.id)||(el.closest&&el.closest("#lg")))return;
+  const v=el.value,u=U(v);
+  if(u===v)return;
+  const a=el.selectionStart,b=el.selectionEnd;el.value=u;
+  try{if(a!=null)el.setSelectionRange(a,b)}catch(_){}},true);
+["cliente","endereco","comprador","vctt","vexp","vvp","vopv","ckObs","agn","agb"].forEach(i=>{const el=$(i);if(el)el.setAttribute("autocapitalize","characters")});
 $("avx").onclick=()=>{$("aviso").hidden=true};
 document.addEventListener("visibilitychange",salvar);
 window.addEventListener("pagehide",salvar);
@@ -2074,7 +2086,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="43";
+const VER="44";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
