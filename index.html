@@ -1034,7 +1034,8 @@ const semDe=iso=>{const t=new Date(iso+"T12:00:00");return addD(iso,-((t.getDay(
 const hhDe=ms=>ms?new Date(ms).toTimeString().slice(0,5):"";
 const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const STN={faturar:"Pronto para faturar",separando:"Separando",fechado:"Fechado",alterado:"Alterado",alterando:"Alterando",rascunho:"Rascunho"};
-const rotSt=(st,fat)=>st==="faturar"?(fat?"Alterado · Pronto para faturar":"Pronto para faturar"):(STN[st]||"Rascunho");
+const rotSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?(fat?"Alterado · Pronto para faturar":"Pronto para faturar"):(STN[st]||"Rascunho");
+const clsSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?"faturar":(st||"rascunho");
 function ehSup(){return !!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer")&&fbDb)}
 function supAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("sp").classList.add("on");supLiga();supRender()}
 function supLiga(){
@@ -1085,7 +1086,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
   ord.forEach(x=>{const r=document.createElement("button");r.className="tr"+(sup.novo===x.uid+"/"+x.id?" novo":"");
     const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),st=rotSt(x.status,x.fat)+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
     r.innerHTML="<span class='tt'>"+esc(dia?(x.ini||hhDe(x.ts)):dBR(x.data).slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc(nomeV(x.uid))+" · "+esc(hora)+"</small></span>"+
-      "<span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+(x.status||"rascunho")+"'>"+esc(st)+"</span></span>";
+      "<span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+clsSt(x.status,x.fat)+"'>"+esc(st)+"</span></span>";
     r.onclick=()=>supDetalhe(x.uid+"/"+x.id);T.appendChild(r)});
   sup.novo=null;
   if(!dia){const lj={};L.forEach(x=>{const k=x.cliente||"(sem loja)";lj[k]=lj[k]||{p:0,t:0};lj[k].p+=x.ped||0;lj[k].t+=x.tro||0});
@@ -1585,7 +1586,7 @@ function renderHist(){
     const sm=document.createElement("small");
     const dt=e.data?e.data.split("-").reverse().join("/"):"";
     const ng=Object.keys(e.gondola||{}).length;
-    if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+e.status;b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
+    if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
     sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),ng?"Gôndola: "+ng+" contados":"",e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
     const ed=document.createElement("button");ed.textContent="Editar";ed.onclick=()=>abrirPedido(e.id,ed);
@@ -2003,7 +2004,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="56";
+const VER="57";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
