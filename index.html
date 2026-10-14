@@ -987,10 +987,28 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
 const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":"Vendedor";
+
+// ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
+const SEEDS=[{id:"seed8020",conta:/^DILSON/,
+  cli:{nome:"TELEFRANGO REDENÇÃO",endereco:"REDENÇÃO-CE",comprador:""},data:"2026-10-13",quando:[2026,9,13,15,2],vendedor:"DILSON ALVES",
+  pedido:{"BOLO 500g":120,"PANETONE CHOCOLATE 400g":16,"PANETONE FRUTAS 400g":16,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 500g":14,"PÃO HAMBURGUER 400g":45,"PÃO HOT DOG 400g":16,"PÃO HOT DOG 550g":7,"PÃO DE FORMA INTEGRAL 500g":20,"PÃO BRIOCHE 400g":30,"PÃO GUARÚ 350g":20,"PÃO INTEGRAL MULTIGRÃOS 350g":5,"PÃO MULTIGRÃO S/ AÇÚCAR 350g":5}}];
+function aplicaSeeds(){try{
+  if(!perfil||!perfil.nome)return;
+  SEEDS.forEach(sd=>{
+    if(!sd.conta.test(U(perfil.nome).trim())||lsG("mpv:seed:"+sd.id)==="1")return;
+    lembraCli(sd.cli.nome,sd.cli.endereco,sd.cli.comprador);
+    if(!hist.some(h=>h.id===sd.id)){
+      const t=new Date(...sd.quando).getTime();
+      hist.unshift({id:sd.id,ts:t,status:"faturar",fat:false,snap:"",fechadoEm:t,vendedor:sd.vendedor,cliente:sd.cli.nome,endereco:sd.cli.endereco,comprador:sd.cli.comprador,data:sd.data,pedido:{...sd.pedido},troca:{},gondola:{},visita:novaVis(),assin:{pedido:"",troca:""}});
+      hist.sort((a,b)=>b.ts-a.ts);salvarHist();marcaPed(sd.id);
+      try{renderHist()}catch(e){}
+    }
+    lsS("mpv:seed:"+sd.id,"1");
+  })}catch(e){}}
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
-  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil)}
+  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);aplicaSeeds()}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
   $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud);$("lgsll").textContent=mud?"Senha atual":"Senha";
@@ -2004,7 +2022,7 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="57";
+const VER="58";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
