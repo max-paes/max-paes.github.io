@@ -40,7 +40,7 @@ service cloud.firestore {
 
     // Rota do dia de cada motorista: o supervisor monta, o motorista lê
     match /rotas/{id} {
-      allow read: if logado() && (supervisor() || (temPerfil() && resource.data.uid == request.auth.uid));
+      allow read: if logado() && (supervisor() || (temPerfil() && id.matches('.*_' + request.auth.uid)));
       allow write: if supervisor();
     }
 
