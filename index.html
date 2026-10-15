@@ -277,6 +277,40 @@ body.trv #edbar{border-color:#0b7a75}
 .sn button{min-width:58px;padding:9px 12px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}
 .sn button[aria-pressed="true"]{background:var(--brand);color:var(--on)}
 .sn button.nao[aria-pressed="true"]{background:var(--mute);border-color:var(--mute)}
+
+#mot{padding:0;background:var(--bg);z-index:20}
+#mot .sw{max-width:640px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 40px}
+#mot .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
+#mot .stop h2{margin:0;font-size:19px;flex:1 1 auto}
+#mot .stop button{border:1.5px solid currentColor;background:transparent;color:inherit;border-radius:9px;padding:7px 11px;font:700 14px Archivo,sans-serif}
+.mc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
+.mc.ok{border-color:#1a8f4c}
+.mc h3{margin:0 0 2px;font-size:17px}
+.mc .ms{display:block;font-size:13px;color:var(--mute);margin-bottom:8px}
+.mb{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.mb button{padding:11px 8px;border-radius:12px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif;text-align:center}
+.mb button b{display:block;font-size:19px;margin-top:2px}
+.mb button.on{background:var(--brand);color:var(--on)}
+.mb button.big{grid-column:1/-1;padding:16px 8px;font-size:16px}
+.mk{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.mk label{display:flex;align-items:center;gap:7px;padding:9px 13px;border:1.5px solid var(--line);border-radius:22px;font-weight:700;font-size:14px}
+.mk label.on{border-color:var(--brand);background:var(--hit)}
+.mk input{width:20px;height:20px}
+.mt{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.mt input[type=text],.mt input:not([type]){width:110px;padding:9px}
+.mc textarea{width:100%;min-height:56px;margin-top:6px;padding:9px;border:1.5px solid var(--line);border-radius:10px;font:inherit;background:var(--card);color:var(--ink);resize:vertical}
+.mf img{display:block;max-width:100%;border-radius:10px;margin-top:6px}
+.me{border-top:1px solid var(--line);padding:8px 0;font-size:14px}
+.me:first-of-type{border-top:0}
+.me small{color:var(--mute)}
+.me .nb{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.me .nb span{background:var(--hit);border-radius:12px;padding:2px 9px;font-size:12px;font-weight:700}
+#rm,#md{z-index:30}
+#fs{z-index:40}
+.rr{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rr .t{flex:1;min-width:0}
+.rr button{padding:6px 10px;border-radius:9px;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}
+.rr input[type=text],.rr input:not([type]){padding:6px;width:100%;margin-top:3px}
 </style>
 </head>
 <body>
@@ -340,7 +374,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="lgl"><button id="lgc">Cancelar</button><button id="lgr">Esqueci a senha</button></div>
 </div></div>
 <div class="ov" id="sp" role="dialog" aria-modal="true" aria-labelledby="spt"><div class="sw">
-  <div class="stop"><h2 id="spt">Painel do supervisor</h2><button id="spr">Relatórios</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button></div>
+  <div class="stop"><h2 id="spt">Painel do supervisor</h2><button id="spr">Relatórios</button><button id="sprt">Rota do motorista</button><button id="spen">Entregas</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button></div>
   <div class="ctl"><button id="spa" aria-label="Dia anterior">◀</button><span class="dl" id="spd"></span><button id="spn" aria-label="Próximo dia">▶</button><button id="sph">Hoje</button>
     <span style="flex:1"></span><button id="smd" aria-pressed="true">Dia</button><button id="sms" aria-pressed="false">Semana</button></div>
   <p class="msg" id="spm" style="margin:0 2px 10px"></p>
@@ -348,7 +382,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
-      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="supervisor">Supervisor</option></select></label>
+      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="supervisor">Supervisor</option></select></label>
       <label>Nome<input id="nvn" autocapitalize="characters"></label>
       <label>E-mail<input id="nve" type="email" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
@@ -374,6 +408,30 @@ body.trv #edbar{border-color:#0b7a75}
   <div id="sdc"></div>
   <div class="acts" style="margin-top:10px"><button id="sdp">JPG do pedido</button><button id="sdtr">JPG da troca</button><button id="sdcp">Copiar resumo</button></div>
   <p class="msg" id="sdm" style="margin:6px 2px 0"></p>
+</div></div>
+<div class="ov" id="mot" role="dialog" aria-modal="true" aria-labelledby="mott"><div class="sw">
+  <div class="stop"><h2 id="mott">Motorista</h2><button id="motr">Atualizar</button><button id="mots">Sair</button></div>
+  <p class="msg" id="motm" style="margin:0 2px 10px"></p>
+  <div id="motc"></div>
+</div></div>
+<div class="ov" id="rm"><div class="box" style="max-width:760px">
+  <div class="hhead"><b>Rota do motorista</b><button id="rmx">Fechar</button></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0">
+    <label style="flex:1 1 140px;font-size:12px;color:var(--mute)">Dia<input id="rmd" type="date"></label>
+    <label style="flex:1 1 180px;font-size:12px;color:var(--mute)">Motorista<select id="rmm"></select></label></div>
+  <div class="sh">Pedidos prontos para faturar neste dia</div><div id="rmp"></div>
+  <div class="sh">Adicionar outra loja</div>
+  <div class="acts"><input id="rml" list="rmlist" placeholder="LOJA / CLIENTE" autocapitalize="characters" style="flex:2 1 160px"><datalist id="rmlist"></datalist><input id="rmu" inputmode="numeric" placeholder="un." style="flex:0 0 70px"><button id="rma" class="sec">Adicionar</button></div>
+  <div class="sh">Ordem da rota</div><div id="rmr"></div>
+  <div class="acts" style="margin-top:10px"><button id="rms">Salvar rota</button></div>
+  <p class="msg" id="rmg" style="margin:6px 2px 0"></p>
+</div></div>
+<div class="ov" id="md"><div class="box" style="max-width:760px">
+  <div class="hhead"><b>Entregas do dia</b><button id="mdx">Fechar</button></div>
+  <div class="acts" style="align-items:center"><button id="mda" aria-label="Dia anterior">◀</button><b id="mdt" style="flex:1;text-align:center"></b><button id="mdn" aria-label="Próximo dia">▶</button><button id="mdh">Hoje</button></div>
+  <div id="mdc"></div>
+  <div class="acts" style="margin-top:10px"><button id="mdj">Gerar relatório (JPG)</button></div>
+  <p class="msg" id="mdm" style="margin:6px 2px 0"></p>
 </div></div>
 <div id="toast" hidden role="status"></div>
 <div id="offb" role="status" hidden>Sem conexão · o pedido fica salvo no celular e sobe quando o sinal voltar</div>
@@ -986,7 +1044,7 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const sp=!!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer"));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":"Vendedor";
+const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[{id:"seed8020",conta:/^DILSON/,
@@ -1008,7 +1066,7 @@ function aplicaSeeds(){try{
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
-  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);aplicaSeeds()}
+  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);aplicaSeeds();motPronto()}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
   $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud);$("lgsll").textContent=mud?"Senha atual":"Senha";
@@ -1068,7 +1126,7 @@ function supDocs(){const hj=hojeISO(),dia=sup.modo==="dia",a=dia?sup.dia:semDe(s
         const x={...(ch.doc.data()||{}),uid,id:ch.doc.id},a=sup.docs[k];sup.docs[k]=x;
         if(sup.pronto[lk]&&x.status==="fechado"&&(!a||a.status!=="fechado"))supAviso(x,k);
         if(sup.pronto[lk]&&x.status==="faturar"&&(!a||a.status!=="faturar"))supAviso(x,k,"faturar");
-        if(sup.pronto[lk]&&a&&x.ini&&!a.ini)supAviso(x,k,"visita")});
+        if(sup.pronto[lk]&&a&&x.id.startsWith("p_")&&x.ini&&!a.ini)supAviso(x,k,"visita")});
       sup.pronto[lk]=true;supRender();if(sup.det&&sup.docs[sup.det])supDetalhe(sup.det,true)},()=>{})}))}
 function nomeV(uid){const v=sup.vend[uid]||{};return v.nome||v.email||"Vendedor"}
 function supAviso(x,k,tipo){const t=tipo==="faturar"?"Pronto para faturar · "+nomeV(x.uid)+" · "+x.cliente+" · "+(x.ped||0)+" un.":tipo==="visita"?"Visita iniciada · "+nomeV(x.uid)+" · "+x.cliente:"Pedido fechado · "+nomeV(x.uid)+" · "+x.cliente+" · "+(x.ped||0)+" un.";
@@ -1088,7 +1146,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
     ["Pedidos fechados",fech.length,L.filter(x=>x.status==="rascunho"&&x.ped>0).length+" em rascunho"],["Unidades pedidas",un,(n=>n+(n===1?" loja":" lojas"))(L.filter(x=>x.ped>0).length)],["Trocas",tr+" un.",un?Math.round(tr/un*100)+"% do pedido":"—"]];
   $("spk").innerHTML=kp.map(([a,b,c])=>"<div><small>"+esc(a)+"</small><b>"+esc(b)+"</b><span>"+esc(c)+"</span></div>").join("");
   const V=$("spv");V.innerHTML="";
-  const uids=Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
+  const uids=Object.keys(sup.vend).filter(u=>(sup.vend[u]||{}).papel!=="motorista").sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   if(!uids.length)V.innerHTML='<div class="vazio">Nenhum vendedor cadastrado ainda. Peça para cada um criar a conta no app.</div>';
   uids.forEach(uid=>{const v=sup.vend[uid]||{},mine=todos.filter(x=>x.uid===uid),hoje=Object.values(sup.docs).filter(x=>x.uid===uid&&x.id.startsWith("p_")&&x.data===hj);
     const ab=hoje.find(x=>x.ini&&!x.fim),ult=Math.max(0,...hoje.map(x=>x.ts||0));
@@ -1115,8 +1173,8 @@ function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=f
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["supervisor","Supervisor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
-    sel.value=["promotor","supervisor"].includes(v.papel)?v.papel:"vendedor";
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["supervisor","Supervisor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    sel.value=["promotor","motorista","supervisor"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
       try{await fbAuth.sendPasswordResetEmail(v.email);rs.textContent="E-mail enviado"}catch(e){rs.textContent="Falhou"}};
@@ -1157,7 +1215,7 @@ $("nvb").onclick=async()=>{const b=$("nvb"),m=$("nvm"),nome=U($("nvn").value).tr
     await a2.signOut();
     const ref=fbDb.collection("vendedores").doc(uid),ex=await ref.get().catch(()=>null);
     if(ex&&ex.exists){m.textContent="Esse e-mail já tem acesso liberado"+(ex.data().nome?" ("+ex.data().nome+")":"")+". Veja na lista acima.";return}
-    await ref.set({nome,email:em,papel:(["supervisor","promotor"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
+    await ref.set({nome,email:em,papel:(["supervisor","promotor","motorista"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
     m.textContent=(jaTinha?"Acesso liberado para ":"Acesso criado para ")+nome+". Passe a ela: "+em+" · senha "+se;$("nvn").value="";$("nve").value="";$("nvs").value="";$("nvr").hidden=true}
   catch(e){m.textContent=erroTxt(e)}
   finally{b.disabled=false;b.textContent="Criar acesso"}};
@@ -2022,7 +2080,204 @@ function pintaOff(){pintaBarras()}
 window.addEventListener("online",()=>{pintaOff();try{agendaNuvem()}catch(e){}});
 window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
-const VER="58";
+
+// ===== Perfil motorista: home com horários, marcações e observações =====
+const mot={dia:"",rota:null,reg:{},uR:null,uM:null,fotos:{},adiado:false,fq:{}};
+const ehMot=()=>!!(perfil&&perfil.papel==="motorista"&&fbDb&&fbAuth&&fbAuth.currentUser);
+const fmtMin=m=>m>=60?Math.floor(m/60)+"h"+String(m%60).padStart(2,"0"):m+" min";
+const minEnt=(a,b)=>a&&b&&b>a?Math.round((b-a)/60000):0;
+function motPronto(){if(!ehMot()){motDesliga();return}motAbrir()}
+function motAbrir(){if(!ehMot())return;const uid=fbAuth.currentUser.uid,hj=hojeISO();
+  if(mot.dia!==hj||!mot.uR){motDesliga(true);mot.dia=hj;
+    mot.uR=fbDb.collection("rotas").doc(hj+"_"+uid).onSnapshot(sn=>{mot.rota=sn.exists?sn.data():null;motRender()},()=>{$("motm").textContent="Sem permissão para ler a rota. Peça para atualizar as regras do banco."});
+    mot.uM=fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+hj).onSnapshot(sn=>{mot.reg=sn.exists?(sn.data()||{}):{};motRender()},()=>{})}
+  $("mot").classList.add("on");motRender()}
+function motDesliga(manter){["uR","uM"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});mot.rota=null;mot.reg={};if(!manter)$("mot").classList.remove("on")}
+setInterval(()=>{if($("mot").classList.contains("on")&&mot.dia&&mot.dia!==hojeISO())motAbrir()},300000);
+function motGrava(patch){if(!ehMot())return;const uid=fbAuth.currentUser.uid;
+  $("motm").textContent="";
+  return fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+mot.dia).set({data:mot.dia,ts:Date.now(),tipo:"motorista",vendedor:perfil.nome||"",...patch},{merge:true})
+    .catch(e=>{$("motm").textContent="Não consegui salvar ("+(e.code||e.message)+"). Se estiver sem sinal, fica na fila e envia quando voltar."})}
+const motP=(sid,o)=>motGrava({p:{[sid]:o}});
+function motBtn(rot,val,aoMarcar,aoLimpar,extra){const b=document.createElement("button");
+  const sp=document.createElement("span"),bb=document.createElement("b");sp.textContent=rot;bb.textContent=val?hhDe(val):"—";b.append(sp,bb);
+  if(val)b.classList.add("on");if(extra)b.classList.add(extra);
+  b.onclick=()=>{if(!val){aoMarcar();return}
+    if(b.dataset.c!=="1"){b.dataset.c="1";sp.textContent="Corrigir? Toque de novo";setTimeout(()=>{if(b.dataset.c==="1"){b.dataset.c="";sp.textContent=rot}},3000);return}
+    b.dataset.c="";aoLimpar()};
+  return b}
+function motFoto(sid,file){const uid=fbAuth.currentUser.uid;
+  return new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(file);
+    im.onload=()=>{URL.revokeObjectURL(u);const m=1000,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height);let q=0.65,d=c.toDataURL("image/jpeg",q);while(d.length>650000&&q>0.3){q-=0.1;d=c.toDataURL("image/jpeg",q)}
+      mot.fotos[sid]=d;
+      fbDb.collection("vendedores/"+uid+"/fotos").doc(mot.dia+"_"+sid).set({j:d,ts:Date.now(),data:mot.dia,sid}).catch(e=>{$("motm").textContent="Não consegui enviar a foto ("+(e.code||e.message)+")."});
+      motP(sid,{ft:Date.now()});motRender();ok()};
+    im.onerror=()=>{URL.revokeObjectURL(u);$("motm").textContent="Não consegui ler essa foto.";ok()};im.src=u})}
+function motCarregaFoto(sid){if(mot.fotos[sid]||mot.fq[sid])return;mot.fq[sid]=1;const uid=fbAuth.currentUser.uid;
+  fbDb.collection("vendedores/"+uid+"/fotos").doc(mot.dia+"_"+sid).get().then(sn=>{if(sn.exists){mot.fotos[sid]=(sn.data()||{}).j;motRender()}}).catch(()=>{})}
+function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
+  const a=document.activeElement;if(a&&$("motc").contains(a)&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.type!=="checkbox"&&a.type!=="file"){mot.adiado=true;return}
+  mot.adiado=false;
+  $("mott").textContent="Motorista: "+U(perfil&&perfil.nome||"");
+  const C=$("motc"),R=mot.rota,reg=mot.reg||{},PP=reg.p||{};C.innerHTML="";
+  const card=(cls)=>{const d=document.createElement("div");d.className="mc"+(cls?" "+cls:"");return d};
+  // início da rota
+  const c0=card(reg.ini?"ok":"");c0.innerHTML="<h3>Rota de hoje · "+esc(dBR(mot.dia))+"</h3><span class='ms'>"+(R&&R.paradas&&R.paradas.length?R.paradas.length+(R.paradas.length===1?" parada":" paradas"):"Nenhuma parada montada ainda")+"</span>";
+  const g0=document.createElement("div");g0.className="mb";
+  g0.appendChild(motBtn("▶ Início da rota (check-in)",reg.ini,()=>motGrava({ini:Date.now()}),()=>motGrava({ini:0}),"big"));
+  c0.appendChild(g0);C.appendChild(c0);
+  if(!(R&&R.paradas&&R.paradas.length)){const v=document.createElement("div");v.className="vazio";v.textContent="O supervisor ainda não montou a sua rota de hoje. Toque em Atualizar daqui a pouco.";C.appendChild(v)}
+  ((R&&R.paradas)||[]).forEach((s,i)=>{const r=PP[s.id]||{},c=card(r.s?"ok":"");
+    c.innerHTML="<h3>"+(i+1)+". "+esc(s.cliente||"Loja")+"</h3><span class='ms'>"+esc([s.ped?s.ped+" un.":"",s.ob||""].filter(Boolean).join(" · "))+(r.c&&r.s?(" · "+fmtMin(minEnt(r.c,r.s))+" na loja"):"")+"</span>";
+    const g=document.createElement("div");g.className="mb";
+    g.append(motBtn("Chegada na loja",r.c,()=>motP(s.id,{c:Date.now()}),()=>motP(s.id,{c:0})),
+             motBtn("Passagem da nota",r.n,()=>motP(s.id,{n:Date.now()}),()=>motP(s.id,{n:0})),
+             motBtn("Saída da loja",r.s,()=>motP(s.id,{s:Date.now()}),()=>motP(s.id,{s:0})));
+    c.appendChild(g);
+    const mk=document.createElement("div");mk.className="mk";
+    [["est","Estoque"],["ex","Ponto extra"],["tl","Telas coletadas"]].forEach(([k,t])=>{const l=document.createElement("label"),i2=document.createElement("input");i2.type="checkbox";i2.checked=!!r[k];l.className=r[k]?"on":"";
+      i2.onchange=()=>motP(s.id,{[k]:i2.checked});l.append(i2,document.createTextNode(t));mk.appendChild(l)});
+    c.appendChild(mk);
+    if(r.tl){const t=document.createElement("div");t.className="mt";
+      const n=document.createElement("input");n.inputMode="numeric";n.placeholder="Nº de telas";n.setAttribute("aria-label","Número de telas coletadas");n.value=r.tn>0?r.tn:"";
+      n.onchange=()=>motP(s.id,{tn:Math.max(0,parseInt(n.value)||0)});
+      const fb=document.createElement("button");fb.textContent=r.ft?"📷 Trocar foto":"📷 Foto das telas";
+      const fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.setAttribute("capture","environment");fi.hidden=true;
+      fb.onclick=()=>fi.click();fi.onchange=()=>{if(fi.files&&fi.files[0]){fb.textContent="Enviando…";motFoto(s.id,fi.files[0])}};
+      t.append(n,fb,fi);c.appendChild(t);
+      if(r.ft){motCarregaFoto(s.id);if(mot.fotos[s.id]){const d=document.createElement("div");d.className="mf";const im=document.createElement("img");im.src=mot.fotos[s.id];im.alt="Foto das telas";d.appendChild(im);c.appendChild(d)}}}
+    const ob=document.createElement("textarea");ob.placeholder="Observações desta parada";ob.value=r.ob||"";ob.onchange=()=>motP(s.id,{ob:ob.value.trim()});c.appendChild(ob);
+    C.appendChild(c)});
+  // chegada na empresa = último check-out + observações do dia
+  const c9=card(reg.fim?"ok":"");c9.innerHTML="<h3>Chegada na empresa</h3><span class='ms'>"+(reg.ini&&reg.fim?"Rota de "+fmtMin(minEnt(reg.ini,reg.fim)):"Último check-out: toque ao chegar na fábrica")+"</span>";
+  const g9=document.createElement("div");g9.className="mb";g9.appendChild(motBtn("🏁 Cheguei na empresa (fim da rota)",reg.fim,()=>motGrava({fim:Date.now()}),()=>motGrava({fim:0}),"big"));c9.appendChild(g9);
+  const ob9=document.createElement("textarea");ob9.placeholder="Observações do dia";ob9.value=reg.obs||"";ob9.onchange=()=>motGrava({obs:ob9.value.trim()});c9.appendChild(ob9);
+  C.appendChild(c9)}
+document.addEventListener("focusout",()=>{setTimeout(()=>{if(mot.adiado)motRender()},150)});
+$("motr").onclick=()=>{mot.dia="";motAbrir()};
+$("mots").onclick=async()=>{const b=$("mots");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
+  b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
+  if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;motDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
+
+// ===== Supervisor: montar a rota do motorista =====
+const rm={dia:"",mot:"",paradas:[]};
+const motoristas=()=>Object.keys(sup.vend).filter(u=>(sup.vend[u]||{}).papel==="motorista"&&(sup.vend[u]||{}).ativo!==false).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
+function rmAbrir(){if(!ehSup())return;rm.dia=sup.dia||hojeISO();$("rmd").value=rm.dia;const M=motoristas(),sl=$("rmm");sl.innerHTML="";
+  M.forEach(u=>{const o=document.createElement("option");o.value=u;o.textContent=nomeV(u);sl.appendChild(o)});
+  if(!M.length){const o=document.createElement("option");o.value="";o.textContent="Nenhum motorista cadastrado";sl.appendChild(o)}
+  rm.mot=M.includes(rm.mot)?rm.mot:(M[0]||"");sl.value=rm.mot;
+  const dl=$("rmlist");dl.innerHTML="";(clientes||[]).forEach(c=>{const o=document.createElement("option");o.value=c.nome;dl.appendChild(o)});
+  $("rmg").textContent=M.length?"":"Crie um acesso com perfil Motorista em Gerenciar acessos.";
+  $("rm").classList.add("on");rmCarrega()}
+async function rmCarrega(){rm.paradas=[];rmRender();if(!rm.mot||!rm.dia)return;
+  try{const sn=await fbDb.collection("rotas").doc(rm.dia+"_"+rm.mot).get();rm.paradas=sn.exists?((sn.data()||{}).paradas||[]):[]}catch(e){$("rmg").textContent="Não consegui ler a rota salva ("+(e.code||e.message)+")."}
+  rmRender()}
+function rmProntos(){return Object.values(sup.docs).filter(x=>x.id.startsWith("p_")&&x.data===rm.dia&&(x.status==="faturar"||(x.status==="alterado"&&x.fat))&&(x.ped||0)>0)
+  .sort((a,b)=>(a.cliente||"").localeCompare(b.cliente||"","pt-BR"))}
+function rmRender(){if(!$("rm").classList.contains("on"))return;
+  if(document.activeElement&&$("rm").contains(document.activeElement)&&/INPUT/.test(document.activeElement.tagName)&&document.activeElement.type==="text")return;
+  const P=$("rmp");P.innerHTML="";const L=rmProntos();
+  if(!L.length)P.innerHTML='<div class="vazio">Nenhum pedido pronto para faturar neste dia.</div>';
+  L.forEach(x=>{const sid="o_"+x.id,on=rm.paradas.some(p=>p.id===sid);const l=document.createElement("label");l.className="rr";
+    const c=document.createElement("input");c.type="checkbox";c.checked=on;c.style.cssText="width:22px;height:22px;flex:none";
+    c.onchange=()=>{if(c.checked){if(!rm.paradas.some(p=>p.id===sid))rm.paradas.push({id:sid,cliente:x.cliente||"",ped:x.ped||0,ref:x.uid+"/"+x.id,ob:""})}else rm.paradas=rm.paradas.filter(p=>p.id!==sid);rmRender()};
+    const t=document.createElement("span");t.className="t";t.textContent=(x.cliente||"(sem loja)")+" · "+nomeV(x.uid).split(" ")[0]+" · "+(x.ped||0)+" un.";l.append(c,t);P.appendChild(l)});
+  const R=$("rmr");R.innerHTML="";
+  if(!rm.paradas.length)R.innerHTML='<div class="vazio">Nenhuma parada ainda. Marque pedidos acima ou adicione uma loja.</div>';
+  rm.paradas.forEach((p,i)=>{const d=document.createElement("div");d.className="rr";d.style.alignItems="flex-start";
+    const t=document.createElement("div");t.className="t";const h=document.createElement("b");h.textContent=(i+1)+". "+p.cliente+(p.ped?" · "+p.ped+" un.":"");t.appendChild(h);
+    const ob=document.createElement("input");ob.type="text";ob.placeholder="Recado para o motorista (opcional)";ob.value=p.ob||"";ob.onchange=()=>{p.ob=ob.value.trim()};t.appendChild(ob);
+    const mv=(k)=>{const j=i+k;if(j<0||j>=rm.paradas.length)return;[rm.paradas[i],rm.paradas[j]]=[rm.paradas[j],rm.paradas[i]];rmRender()};
+    const up=document.createElement("button");up.textContent="▲";up.setAttribute("aria-label","Subir");up.onclick=()=>mv(-1);
+    const dn=document.createElement("button");dn.textContent="▼";dn.setAttribute("aria-label","Descer");dn.onclick=()=>mv(1);
+    const rx=document.createElement("button");rx.textContent="✕";rx.setAttribute("aria-label","Remover");rx.onclick=()=>{rm.paradas.splice(i,1);rmRender()};
+    d.append(t,up,dn,rx);R.appendChild(d)})}
+$("sprt").onclick=rmAbrir;$("rmx").onclick=()=>$("rm").classList.remove("on");
+$("rmd").onchange=()=>{rm.dia=$("rmd").value||hojeISO();sup.dia=rm.dia;supDocs();supRender();rmCarrega()};
+$("rmm").onchange=()=>{rm.mot=$("rmm").value;rmCarrega()};
+$("rma").onclick=()=>{const n=U($("rml").value.trim());if(!n){$("rmg").textContent="Digite o nome da loja.";return}
+  rm.paradas.push({id:"v"+Date.now().toString(36),cliente:n,ped:Math.max(0,parseInt($("rmu").value)||0),ref:"",ob:""});$("rml").value="";$("rmu").value="";$("rmg").textContent="";rmRender()};
+$("rms").onclick=async()=>{if(!rm.mot){$("rmg").textContent="Escolha o motorista.";return}
+  try{await fbDb.collection("rotas").doc(rm.dia+"_"+rm.mot).set({data:rm.dia,uid:rm.mot,motorista:nomeV(rm.mot),paradas:rm.paradas.map(p=>({id:p.id,cliente:p.cliente,ped:p.ped||0,ref:p.ref||"",ob:p.ob||""})),por:perfil?perfil.nome:"",ts:Date.now()});
+    $("rmg").textContent="Rota salva. O motorista recebe na hora."}
+  catch(e){$("rmg").textContent="Não consegui salvar ("+(e.code||e.message)+"). Confira se as regras do banco foram atualizadas."}};
+
+// ===== Supervisor: linha do tempo das entregas e relatório do dia =====
+const md={key:"",u:null,rotas:{}};
+function mdLiga(){if(md.key===sup.dia&&md.u)return;if(md.u){md.u();md.u=null}md.key=sup.dia;md.rotas={};
+  md.u=fbDb.collection("rotas").where("data","==",sup.dia).onSnapshot(sn=>{md.rotas={};sn.docs.forEach(d=>{const x=d.data()||{};if(x.uid)md.rotas[x.uid]=x});mdRender()},()=>{})}
+function mdDados(){const out=[];
+  Object.keys(sup.vend).filter(u=>(sup.vend[u]||{}).papel==="motorista").forEach(u=>{
+    const reg=sup.docs[u+"/m_"+sup.dia],rota=md.rotas[u];if(!reg&&!rota)return;
+    const P=(reg&&reg.p)||{},ps=((rota&&rota.paradas)||[]).map(s=>({s,r:P[s.id]||{}}));
+    Object.keys(P).filter(k=>!ps.some(p=>p.s.id===k)).forEach(k=>ps.push({s:{id:k,cliente:"(parada fora da rota)"},r:P[k]}));
+    out.push({uid:u,nome:nomeV(u),reg:reg||{},ps})});
+  return out}
+function mdRender(){if(!$("md").classList.contains("on"))return;
+  $("mdt").textContent=(sup.dia===hojeISO()?"Hoje · ":"")+dBR(sup.dia);
+  const C=$("mdc");C.innerHTML="";const D=mdDados();
+  if(!D.length){C.innerHTML='<div class="vazio">Nenhuma rota ou registro de motorista neste dia.</div>';return}
+  D.forEach(m=>{const box=document.createElement("div");box.className="mc";const tot=minEnt(m.reg.ini,m.reg.fim);
+    box.innerHTML="<h3>"+esc(m.nome)+"</h3><span class='ms'>Início "+(m.reg.ini?hhDe(m.reg.ini):"—")+" · Chegada na empresa "+(m.reg.fim?hhDe(m.reg.fim):(m.reg.ini?"ainda na rua":"—"))+(tot?" · "+fmtMin(tot)+" de rota":"")+"</span>";
+    m.ps.forEach((p,i)=>{const r=p.r,e=document.createElement("div");e.className="me";const na=minEnt(r.c,r.s);
+      e.innerHTML="<b>"+(i+1)+". "+esc(p.s.cliente)+"</b>"+(p.s.ped?" <small>"+p.s.ped+" un.</small>":"")+"<br><small>Chegada "+(r.c?hhDe(r.c):"—")+" · Nota "+(r.n?hhDe(r.n):"—")+" · Saída "+(r.s?hhDe(r.s):"—")+(na?" · "+fmtMin(na)+" na loja":"")+"</small>";
+      const nb=document.createElement("div");nb.className="nb";
+      if(r.est){const x=document.createElement("span");x.textContent="Estoque";nb.appendChild(x)}
+      if(r.ex){const x=document.createElement("span");x.textContent="Ponto extra";nb.appendChild(x)}
+      if(r.tl){const x=document.createElement("span");x.textContent="Telas: "+(r.tn>0?r.tn:"sem número");nb.appendChild(x)}
+      if(r.ft){const b=document.createElement("button");b.textContent="📷 Ver foto";b.className="sec";b.style.cssText="padding:3px 10px;border-radius:12px;font-size:12px";b.onclick=()=>mdFoto(m.uid,p.s.id);nb.appendChild(b)}
+      if(nb.childNodes.length)e.appendChild(nb);
+      if(r.ob){const o=document.createElement("small");o.style.display="block";o.textContent="Obs.: "+r.ob;e.appendChild(o)}
+      box.appendChild(e)});
+    if(m.reg.obs){const o=document.createElement("div");o.className="me";o.innerHTML="<b>Observações do dia</b><br><small>"+esc(m.reg.obs)+"</small>";box.appendChild(o)}
+    C.appendChild(box)})}
+async function mdFoto(uid,sid){$("mdm").textContent="Abrindo foto…";
+  try{const sn=await fbDb.collection("vendedores/"+uid+"/fotos").doc(sup.dia+"_"+sid).get();
+    if(sn.exists&&(sn.data()||{}).j){$("fsimg").src=sn.data().j;$("fs").classList.add("on");$("mdm").textContent=""}else $("mdm").textContent="Foto não encontrada."}
+  catch(e){$("mdm").textContent="Não consegui abrir a foto ("+(e.code||e.message)+")."}}
+function mdAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("mdm").textContent="";$("md").classList.add("on");mdLiga();mdRender()}
+$("spen").onclick=mdAbrir;$("mdx").onclick=()=>$("md").classList.remove("on");
+const mdMove=d=>{sup.dia=d;supDocs();supRender();mdLiga();mdRender()};
+$("mda").onclick=()=>mdMove(addD(sup.dia,-1));$("mdn").onclick=()=>mdMove(addD(sup.dia,1));$("mdh").onclick=()=>mdMove(hojeISO());
+const _supRender0=supRender;supRender=function(){_supRender0();try{rmRender();mdRender()}catch(e){}};
+function desenharEntregas(logo,D,dia){
+  const W=1400,M=45,tw=W-2*M,RH=62,C=[["LOJA",390],["CHEGADA",125],["NOTA",125],["SAÍDA",125],["TEMPO",115],["MARCAÇÕES / OBSERVAÇÕES",430]];
+  const nL=D.reduce((a,m)=>a+Math.max(1,m.ps.length),0),H=M+150+40+D.length*(60+50+20+(0))+nL*RH+(D.some(m=>m.reg.obs)?D.length*50:0)+110;
+  const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);
+  x.strokeStyle=AZ;x.lineWidth=4;rr(x,M,M,tw,150,22);x.stroke();
+  if(logo){const h=120,w=h*logo.width/logo.height;x.drawImage(logo,M+22,M+15,w,h)}
+  x.textAlign="right";x.fillStyle=AZ;x.font="800 50px "+FT;x.fillText("ENTREGAS DO DIA",W-M-28,M+80);
+  x.fillStyle="#5b6b8c";x.font="700 24px "+FT;x.fillText(dBR(dia)+" · Max Pães",W-M-28,M+120);
+  const fit=(t,mw)=>{t=String(t||"");while(x.measureText(t).width>mw&&t.length>1)t=t.slice(0,-1);return t};
+  let y=M+150+40,cx=M;const X=C.map(([,w])=>{const v=cx;cx+=w;return v});
+  D.forEach(m=>{
+    x.textAlign="left";x.fillStyle=TX;x.font="800 30px "+FT;x.fillText(m.nome,M,y+30);
+    const tot=minEnt(m.reg.ini,m.reg.fim);x.fillStyle="#5b6b8c";x.font="700 22px "+FT;x.textAlign="right";
+    x.fillText("Início "+(m.reg.ini?hhDe(m.reg.ini):"—")+" · Chegada na empresa "+(m.reg.fim?hhDe(m.reg.fim):"—")+(tot?" · "+fmtMin(tot)+" de rota":""),W-M,y+30);y+=44;
+    x.fillStyle=AZ;rr(x,M,y,tw,50,12);x.fill();x.fillStyle="#fff";x.font="800 20px "+FT;x.textAlign="left";C.forEach(([t],i)=>x.fillText(t,X[i]+14,y+33));y+=50;
+    const rows=m.ps.length?m.ps:[{s:{cliente:"Sem paradas"},r:{}}];
+    rows.forEach((p,i)=>{const r=p.r;x.fillStyle=i%2?"#fff":"#f6f8fd";x.fillRect(M,y,tw,RH);
+      x.textAlign="left";x.fillStyle=TX;x.font="700 21px "+FT;x.fillText(fit((i+1)+". "+p.s.cliente,C[0][1]-24),X[0]+14,y+38);
+      x.font="700 21px "+FT;[r.c,r.n,r.s].forEach((v,k)=>{x.fillStyle=v?TX:"#8a96ad";x.fillText(v?hhDe(v):"—",X[k+1]+14,y+38)});
+      const na=minEnt(r.c,r.s);x.fillStyle=TX;x.fillText(na?fmtMin(na):"—",X[4]+14,y+38);
+      const mk=[r.est?"Estoque":"",r.ex?"Ponto extra":"",r.tl?"Telas: "+(r.tn>0?r.tn:"?")+(r.ft?" (foto)":""):""].filter(Boolean).join(" · ");
+      x.font="700 19px "+FT;x.fillStyle=AZ;x.fillText(fit(mk||"—",C[5][1]-24),X[5]+14,y+27);
+      if(r.ob){x.font="600 17px "+FT;x.fillStyle="#5b6b8c";x.fillText(fit("Obs.: "+r.ob,C[5][1]-24),X[5]+14,y+51)}
+      y+=RH});
+    if(m.reg.obs){x.textAlign="left";x.fillStyle="#5b6b8c";x.font="700 19px "+FT;x.fillText(fit("Observações do dia: "+m.reg.obs,tw),M,y+30);y+=50}
+    y+=20});
+  const c2=document.createElement("canvas");c2.width=W;c2.height=Math.min(H,y+20);c2.getContext("2d").drawImage(c,0,0);return c2}
+$("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent="Nada para gerar neste dia.";return}
+  const b=$("mdj");b.textContent="Gerando...";
+  try{await document.fonts.load("800 28px Archivo")}catch(e){}
+  try{const logo=await carregaImg(LOGO),c=desenharEntregas(logo,D,sup.dia);
+    const jb=await new Promise(r=>c.toBlob(r,"image/jpeg",0.92)),nome="entregas-"+sup.dia+".jpg";
+    ultimo={blob:jb,nome,pdf:pdfDeJpeg(new Uint8Array(await jb.arrayBuffer()),c.width,c.height,595,Math.round(595*c.height/c.width)),nomePdf:nome.replace(/\.jpg$/,".pdf"),url:c.toDataURL("image/jpeg",0.92)};
+    $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
+  catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
+  b.textContent="Gerar relatório (JPG)"};
+const VER="59";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
