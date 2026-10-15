@@ -1842,7 +1842,7 @@ function desenhar(sig,logo,m=mode){
   const x=c.getContext("2d");
   x.fillStyle="#fff";x.fillRect(0,0,W,H);
   cabecalho(x,W,P,logo,m==="troca"?"TROCA":"PEDIDO");
-  linhaVend(x,W,P);
+
   const tw=W-2*P,qw=150,th=RH*Math.max(lista.length,1);
   x.fillStyle=AZ;rr(x,P,T,tw,56,14);x.fill();
   x.fillStyle="#fff";x.font="800 22px "+FT;x.textAlign="center";x.fillText("QUANT.",P+qw/2,T+37);
@@ -2283,7 +2283,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="60";
+const VER="61";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
