@@ -1049,12 +1049,19 @@ const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="pro
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[{id:"seed8020",conta:/^DILSON/,
   cli:{nome:"TELEFRANGO REDENÇÃO",endereco:"REDENÇÃO-CE",comprador:""},data:"2026-10-13",quando:[2026,9,13,15,2],vendedor:"DILSON ALVES",
-  pedido:{"BOLO 500g":120,"PANETONE CHOCOLATE 400g":16,"PANETONE FRUTAS 400g":16,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 500g":14,"PÃO HAMBURGUER 400g":45,"PÃO HOT DOG 400g":16,"PÃO HOT DOG 550g":7,"PÃO DE FORMA INTEGRAL 500g":20,"PÃO BRIOCHE 400g":30,"PÃO GUARÚ 350g":20,"PÃO INTEGRAL MULTIGRÃOS 350g":5,"PÃO MULTIGRÃO S/ AÇÚCAR 350g":5}}];
+  pedido:{"BOLO 500g":120,"PANETONE CHOCOLATE 400g":16,"PANETONE FRUTAS 400g":16,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 500g":14,"PÃO HAMBURGUER 400g":45,"PÃO HOT DOG 400g":16,"PÃO HOT DOG 550g":7,"PÃO DE FORMA INTEGRAL 500g":20,"PÃO BRIOCHE 400g":30,"PÃO GUARÚ 350g":20,"PÃO INTEGRAL MULTIGRÃOS 350g":5,"PÃO MULTIGRÃO S/ AÇÚCAR 350g":5}},
+ {id:"seedNF94415",conta:/^(DILSON|WESLEY)/,atualiza:/lemos/,de:"2026-10-03",ate:"2026-10-10",
+  cli:{nome:"LEMOS SUPERMERCADO",endereco:"RUA PRETRORIO, 1749 - ATO ALEGRE II",comprador:""},data:"2026-10-09",quando:[2026,9,9,16,3],
+  pedido:{"BOLO 500g":32,"FARINHA DE ROSCA":6,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 400g":63,"PÃO HOT DOG 400g":16,"PÃO DE FORMA INTEGRAL 500g":25,"PÃO BRIOCHE 400g":10,"PÃO GUARÚ 350g":10,"PÃO INTEGRAL MULTIGRÃOS 350g":15,"PÃO DE REQUEIJÃO 330g":18}}];
 function aplicaSeeds(){try{
   if(!perfil||!perfil.nome)return;
   SEEDS.forEach(sd=>{
     if(!sd.conta.test(U(perfil.nome).trim())||lsG("mpv:seed:"+sd.id)==="1")return;
     lembraCli(sd.cli.nome,sd.cli.endereco,sd.cli.comprador);
+    if(sd.atualiza&&!hist.some(h=>h.id===sd.id)){
+      const ex=hist.filter(h=>sd.atualiza.test(norm(h.cliente))&&h.data>=sd.de&&h.data<=sd.ate).sort((a,b)=>b.ts-a.ts)[0];
+      if(ex){ex.pedido={...sd.pedido};ex.status="faturar";ex.fat=false;ex.snap="";ex.fechadoEm=ex.fechadoEm||ex.ts;ex.ts=Math.max(ex.ts,Date.now());
+        hist.sort((a,b)=>b.ts-a.ts);salvarHist();marcaPed(ex.id);try{renderHist()}catch(e){}lsS("mpv:seed:"+sd.id,"1");return}}
     if(!hist.some(h=>h.id===sd.id)){
       const t=new Date(...sd.quando).getTime();
       hist.unshift({id:sd.id,ts:t,status:"faturar",fat:false,snap:"",fechadoEm:t,vendedor:sd.vendedor,cliente:sd.cli.nome,endereco:sd.cli.endereco,comprador:sd.cli.comprador,data:sd.data,pedido:{...sd.pedido},troca:{},gondola:{},visita:novaVis(),assin:{pedido:"",troca:""}});
@@ -2283,7 +2290,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="61";
+const VER="62";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
