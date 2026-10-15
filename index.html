@@ -546,7 +546,7 @@ const chave2=t=>norm(t).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean).
 let apelidos={};
 const FIX_SRC={"AURISTELA 1":["SUPER AURISTELA 1","SUPERMERCADO AURISTELA 1"],"AURISTELA 2":["SUPER AURISTELA 2","SUPERMERCADO AURISTELA 2"],
   "PARENTE 1":["PARENTE ATACADISTA 1"],"PARENTE 2":["PARENTE ATACADISTA 2"],"ARAGÃO":["SUPER ARAGÃO","SUPERMERCADO ARAGÃO"],
-  "AGUIAR":["AGUIAR SUPERMERCADO","SUPERMERCADO AGUIAR"],"LEMOS":["SUPERMERCADO LEMOS","SUPER LEMOS"],"RIBAMAR":["SUPERMERCADO RIBAMAR","SUPER RIBAMAR"],
+  "AGUIAR":["AGUIAR SUPERMERCADO","SUPERMERCADO AGUIAR"],"LEMOS":["SUPERMERCADO LEMOS","SUPER LEMOS","LEMOS SUPERMERCADO"],"RIBAMAR":["SUPERMERCADO RIBAMAR","SUPER RIBAMAR"],
   "ARIMATÉIA":["SUPER ARIMATEIA ATARAREJO","SUPER ARIMATEIA","ARIMATEIA ATACAREJO"],"HORTI POTIRA":["HORT MERCADO PQ. POTIRA","HORTI MERCADO PQ. POTIRA","HORT MERCADO POTIRA","HORTI MERCADO POTIRA"],
   "HORTI DAMAS":["HORTI MERCADO DAMAS","HORT MERCADO DAMAS","HORT MERCADO JARDIM AMÉRICA","HORTI MERCADO JARDIM AMÉRICA"],"GODÔ":["GODÓ","GODO"],
   "SUPERMASTER":["SUPER MASTER"],"JK FRIOS":["J&A FRIOS","JEK FRIOS","J E K FRIOS","JK FRIOS"],"TELEFRANGO JOÃO XXIII":["TELEFRANGO JOAO XXIII"]};
@@ -577,8 +577,8 @@ function carregarCli(){
   salvaCli();listaCli();
 }
 function anterior(){
-  const c=norm($("cliente").value);if(!c)return null;const d=$("data").value;
-  return hist.filter(e=>e.id!==curId&&norm(e.cliente)===c&&soma(e.pedido)>0)
+  const K=t=>chave2(canon(t)),c=K($("cliente").value);if(!c)return null;
+  return hist.filter(e=>e.id!==curId&&K(e.cliente)===c&&soma(e.pedido)>0)
     .sort((a,b)=>(b.data||"").localeCompare(a.data||"")||b.ts-a.ts)[0]||null;
 }
 function apoio(){
@@ -1051,7 +1051,7 @@ const SEEDS=[{id:"seed8020",conta:/^DILSON/,
   cli:{nome:"TELEFRANGO REDENÇÃO",endereco:"REDENÇÃO-CE",comprador:""},data:"2026-10-13",quando:[2026,9,13,15,2],vendedor:"DILSON ALVES",
   pedido:{"BOLO 500g":120,"PANETONE CHOCOLATE 400g":16,"PANETONE FRUTAS 400g":16,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 500g":14,"PÃO HAMBURGUER 400g":45,"PÃO HOT DOG 400g":16,"PÃO HOT DOG 550g":7,"PÃO DE FORMA INTEGRAL 500g":20,"PÃO BRIOCHE 400g":30,"PÃO GUARÚ 350g":20,"PÃO INTEGRAL MULTIGRÃOS 350g":5,"PÃO MULTIGRÃO S/ AÇÚCAR 350g":5}},
  {id:"seedNF94415",conta:/^(DILSON|WESLEY)/,atualiza:/lemos/,de:"2026-10-03",ate:"2026-10-10",
-  cli:{nome:"LEMOS SUPERMERCADO",endereco:"RUA PRETRORIO, 1749 - ATO ALEGRE II",comprador:""},data:"2026-10-09",quando:[2026,9,9,16,3],
+  cli:{nome:"LEMOS",endereco:"RUA PRETRORIO, 1749 - ATO ALEGRE II",comprador:""},data:"2026-10-09",quando:[2026,9,9,16,3],
   pedido:{"BOLO 500g":32,"FARINHA DE ROSCA":6,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 400g":63,"PÃO HOT DOG 400g":16,"PÃO DE FORMA INTEGRAL 500g":25,"PÃO BRIOCHE 400g":10,"PÃO GUARÚ 350g":10,"PÃO INTEGRAL MULTIGRÃOS 350g":15,"PÃO DE REQUEIJÃO 330g":18}}];
 function aplicaSeeds(){try{
   if(!perfil||!perfil.nome)return;
@@ -2290,7 +2290,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="62";
+const VER="63";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
