@@ -2141,15 +2141,16 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   mot.adiado=false;
   $("mott").textContent="Motorista: "+U(perfil&&perfil.nome||"");
   const C=$("motc"),R=mot.rota,reg=mot.reg||{},PP=reg.p||{};C.innerHTML="";
+  const LST=((R&&R.paradas)||[]).concat((reg.x||[]).map(e=>({id:e.id,cliente:e.cliente,ped:0,ob:"",extra:1})));
   const card=(cls)=>{const d=document.createElement("div");d.className="mc"+(cls?" "+cls:"");return d};
   // início da rota
-  const c0=card(reg.ini?"ok":"");c0.innerHTML="<h3>Rota de hoje · "+esc(dBR(mot.dia))+"</h3><span class='ms'>"+(R&&R.paradas&&R.paradas.length?R.paradas.length+(R.paradas.length===1?" parada":" paradas"):"Nenhuma parada montada ainda")+"</span>";
+  const c0=card(reg.ini?"ok":"");c0.innerHTML="<h3>Rota de hoje · "+esc(dBR(mot.dia))+"</h3><span class='ms'>"+(LST.length?LST.length+(LST.length===1?" parada":" paradas"):"Nenhuma parada montada ainda")+"</span>";
   const g0=document.createElement("div");g0.className="mb";
   g0.appendChild(motBtn("▶ Início da rota (check-in)",reg.ini,()=>motGrava({ini:Date.now()}),()=>motGrava({ini:0}),"big"));
   c0.appendChild(g0);C.appendChild(c0);
-  if(!(R&&R.paradas&&R.paradas.length)){const v=document.createElement("div");v.className="vazio";v.textContent="O supervisor ainda não montou a sua rota de hoje. Toque em Atualizar daqui a pouco.";C.appendChild(v)}
-  ((R&&R.paradas)||[]).forEach((s,i)=>{const r=PP[s.id]||{},c=card(r.s?"ok":"");
-    c.innerHTML="<h3>"+(i+1)+". "+esc(s.cliente||"Loja")+"</h3><span class='ms'>"+esc([s.ped?s.ped+" un.":"",s.ob||""].filter(Boolean).join(" · "))+(r.c&&r.s?(" · "+fmtMin(minEnt(r.c,r.s))+" na loja"):"")+"</span>";
+  if(!LST.length){const v=document.createElement("div");v.className="vazio";v.textContent="O supervisor ainda não montou a sua rota de hoje. Toque em Atualizar daqui a pouco ou acrescente uma loja abaixo.";C.appendChild(v)}
+  LST.forEach((s,i)=>{const r=PP[s.id]||{},c=card(r.s?"ok":"");
+    c.innerHTML="<h3>"+(i+1)+". "+esc(s.cliente||"Loja")+"</h3><span class='ms'>"+esc([s.extra?"Loja extra":"",s.ped?s.ped+" un.":"",s.ob||""].filter(Boolean).join(" · "))+(r.c&&r.s?(" · "+fmtMin(minEnt(r.c,r.s))+" na loja"):"")+"</span>";
     const g=document.createElement("div");g.className="mb";
     g.append(motBtn("Chegada na loja",r.c,()=>motP(s.id,{c:Date.now()}),()=>motP(s.id,{c:0})),
              motBtn("Passagem da nota",r.n,()=>motP(s.id,{n:Date.now()}),()=>motP(s.id,{n:0})),
@@ -2168,7 +2169,23 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
       t.append(n,fb,fi);c.appendChild(t);
       if(r.ft){motCarregaFoto(s.id);if(mot.fotos[s.id]){const d=document.createElement("div");d.className="mf";const im=document.createElement("img");im.src=mot.fotos[s.id];im.alt="Foto das telas";d.appendChild(im);c.appendChild(d)}}}
     const ob=document.createElement("textarea");ob.placeholder="Observações desta parada";ob.value=r.ob||"";ob.onchange=()=>motP(s.id,{ob:ob.value.trim()});c.appendChild(ob);
+    if(s.extra&&!(r.c||r.n||r.s)){const rx=document.createElement("button");rx.className="sec";rx.textContent="Remover esta loja";rx.style.marginTop="8px";
+      rx.onclick=()=>{if(rx.dataset.c!=="1"){rx.dataset.c="1";rx.textContent="Confirmar remoção?";setTimeout(()=>{rx.dataset.c="";rx.textContent="Remover esta loja"},3000);return}
+        motGrava({x:(reg.x||[]).filter(e=>e.id!==s.id)})};c.appendChild(rx)}
     C.appendChild(c)});
+  // acrescentar loja pela pesquisa
+  {const ca=card(),h=document.createElement("h3");h.textContent="Acrescentar loja";ca.appendChild(h);
+   const sp=document.createElement("span");sp.className="ms";sp.textContent="Pesquise pelo nome ou digite uma loja nova.";ca.appendChild(sp);
+   const row=document.createElement("div");row.className="mt";
+   const inp=document.createElement("input");inp.type="text";inp.placeholder="Nome da loja";inp.setAttribute("list","motl");inp.setAttribute("aria-label","Pesquisar loja");inp.autocomplete="off";inp.style.cssText="flex:1;min-width:160px;width:auto";
+   const dl=document.createElement("datalist");dl.id="motl";
+   const nomes=new Set();((R&&R.lista)||[]).forEach(n=>nomes.add(n));(clientes||[]).forEach(c=>nomes.add(c.nome));
+   [...nomes].sort((a,b)=>String(a).localeCompare(String(b),"pt-BR")).forEach(n=>{const o=document.createElement("option");o.value=n;dl.appendChild(o)});
+   const bt=document.createElement("button");bt.textContent="+ Adicionar";
+   const add=()=>{const n=U(inp.value.trim());if(!n)return;
+     motGrava({x:(reg.x||[]).concat([{id:"x"+Date.now().toString(36),cliente:n}])});inp.value=""};
+   bt.onclick=add;inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();add()}};
+   row.append(inp,bt,dl);ca.appendChild(row);C.appendChild(ca)}
   // chegada na empresa = último check-out + observações do dia
   const c9=card(reg.fim?"ok":"");c9.innerHTML="<h3>Chegada na empresa</h3><span class='ms'>"+(reg.ini&&reg.fim?"Rota de "+fmtMin(minEnt(reg.ini,reg.fim)):"Último check-out: toque ao chegar na fábrica")+"</span>";
   const g9=document.createElement("div");g9.className="mb";g9.appendChild(motBtn("🏁 Cheguei na empresa (fim da rota)",reg.fim,()=>motGrava({fim:Date.now()}),()=>motGrava({fim:0}),"big"));c9.appendChild(g9);
@@ -2219,7 +2236,7 @@ $("rmm").onchange=()=>{rm.mot=$("rmm").value;rmCarrega()};
 $("rma").onclick=()=>{const n=U($("rml").value.trim());if(!n){$("rmg").textContent="Digite o nome da loja.";return}
   rm.paradas.push({id:"v"+Date.now().toString(36),cliente:n,ped:Math.max(0,parseInt($("rmu").value)||0),ref:"",ob:""});$("rml").value="";$("rmu").value="";$("rmg").textContent="";rmRender()};
 $("rms").onclick=async()=>{if(!rm.mot){$("rmg").textContent="Escolha o motorista.";return}
-  try{await fbDb.collection("rotas").doc(rm.dia+"_"+rm.mot).set({data:rm.dia,uid:rm.mot,motorista:nomeV(rm.mot),paradas:rm.paradas.map(p=>({id:p.id,cliente:p.cliente,ped:p.ped||0,ref:p.ref||"",ob:p.ob||""})),por:perfil?perfil.nome:"",ts:Date.now()});
+  try{await fbDb.collection("rotas").doc(rm.dia+"_"+rm.mot).set({data:rm.dia,uid:rm.mot,motorista:nomeV(rm.mot),lista:(clientes||[]).map(c=>c.nome).slice(0,1500),paradas:rm.paradas.map(p=>({id:p.id,cliente:p.cliente,ped:p.ped||0,ref:p.ref||"",ob:p.ob||""})),por:perfil?perfil.nome:"",ts:Date.now()});
     $("rmg").textContent="Rota salva. O motorista recebe na hora."}
   catch(e){$("rmg").textContent="Não consegui salvar ("+(e.code||e.message)+"). Confira se as regras do banco foram atualizadas."}};
 
@@ -2231,6 +2248,7 @@ function mdDados(){const out=[];
   Object.keys(sup.vend).filter(u=>(sup.vend[u]||{}).papel==="motorista").forEach(u=>{
     const reg=sup.docs[u+"/m_"+sup.dia],rota=md.rotas[u];if(!reg&&!rota)return;
     const P=(reg&&reg.p)||{},ps=((rota&&rota.paradas)||[]).map(s=>({s,r:P[s.id]||{}}));
+    ((reg&&reg.x)||[]).forEach(e=>ps.push({s:{id:e.id,cliente:e.cliente+" (extra)"},r:P[e.id]||{}}));
     Object.keys(P).filter(k=>!ps.some(p=>p.s.id===k)).forEach(k=>ps.push({s:{id:k,cliente:"(parada fora da rota)"},r:P[k]}));
     out.push({uid:u,nome:nomeV(u),reg:reg||{},ps})});
   return out}
@@ -2297,7 +2315,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="66";
+const VER="67";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
