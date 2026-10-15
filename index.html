@@ -1053,7 +1053,7 @@ const SEEDS=[{id:"seed8020",conta:/^DILSON/,
  {id:"seedNF94415",conta:/^(DILSON|WESLEY)/,atualiza:/lemos/,de:"2026-10-03",ate:"2026-10-10",
   cli:{nome:"LEMOS",endereco:"RUA PRETRORIO, 1749 - ATO ALEGRE II",comprador:""},data:"2026-10-09",quando:[2026,9,9,16,3],
   pedido:{"BOLO 500g":32,"FARINHA DE ROSCA":6,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 400g":63,"PÃO HOT DOG 400g":16,"PÃO DE FORMA INTEGRAL 500g":25,"PÃO BRIOCHE 400g":10,"PÃO GUARÚ 350g":10,"PÃO INTEGRAL MULTIGRÃOS 350g":15,"PÃO DE REQUEIJÃO 330g":18}},
- {id:"seedPassare1015",conta:/^(DILSON|WESLEY)/,
+ {id:"seedPassare1015b",conta:/./,semSup:true,evita:"seedPassare1015",agora:true,status:"fechado",
   cli:{nome:"TELEFRANGO PASSARÉ",endereco:"",comprador:""},data:"2026-10-15",quando:[2026,9,15,11,20],
   pedido:{"PÃO BRIOCHE 400g":40,"PÃO GUARÚ 350g":10,"PÃO DE REQUEIJÃO 330g":15,"PÃO HAMBURGUER 400g":50,"BOLO 500g":20,"PÃO ÁRABE 400g":40},
   troca:{"BOLO 500g":23,"PÃO HAMBURGUER 400g":11,"PÃO HAMBURGUER 500g":1,"PÃO BOLÃO COM GERGELIM 500g":4,"PÃO BRIOCHE 400g":1,"PÃO INTEGRAL MULTIGRÃOS 350g":2,"PÃO GUARÚ 350g":1,"PÃO ÁRABE 400g":10,"PÃO DE FORMA INTEGRAL 500g":2}}];
@@ -1061,14 +1061,16 @@ function aplicaSeeds(){try{
   if(!perfil||!perfil.nome)return;
   SEEDS.forEach(sd=>{
     if(!sd.conta.test(U(perfil.nome).trim())||lsG("mpv:seed:"+sd.id)==="1")return;
+    if(sd.semSup&&/^(supervisor|motorista)$/.test(perfil.papel||""))return;
+    if(sd.evita&&hist.some(h=>h.id===sd.evita)){lsS("mpv:seed:"+sd.id,"1");return}
     lembraCli(sd.cli.nome,sd.cli.endereco,sd.cli.comprador);
     if(sd.atualiza&&!hist.some(h=>h.id===sd.id)){
       const ex=hist.filter(h=>sd.atualiza.test(norm(h.cliente))&&h.data>=sd.de&&h.data<=sd.ate).sort((a,b)=>b.ts-a.ts)[0];
       if(ex){ex.pedido={...sd.pedido};ex.status="faturar";ex.fat=false;ex.snap="";ex.fechadoEm=ex.fechadoEm||ex.ts;ex.ts=Math.max(ex.ts,Date.now());
         hist.sort((a,b)=>b.ts-a.ts);salvarHist();marcaPed(ex.id);try{renderHist()}catch(e){}lsS("mpv:seed:"+sd.id,"1");return}}
     if(!hist.some(h=>h.id===sd.id)){
-      const t=new Date(...sd.quando).getTime();
-      hist.unshift({id:sd.id,ts:t,status:"faturar",fat:false,snap:"",fechadoEm:t,vendedor:sd.vendedor||U(perfil.nome),cliente:sd.cli.nome,endereco:sd.cli.endereco,comprador:sd.cli.comprador,data:sd.data,pedido:{...sd.pedido},troca:{...(sd.troca||{})},gondola:{},visita:novaVis(),assin:{pedido:"",troca:""}});
+      const t=sd.agora?Date.now():new Date(...sd.quando).getTime();
+      hist.unshift({id:sd.id,ts:t,status:sd.status||"faturar",fat:false,snap:"",fechadoEm:t,vendedor:sd.vendedor||U(perfil.nome),cliente:sd.cli.nome,endereco:sd.cli.endereco,comprador:sd.cli.comprador,data:sd.data,pedido:{...sd.pedido},troca:{...(sd.troca||{})},gondola:{},visita:novaVis(),assin:{pedido:"",troca:""}});
       hist.sort((a,b)=>b.ts-a.ts);salvarHist();marcaPed(sd.id);
       try{renderHist()}catch(e){}
     }
@@ -1445,6 +1447,7 @@ async function sincroniza(){
   const novos=rs.length;aposRemoto(rs);
   if(cfgDoc&&(cfgTs()===0||(+cfgDoc.ts||0)>cfgTs())){try{aplicaCfg(JSON.parse(cfgDoc.j));lsS("maxpaes:cfgts",String(cfgDoc.ts));render()}catch(_){}}
   else nv.cfg=true;
+  aplicaSeeds();
   stNuvem("☁ Nuvem conectada"+(novos?" · "+novos+(novos===1?" registro atualizado":" registros atualizados"):""));
   await enviaNuvem();render();
 }
@@ -2294,7 +2297,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="65";
+const VER="66";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
