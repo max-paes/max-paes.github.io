@@ -1063,7 +1063,7 @@ function aplicaSeeds(){try{
     if(!sd.conta.test(U(perfil.nome).trim())||lsG("mpv:seed:"+sd.id)==="1")return;
     if(sd.semSup&&/^(supervisor|motorista)$/.test(perfil.papel||""))return;
     if(sd.evita&&hist.some(h=>h.id===sd.evita)){lsS("mpv:seed:"+sd.id,"1");return}
-    lembraCli(sd.cli.nome,sd.cli.endereco,sd.cli.comprador);
+    lembraCli(sd.cli.nome,sd.cli.endereco,sd.cli.comprador,false);salvaCli();
     if(sd.atualiza&&!hist.some(h=>h.id===sd.id)){
       const ex=hist.filter(h=>sd.atualiza.test(norm(h.cliente))&&h.data>=sd.de&&h.data<=sd.ate).sort((a,b)=>b.ts-a.ts)[0];
       if(ex){ex.pedido={...sd.pedido};ex.status="faturar";ex.fat=false;ex.snap="";ex.fechadoEm=ex.fechadoEm||ex.ts;ex.ts=Math.max(ex.ts,Date.now());
@@ -2315,7 +2315,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="67";
+const VER="68";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
