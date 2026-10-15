@@ -1830,9 +1830,14 @@ function linhaVend(x,W,P){
   x.save();x.textAlign="right";x.fillStyle=AZ;x.font="800 21px "+FT;
   x.fillText(n,W-P,298);x.restore();
 }
+function caixasDe(o){let cx=0;const fr=[];ITENS.forEach(n=>{const k=CX[n],v=o[n]||0;if(!k||v<=0)return;cx+=Math.floor(v/k);if(v%k)fr.push([n,v%k])});return{cx,fr}}
+function blocoCaixas(x,o,P,tw,y,so){const {cx,fr}=caixasDe(o),h=62+fr.length*34;if(so)return h;
+  x.fillStyle="#f1f5fc";rr(x,P,y+14,tw,h-14,14);x.fill();x.strokeStyle=AZ;x.lineWidth=2;rr(x,P,y+14,tw,h-14,14);x.stroke();
+  x.textAlign="left";x.fillStyle=AZ;x.font="800 26px "+FT;x.fillText("CAIXAS: "+cx+(cx===1?" caixa":" caixas")+(fr.length?" + fracionados":""),P+20,y+54);
+  x.fillStyle=TX;x.font="700 24px "+FT;fr.forEach(([n,r],i)=>{x.fillText(n+" - "+r,P+20,y+54+34*(i+1))});return h}
 function desenhar(sig,logo,m=mode){
   const q=state[m],lista=ITENS.filter(n=>q[n]>0);
-  const W=900,P=32,RH=58,T=462,H=T+56+Math.max(lista.length,1)*RH+220;
+  const W=900,P=32,RH=58,T=462,EX=blocoCaixas(null,q,0,0,0,true)+10,H=T+56+Math.max(lista.length,1)*RH+220+EX;
   const c=document.createElement("canvas");c.width=W;c.height=H;
   const x=c.getContext("2d");
   x.fillStyle="#fff";x.fillRect(0,0,W,H);
@@ -1852,7 +1857,7 @@ function desenhar(sig,logo,m=mode){
   x.lineWidth=2;x.beginPath();x.moveTo(P+qw,T+56);x.lineTo(P+qw,T+56+th);
   for(let i=1;i<Math.max(lista.length,1);i++){x.moveTo(P,T+56+i*RH);x.lineTo(P+tw,T+56+i*RH)}
   x.stroke();
-  const fy=T+56+th+150;
+  blocoCaixas(x,q,P,tw,T+56+th,false);const fy=T+56+th+150+EX;
   if(sig){const bw=380,bh=120,k=Math.min(bw/sig.width,bh/sig.height),w=sig.width*k,h=sig.height*k;x.drawImage(sig,P+40+(bw-w)/2,fy-h-4,w,h)}
   x.strokeStyle=TX;x.lineWidth=2;x.beginPath();x.moveTo(P+40,fy);x.lineTo(P+420,fy);x.stroke();
   x.fillStyle=AZ;x.font="800 18px "+FT;x.textAlign="center";x.fillText("Assinatura",P+230,fy+28);
@@ -1875,7 +1880,7 @@ function metadeResumo(logo,d,tit,cab,o,nomes,rot){
   });
   if(l||!linhas.length)linhas.push(l);
   const T=322+52*(linhas.length-1)+36,ns=ITENS.filter(n=>o[n]>0),nr=Math.max(ns.length,1);
-  const H=T+56+nr*RH+130;
+  const EX=blocoCaixas(null,o,0,0,0,true)+10,H=T+56+nr*RH+130+EX;
   const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);
   cabecalho(x,W,P,logo,tit,[],rot||dBR(d));
   x.textAlign="left";x.fillStyle=AZ;x.font="800 22px "+FT;x.fillText("Clientes:",P,322);
@@ -1892,6 +1897,7 @@ function metadeResumo(logo,d,tit,cab,o,nomes,rot){
   for(let i=1;i<nr;i++){x.moveTo(P,T+56+i*RH);x.lineTo(P+tw,T+56+i*RH)}x.stroke();
   const tot=soma(o);x.fillStyle=AZ;x.textAlign="right";x.font="800 24px "+FT;
   x.fillText(ns.length+(ns.length===1?" item · ":" itens · ")+tot+(tot===1?" unidade":" unidades"),W-P,T+56+th+46);
+  blocoCaixas(x,o,P,tw,T+56+th+40,false);
   return c;
 }
 async function folhaA4(c1,c2){
@@ -2277,7 +2283,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="59";
+const VER="60";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
