@@ -306,6 +306,10 @@ body.trv #edbar{border-color:#0b7a75}
 .me .nb{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .me .nb span{background:var(--hit);border-radius:12px;padding:2px 9px;font-size:12px;font-weight:700}
 #rm,#md{z-index:30}
+.fb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.fb .th{position:relative}.fb img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.fb .th button{position:absolute;top:-7px;right:-7px;width:24px;height:24px;padding:0;border-radius:50%;font-size:12px;line-height:1}
+.pn{background:rgba(179,38,30,.12);color:#b3261e;border:1px solid rgba(179,38,30,.45);border-radius:10px;padding:8px 10px;font-weight:800;font-size:13px;margin:8px 0}
+.mk label.pd{border-color:#b3261e}
 #fs{z-index:40}
 .rr{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
 .rr .t{flex:1;min-width:0}
@@ -1057,6 +1061,10 @@ const SEEDS=[{id:"seed8020",conta:/^DILSON/,
   cli:{nome:"TELEFRANGO PASSARÉ",endereco:"",comprador:""},data:"2026-10-15",quando:[2026,9,15,11,20],
   pedido:{"PÃO BRIOCHE 400g":40,"PÃO GUARÚ 350g":10,"PÃO DE REQUEIJÃO 330g":15,"PÃO HAMBURGUER 400g":50,"BOLO 500g":20,"PÃO ÁRABE 400g":40},
   troca:{"BOLO 500g":23,"PÃO HAMBURGUER 400g":11,"PÃO HAMBURGUER 500g":1,"PÃO BOLÃO COM GERGELIM 500g":4,"PÃO BRIOCHE 400g":1,"PÃO INTEGRAL MULTIGRÃOS 350g":2,"PÃO GUARÚ 350g":1,"PÃO ÁRABE 400g":10,"PÃO DE FORMA INTEGRAL 500g":2}}];
+const CLI_NOVOS=[["BOAMA","MARAPONGA"],["VOLTA A VIDA","LAGOA REDONDA"],["MANÁ SEDE","ALTO ALEGRE"],["MANÁ 1","MARACANAÚ"],["MANÁ 2","ITAITINGA"],["MANÁ 3","ITAITINGA"]];
+function garanteClientes(){let n=0;CLI_NOVOS.forEach(([nm,en])=>{const k=chave2(canon(nm)),ex=clientes.find(c=>chave2(canon(c.nome))===k);
+  if(!ex){clientes.push({nome:nm,endereco:en,comprador:""});n++}else if(!ex.endereco){ex.endereco=en;n++}});
+  if(n){salvaCli();try{listaCli()}catch(e){}}return n}
 function aplicaSeeds(){try{
   if(!perfil||!perfil.nome)return;
   SEEDS.forEach(sd=>{
@@ -1079,7 +1087,7 @@ function aplicaSeeds(){try{
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
-  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);aplicaSeeds();motPronto()}
+  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);garanteClientes();aplicaSeeds();motPronto()}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
   $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud);$("lgsll").textContent=mud?"Senha atual":"Senha";
@@ -1448,6 +1456,7 @@ async function sincroniza(){
   if(cfgDoc&&(cfgTs()===0||(+cfgDoc.ts||0)>cfgTs())){try{aplicaCfg(JSON.parse(cfgDoc.j));lsS("maxpaes:cfgts",String(cfgDoc.ts));render()}catch(_){}}
   else nv.cfg=true;
   aplicaSeeds();
+  {const g=garanteClientes();let fl="";try{fl=localStorage.getItem("mpv:cli1")}catch(e){}if(g>0||fl!=="1"){marcaCfg();try{localStorage.setItem("mpv:cli1","1")}catch(e){}}}
   stNuvem("☁ Nuvem conectada"+(novos?" · "+novos+(novos===1?" registro atualizado":" registros atualizados"):""));
   await enviaNuvem();render();
 }
@@ -2102,7 +2111,8 @@ window.addEventListener("offline",pintaOff);pintaOff();
 /* nova versão */
 
 // ===== Perfil motorista: home com horários, marcações e observações =====
-const mot={dia:"",rota:null,reg:{},uR:null,uM:null,fotos:{},adiado:false,fq:{}};
+const mot={dia:"",rota:null,reg:{},uR:null,uM:null,uP:null,pend:{},fotos:{},adiado:false,fq:{}};
+const MAXF=5,pkey=n=>chave2(canon(n)).replace(/\s+/g,"_"),nfo=(r,c)=>((r&&r.fo&&r.fo[c])||[]).length;
 const ehMot=()=>!!(perfil&&perfil.papel==="motorista"&&fbDb&&fbAuth&&fbAuth.currentUser);
 const fmtMin=m=>m>=60?Math.floor(m/60)+"h"+String(m%60).padStart(2,"0"):m+" min";
 const minEnt=(a,b)=>a&&b&&b>a?Math.round((b-a)/60000):0;
@@ -2110,9 +2120,10 @@ function motPronto(){if(!ehMot()){motDesliga();return}motAbrir()}
 function motAbrir(){if(!ehMot())return;const uid=fbAuth.currentUser.uid,hj=hojeISO();
   if(mot.dia!==hj||!mot.uR){motDesliga(true);mot.dia=hj;
     mot.uR=fbDb.collection("rotas").doc(hj+"_"+uid).onSnapshot(sn=>{mot.rota=sn.exists?sn.data():null;motRender()},()=>{$("motm").textContent="Sem permissão para ler a rota. Peça para atualizar as regras do banco."});
-    mot.uM=fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+hj).onSnapshot(sn=>{mot.reg=sn.exists?(sn.data()||{}):{};motRender()},()=>{})}
+    mot.uM=fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+hj).onSnapshot(sn=>{mot.reg=sn.exists?(sn.data()||{}):{};motRender()},()=>{});
+    mot.uP=fbDb.collection("vendedores/"+uid+"/docs").doc("m_pend").onSnapshot(sn=>{mot.pend=sn.exists?((sn.data()||{}).l||{}):{};motRender()},()=>{})}
   $("mot").classList.add("on");motRender()}
-function motDesliga(manter){["uR","uM"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});mot.rota=null;mot.reg={};if(!manter)$("mot").classList.remove("on")}
+function motDesliga(manter){["uR","uM","uP"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});mot.rota=null;mot.reg={};mot.pend={};if(!manter)$("mot").classList.remove("on")}
 setInterval(()=>{if($("mot").classList.contains("on")&&mot.dia&&mot.dia!==hojeISO())motAbrir()},300000);
 function motGrava(patch){if(!ehMot())return;const uid=fbAuth.currentUser.uid;
   $("motm").textContent="";
@@ -2126,16 +2137,33 @@ function motBtn(rot,val,aoMarcar,aoLimpar,extra){const b=document.createElement(
     if(b.dataset.c!=="1"){b.dataset.c="1";sp.textContent="Corrigir? Toque de novo";setTimeout(()=>{if(b.dataset.c==="1"){b.dataset.c="";sp.textContent=rot}},3000);return}
     b.dataset.c="";aoLimpar()};
   return b}
-function motFoto(sid,file){const uid=fbAuth.currentUser.uid;
+const fdoc=(sid,cat,id)=>mot.dia+"_"+sid+"_"+cat+"_"+id;
+function motPend(cli,sid,patch){const uid=fbAuth.currentUser.uid;
+  return fbDb.collection("vendedores/"+uid+"/docs").doc("m_pend").set({tipo:"pend",ts:Date.now(),l:{[pkey(cli)]:{c:cli,d:mot.dia,s:sid,...patch}}},{merge:true}).catch(()=>{})}
+function motFoto(sid,cat,file){const uid=fbAuth.currentUser.uid;
   return new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(file);
-    im.onload=()=>{URL.revokeObjectURL(u);const m=1000,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-      c.getContext("2d").drawImage(im,0,0,c.width,c.height);let q=0.65,d=c.toDataURL("image/jpeg",q);while(d.length>650000&&q>0.3){q-=0.1;d=c.toDataURL("image/jpeg",q)}
-      mot.fotos[sid]=d;
-      fbDb.collection("vendedores/"+uid+"/fotos").doc(mot.dia+"_"+sid).set({j:d,ts:Date.now(),data:mot.dia,sid}).catch(e=>{$("motm").textContent="Não consegui enviar a foto ("+(e.code||e.message)+")."});
-      motP(sid,{ft:Date.now()});motRender();ok()};
+    im.onload=()=>{URL.revokeObjectURL(u);const m=900,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height);let q=0.6,d=c.toDataURL("image/jpeg",q);while(d.length>420000&&q>0.3){q-=0.1;d=c.toDataURL("image/jpeg",q)}
+      const ids=(((mot.reg.p||{})[sid]||{}).fo||{})[cat]||[];if(ids.length>=MAXF){$("motm").textContent="Limite de "+MAXF+" fotos.";ok();return}
+      const id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
+      mot.fotos[sid+"_"+cat+"_"+id]=d;
+      fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).set({j:d,ts:Date.now(),data:mot.dia,sid,cat}).catch(e=>{$("motm").textContent="Não consegui enviar a foto ("+(e.code||e.message)+")."});
+      motP(sid,{fo:{[cat]:ids.concat([id])}});motRender();ok()};
     im.onerror=()=>{URL.revokeObjectURL(u);$("motm").textContent="Não consegui ler essa foto.";ok()};im.src=u})}
-function motCarregaFoto(sid){if(mot.fotos[sid]||mot.fq[sid])return;mot.fq[sid]=1;const uid=fbAuth.currentUser.uid;
-  fbDb.collection("vendedores/"+uid+"/fotos").doc(mot.dia+"_"+sid).get().then(sn=>{if(sn.exists){mot.fotos[sid]=(sn.data()||{}).j;motRender()}}).catch(()=>{})}
+function motFotoTira(sid,cat,id){const uid=fbAuth.currentUser.uid,ids=((((mot.reg.p||{})[sid]||{}).fo||{})[cat]||[]).filter(x=>x!==id);
+  fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).delete().catch(()=>{});delete mot.fotos[sid+"_"+cat+"_"+id];motP(sid,{fo:{[cat]:ids}})}
+function motCarregaFoto(sid,cat,id){const k=sid+"_"+cat+"_"+id;if(mot.fotos[k]||mot.fq[k])return;mot.fq[k]=1;const uid=fbAuth.currentUser.uid;
+  fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).get().then(sn=>{if(sn.exists){mot.fotos[k]=(sn.data()||{}).j;motRender()}}).catch(()=>{})}
+function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.createElement("div");b.className="fb";
+  ids.forEach(id=>{motCarregaFoto(sid,cat,id);const d=mot.fotos[sid+"_"+cat+"_"+id];const w=document.createElement("div");w.className="th";
+    if(d){const im=document.createElement("img");im.src=d;im.alt="Foto";w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
+    const x=document.createElement("button");x.textContent="✕";x.setAttribute("aria-label","Remover foto");
+    x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="?";setTimeout(()=>{x.dataset.c="";x.textContent="✕"},2500);return}motFotoTira(sid,cat,id)};w.appendChild(x);b.appendChild(w)});
+  if(ids.length<MAXF){const fb=document.createElement("button"),fi=document.createElement("input");fb.textContent="📷 "+(rot||"Fotos")+" ("+ids.length+"/"+MAXF+")";
+    fi.type="file";fi.accept="image/*";fi.multiple=true;fi.hidden=true;fb.onclick=()=>fi.click();
+    fi.onchange=async()=>{const L=[...fi.files].slice(0,MAXF-ids.length);if(!L.length)return;fb.textContent="Enviando…";for(const f of L)await motFoto(sid,cat,f)};
+    b.append(fb,fi)}
+  return b}
 function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   const a=document.activeElement;if(a&&$("motc").contains(a)&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.type!=="checkbox"&&a.type!=="file"){mot.adiado=true;return}
   mot.adiado=false;
@@ -2148,9 +2176,14 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   const g0=document.createElement("div");g0.className="mb";
   g0.appendChild(motBtn("▶ Início da rota (check-in)",reg.ini,()=>motGrava({ini:Date.now()}),()=>motGrava({ini:0}),"big"));
   c0.appendChild(g0);C.appendChild(c0);
+  const PN=Object.values(mot.pend||{}).filter(p=>p&&(p.e||p.x));
+  if(PN.length){const cp=card("pend");cp.style.borderColor="#b3261e";cp.innerHTML="<h3 style='color:#b3261e'>⚠ Telas aguardando coleta ("+PN.length+")</h3>";
+    PN.forEach(p=>{const l=document.createElement("div");l.className="ms";l.textContent=p.c+" · "+[p.e?"no estoque":"",p.x?"no ponto extra":""].filter(Boolean).join(" e ")+" · desde "+dBR(p.d);cp.appendChild(l)});C.appendChild(cp)}
   if(!LST.length){const v=document.createElement("div");v.className="vazio";v.textContent="O supervisor ainda não montou a sua rota de hoje. Toque em Atualizar daqui a pouco ou acrescente uma loja abaixo.";C.appendChild(v)}
   LST.forEach((s,i)=>{const r=PP[s.id]||{},c=card(r.s?"ok":"");
     c.innerHTML="<h3>"+(i+1)+". "+esc(s.cliente||"Loja")+"</h3><span class='ms'>"+esc([s.extra?"Loja extra":"",s.ped?s.ped+" un.":"",s.ob||""].filter(Boolean).join(" · "))+(r.c&&r.s?(" · "+fmtMin(minEnt(r.c,r.s))+" na loja"):"")+"</span>";
+    {const pd=(mot.pend||{})[pkey(s.cliente)];if(pd&&(pd.e||pd.x)&&!r.tl){const pn=document.createElement("div");pn.className="pn";
+      pn.textContent="⚠ Telas "+[pd.e?"no estoque":"",pd.x?"no ponto extra":""].filter(Boolean).join(" e ")+" aguardando coleta (desde "+dBR(pd.d)+")";c.appendChild(pn)}}
     const g=document.createElement("div");g.className="mb";
     g.append(motBtn("Chegada na loja",r.c,()=>motP(s.id,{c:Date.now()}),()=>motP(s.id,{c:0})),
              motBtn("Passagem da nota",r.n,()=>motP(s.id,{n:Date.now()}),()=>motP(s.id,{n:0})),
@@ -2158,16 +2191,16 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
     c.appendChild(g);
     const mk=document.createElement("div");mk.className="mk";
     [["est","Estoque"],["ex","Ponto extra"],["tl","Telas coletadas"]].forEach(([k,t])=>{const l=document.createElement("label"),i2=document.createElement("input");i2.type="checkbox";i2.checked=!!r[k];l.className=r[k]?"on":"";
-      i2.onchange=()=>motP(s.id,{[k]:i2.checked});l.append(i2,document.createTextNode(t));mk.appendChild(l)});
+      i2.onchange=()=>{motP(s.id,{[k]:i2.checked});const ts=Date.now();
+        if(k==="est")motPend(s.cliente,s.id,{e:i2.checked&&!r.tl?ts:0});
+        else if(k==="ex")motPend(s.cliente,s.id,{x:i2.checked&&!r.tl?ts:0});
+        else if(k==="tl")motPend(s.cliente,s.id,i2.checked?{e:0,x:0}:{e:r.est?ts:0,x:r.ex?ts:0})};l.append(i2,document.createTextNode(t));mk.appendChild(l)});
     c.appendChild(mk);
     if(r.tl){const t=document.createElement("div");t.className="mt";
-      const n=document.createElement("input");n.inputMode="numeric";n.placeholder="Nº de telas";n.setAttribute("aria-label","Número de telas coletadas");n.value=r.tn>0?r.tn:"";
-      n.onchange=()=>motP(s.id,{tn:Math.max(0,parseInt(n.value)||0)});
-      const fb=document.createElement("button");fb.textContent=r.ft?"📷 Trocar foto":"📷 Foto das telas";
-      const fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.setAttribute("capture","environment");fi.hidden=true;
-      fb.onclick=()=>fi.click();fi.onchange=()=>{if(fi.files&&fi.files[0]){fb.textContent="Enviando…";motFoto(s.id,fi.files[0])}};
-      t.append(n,fb,fi);c.appendChild(t);
-      if(r.ft){motCarregaFoto(s.id);if(mot.fotos[s.id]){const d=document.createElement("div");d.className="mf";const im=document.createElement("img");im.src=mot.fotos[s.id];im.alt="Foto das telas";d.appendChild(im);c.appendChild(d)}}}
+      const n=document.createElement("input");n.inputMode="numeric";n.placeholder="Nº de telas coletadas";n.setAttribute("aria-label","Número de telas coletadas");n.value=r.tn>0?r.tn:"";
+      n.onchange=()=>motP(s.id,{tn:Math.max(0,parseInt(n.value)||0)});t.appendChild(n);c.appendChild(t);c.appendChild(fotoBloco(s.id,"tl",r,"Fotos das telas"))}
+    if(r.est)c.appendChild(fotoBloco(s.id,"est",r,"Fotos do estoque"));
+    if(r.ex)c.appendChild(fotoBloco(s.id,"ex",r,"Fotos do ponto extra"));
     const ob=document.createElement("textarea");ob.placeholder="Observações desta parada";ob.value=r.ob||"";ob.onchange=()=>motP(s.id,{ob:ob.value.trim()});c.appendChild(ob);
     if(s.extra&&!(r.c||r.n||r.s)){const rx=document.createElement("button");rx.className="sec";rx.textContent="Remover esta loja";rx.style.marginTop="8px";
       rx.onclick=()=>{if(rx.dataset.c!=="1"){rx.dataset.c="1";rx.textContent="Confirmar remoção?";setTimeout(()=>{rx.dataset.c="";rx.textContent="Remover esta loja"},3000);return}
@@ -2254,22 +2287,38 @@ function mdDados(){const out=[];
   return out}
 function mdRender(){if(!$("md").classList.contains("on"))return;
   $("mdt").textContent=(sup.dia===hojeISO()?"Hoje · ":"")+dBR(sup.dia);
-  const C=$("mdc");C.innerHTML="";const D=mdDados();
-  if(!D.length){C.innerHTML='<div class="vazio">Nenhuma rota ou registro de motorista neste dia.</div>';return}
+  mdPend();const C=$("mdc");C.innerHTML="";const D=mdDados();
+  const PL=[];Object.keys(mdPendL.v).forEach(u=>Object.values(mdPendL.v[u]||{}).forEach(p=>{if(p&&(p.e||p.x))PL.push({u,p})}));
+  if(PL.length){const bx=document.createElement("div");bx.className="mc";bx.style.borderColor="#b3261e";bx.innerHTML="<h3 style='color:#b3261e'>⚠ Telas aguardando coleta ("+PL.length+")</h3>";
+    PL.forEach(({u,p})=>{const e=document.createElement("div");e.className="me";e.innerHTML="<b>"+esc(p.c)+"</b> <small>"+esc([p.e?"no estoque":"",p.x?"no ponto extra":""].filter(Boolean).join(" e "))+" · desde "+esc(dBR(p.d))+" · "+esc(nomeV(u).split(" ")[0])+"</small>";
+      const bt=document.createElement("button");bt.textContent="📷 Ver fotos";bt.className="sec";bt.style.cssText="padding:3px 10px;border-radius:12px;font-size:12px;margin-left:6px";bt.onclick=()=>mdFotosPend(u,p);e.appendChild(bt);bx.appendChild(e)});C.appendChild(bx)}
+  if(!D.length){const v=document.createElement("div");v.className="vazio";v.textContent="Nenhuma rota ou registro de motorista neste dia.";C.appendChild(v);return}
   D.forEach(m=>{const box=document.createElement("div");box.className="mc";const tot=minEnt(m.reg.ini,m.reg.fim);
     box.innerHTML="<h3>"+esc(m.nome)+"</h3><span class='ms'>Início "+(m.reg.ini?hhDe(m.reg.ini):"—")+" · Chegada na empresa "+(m.reg.fim?hhDe(m.reg.fim):(m.reg.ini?"ainda na rua":"—"))+(tot?" · "+fmtMin(tot)+" de rota":"")+"</span>";
     m.ps.forEach((p,i)=>{const r=p.r,e=document.createElement("div");e.className="me";const na=minEnt(r.c,r.s);
       e.innerHTML="<b>"+(i+1)+". "+esc(p.s.cliente)+"</b>"+(p.s.ped?" <small>"+p.s.ped+" un.</small>":"")+"<br><small>Chegada "+(r.c?hhDe(r.c):"—")+" · Nota "+(r.n?hhDe(r.n):"—")+" · Saída "+(r.s?hhDe(r.s):"—")+(na?" · "+fmtMin(na)+" na loja":"")+"</small>";
       const nb=document.createElement("div");nb.className="nb";
-      if(r.est){const x=document.createElement("span");x.textContent="Estoque";nb.appendChild(x)}
-      if(r.ex){const x=document.createElement("span");x.textContent="Ponto extra";nb.appendChild(x)}
-      if(r.tl){const x=document.createElement("span");x.textContent="Telas: "+(r.tn>0?r.tn:"sem número");nb.appendChild(x)}
-      if(r.ft){const b=document.createElement("button");b.textContent="📷 Ver foto";b.className="sec";b.style.cssText="padding:3px 10px;border-radius:12px;font-size:12px";b.onclick=()=>mdFoto(m.uid,p.s.id);nb.appendChild(b)}
+      [["est","Estoque"],["ex","Ponto extra"],["tl","Telas"]].forEach(([cat,nm])=>{if(!r[cat])return;const x=document.createElement("span");
+        x.textContent=nm+(cat==="tl"?": "+(r.tn>0?r.tn:"sem número"):"");nb.appendChild(x);
+        const ids=nfo(r,cat)?r.fo[cat]:[];if(ids.length){const bt=document.createElement("button");bt.textContent="📷 "+ids.length;bt.className="sec";bt.style.cssText="padding:3px 10px;border-radius:12px;font-size:12px";bt.onclick=()=>mdFotos(m.uid,sup.dia,p.s.id,cat,ids);nb.appendChild(bt)}});
+      if((r.est||r.ex)&&!r.tl){const x=document.createElement("span");x.textContent="⚠ telas a coletar";x.style.color="#b3261e";nb.appendChild(x)}
       if(nb.childNodes.length)e.appendChild(nb);
       if(r.ob){const o=document.createElement("small");o.style.display="block";o.textContent="Obs.: "+r.ob;e.appendChild(o)}
       box.appendChild(e)});
     if(m.reg.obs){const o=document.createElement("div");o.className="me";o.innerHTML="<b>Observações do dia</b><br><small>"+esc(m.reg.obs)+"</small>";box.appendChild(o)}
     C.appendChild(box)})}
+function mostraFotos(L){document.querySelectorAll("#fs .fsx2").forEach(e=>e.remove());$("fsimg").src=L[0];
+  L.slice(1).forEach(u=>{const im=document.createElement("img");im.className="fsx2";im.src=u;im.alt="Foto";im.style.cssText="width:100%;display:block;margin-top:6px";$("fs").appendChild(im)});$("fs").scrollTop=0;$("fs").classList.add("on")}
+async function mdFotos(uid,dia,sid,cat,ids){$("mdm").textContent="Abrindo fotos…";
+  try{const L=[];for(const id of ids){const sn=await fbDb.collection("vendedores/"+uid+"/fotos").doc(dia+"_"+sid+"_"+cat+"_"+id).get();if(sn.exists&&(sn.data()||{}).j)L.push(sn.data().j)}
+    if(L.length){mostraFotos(L);$("mdm").textContent=""}else $("mdm").textContent="Foto não encontrada."}
+  catch(e){$("mdm").textContent="Não consegui abrir as fotos ("+(e.code||e.message)+")."}}
+async function mdFotosPend(uid,p){try{const sn=await fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+p.d).get(),r=(((sn.data()||{}).p||{})[p.s])||{},fo=r.fo||{};
+    const L=[];for(const cat of ["est","ex"])for(const id of (fo[cat]||[])){const f=await fbDb.collection("vendedores/"+uid+"/fotos").doc(p.d+"_"+p.s+"_"+cat+"_"+id).get();if(f.exists&&(f.data()||{}).j)L.push(f.data().j)}
+    if(L.length){mostraFotos(L);$("mdm").textContent=""}else $("mdm").textContent="Sem fotos nessa pendência."}catch(e){$("mdm").textContent="Não consegui abrir as fotos."}}
+const mdPendL={u:{},v:{}};
+function mdPend(){motoristas().forEach(u=>{if(mdPendL.u[u])return;
+  mdPendL.u[u]=fbDb.collection("vendedores/"+u+"/docs").doc("m_pend").onSnapshot(sn=>{mdPendL.v[u]=sn.exists?((sn.data()||{}).l||{}):{};mdRender()},()=>{})})}
 async function mdFoto(uid,sid){$("mdm").textContent="Abrindo foto…";
   try{const sn=await fbDb.collection("vendedores/"+uid+"/fotos").doc(sup.dia+"_"+sid).get();
     if(sn.exists&&(sn.data()||{}).j){$("fsimg").src=sn.data().j;$("fs").classList.add("on");$("mdm").textContent=""}else $("mdm").textContent="Foto não encontrada."}
@@ -2299,7 +2348,7 @@ function desenharEntregas(logo,D,dia){
       x.textAlign="left";x.fillStyle=TX;x.font="700 21px "+FT;x.fillText(fit((i+1)+". "+p.s.cliente,C[0][1]-24),X[0]+14,y+38);
       x.font="700 21px "+FT;[r.c,r.n,r.s].forEach((v,k)=>{x.fillStyle=v?TX:"#8a96ad";x.fillText(v?hhDe(v):"—",X[k+1]+14,y+38)});
       const na=minEnt(r.c,r.s);x.fillStyle=TX;x.fillText(na?fmtMin(na):"—",X[4]+14,y+38);
-      const mk=[r.est?"Estoque":"",r.ex?"Ponto extra":"",r.tl?"Telas: "+(r.tn>0?r.tn:"?")+(r.ft?" (foto)":""):""].filter(Boolean).join(" · ");
+      const nf=c=>nfo(r,c)?" ("+nfo(r,c)+" fotos)":"",mk=[r.est?"Estoque"+nf("est"):"",r.ex?"Ponto extra"+nf("ex"):"",r.tl?"Telas: "+(r.tn>0?r.tn:"?")+nf("tl"):"",(r.est||r.ex)&&!r.tl?"⚠ telas a coletar":""].filter(Boolean).join(" · ");
       x.font="700 19px "+FT;x.fillStyle=AZ;x.fillText(fit(mk||"—",C[5][1]-24),X[5]+14,y+27);
       if(r.ob){x.font="600 17px "+FT;x.fillStyle="#5b6b8c";x.fillText(fit("Obs.: "+r.ob,C[5][1]-24),X[5]+14,y+51)}
       y+=RH});
@@ -2315,7 +2364,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="68";
+const VER="69";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
