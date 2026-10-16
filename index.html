@@ -724,7 +724,7 @@ function renderAlertas(){
   Object.values(ult).forEach(e=>e.visita.valid.filter(x=>x.item&&x.v&&x.v<=lim3).forEach(x=>lin.push({o:x.v,t:"⏰ "+e.cliente+": "+x.item.replace(/^PÃO /,"")+(x.q?" ("+x.q+")":"")+(x.v<hoje?" venceu em ":x.v===hoje?" vence hoje ":" vence em ")+dBR(x.v).slice(0,5)})));
   const vistos=new Set();
   for(let d=1;d<=6;d++)rota[d].forEach(x=>{const k=norm(x.nome);if(vistos.has(k))return;vistos.add(k);const ks=[k,norm(nomeCad(x.nome))];
-    const ds=hist.filter(e=>ks.includes(norm(e.cliente))&&(soma(e.pedido)>0||(e.visita&&e.visita.ini))).map(e=>e.data||"").sort();const u=ds[ds.length-1];
+    const ds=hist.filter(e=>ks.includes(norm(e.cliente))&&(soma(e.pedido)>0||(e.visita&&e.visita.ini))).map(e=>e.data||"");Object.keys(visitas).forEach(dt=>{if(dt<=hoje&&ks.some(q=>visitas[dt]&&visitas[dt][q]===true))ds.push(dt)});ds.sort();const u=ds[ds.length-1];
     if(u){const dias=Math.round((new Date(hoje+"T12:00")-new Date(u+"T12:00"))/864e5);if(dias>=8)lin.push({o:"z"+String(999-dias).padStart(4,"0"),t:"📅 "+x.nome+": "+dias+" dias sem visita (última em "+dBR(u).slice(0,5)+")"})}});
   if(!lin.length)return;lin.sort((a,b)=>a.o.localeCompare(b.o));
   const box=document.createElement("div");box.className="alerta";const b=document.createElement("b");b.className="warn";b.textContent="Atenção ("+lin.length+")";box.appendChild(b);
@@ -2362,7 +2362,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="70";
+const VER="71";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
