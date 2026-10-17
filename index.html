@@ -411,7 +411,7 @@ body.trv #edbar{border-color:#0b7a75}
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <button id="nvr" class="sec" hidden>Enviar link de senha</button>
       <button id="nvb">Criar acesso</button><p class="msg" id="nvm" style="margin:6px 0 0"></p>
-      <p class="msg" style="margin:4px 0 0">Passe o e-mail e a senha inicial à pessoa. No primeiro acesso, o app pede para ela criar a senha dela. Só o dono e o administrador criam acessos.</p></div>
+      <p class="msg" style="margin:4px 0 0">Passe o e-mail e a senha inicial à pessoa. No primeiro acesso, o app pede para ela criar a senha dela. Só o dono cria acessos.</p></div>
     <div class="tl" id="sgacc"></div>
     <div class="acts" id="bkw" hidden style="margin-top:10px"><button id="bkb" class="sec">Backup e uso do banco</button></div><p class="msg" id="bkm" style="margin:6px 0 0"></p>
   </details>
@@ -1216,7 +1216,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
     const rows=Object.entries(lj).filter(([,v])=>v.p||v.t).sort((a,b)=>(b[1].t/(b[1].p||1))-(a[1].t/(a[1].p||1)));
     $("spts").innerHTML="<tr><th>Loja</th><th class='n'>Pedido</th><th class='n'>Troca</th><th class='n'>%</th></tr>"+(rows.length?rows.map(([k,v])=>{const pc=v.p?Math.round(v.t/v.p*100):null;return "<tr class='"+(pc===null||pc>10?"alto":"")+"'><td>"+esc(k)+"</td><td class='n'>"+v.p+"</td><td class='n'>"+v.t+"</td><td class='n'>"+(pc===null?"—":pc+"%")+"</td></tr>"}).join(""):"<tr><td colspan='4' class='vazio'>Sem dados na semana.</td></tr>")}
 }
-function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&perfil.papel==="developer",ger=dono||!!(perfil&&perfil.papel==="admin");$("sgv").hidden=!ger;$("bkw").hidden=!dono;if(!ger)return;
+function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&perfil.papel==="developer",ger=dono;/* por enquanto só o developer gerencia acessos */$("sgv").hidden=!ger;$("bkw").hidden=!dono;if(!ger)return;
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
@@ -2468,7 +2468,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="78";
+const VER="79";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
