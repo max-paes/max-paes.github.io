@@ -143,8 +143,9 @@ header .vnd:empty{display:none}
 #fsx{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:6;padding:10px 16px;border-radius:10px;border:0;background:rgba(0,0,0,.7);color:#fff;font:800 15px Archivo,sans-serif}
 [hidden]{display:none!important}
 #hbtn,#abtn,#sbtn{padding:10px 14px;border-radius:10px;border:2px solid var(--on);background:transparent;color:var(--on);font:800 14px Archivo,sans-serif}
-.ed{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--hit);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:13px}
-.ed button{padding:8px 10px;border-radius:8px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif;white-space:nowrap}
+.ed{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;background:var(--hit);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:13px}
+.ed>span{flex:1 1 100%;min-width:0}
+.ed button{flex:0 1 auto;max-width:100%;padding:8px 10px;border-radius:8px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif;white-space:nowrap}
 .hhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .hhead button{padding:9px 14px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}
 .hit{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--bg)}
@@ -2363,7 +2364,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="71";
+const VER="72";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
