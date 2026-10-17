@@ -411,8 +411,9 @@ body.trv #edbar{border-color:#0b7a75}
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <button id="nvr" class="sec" hidden>Enviar link de senha</button>
       <button id="nvb">Criar acesso</button><p class="msg" id="nvm" style="margin:6px 0 0"></p>
-      <p class="msg" style="margin:4px 0 0">Passe o e-mail e a senha inicial à pessoa. No primeiro acesso, o app pede para ela criar a senha dela. Só a conta do dono cria acessos.</p></div>
+      <p class="msg" style="margin:4px 0 0">Passe o e-mail e a senha inicial à pessoa. No primeiro acesso, o app pede para ela criar a senha dela. Só o dono e o administrador criam acessos.</p></div>
     <div class="tl" id="sgacc"></div>
+    <div class="acts" id="bkw" hidden style="margin-top:10px"><button id="bkb" class="sec">Backup e uso do banco</button></div><p class="msg" id="bkm" style="margin:6px 0 0"></p>
   </details>
   <div class="sh" id="spl">Visitas e pedidos</div><div class="tl" id="spt2"></div>
   <div id="spsem" hidden><div class="sh">Troca por loja na semana</div><div class="tl" style="padding:4px 4px"><table class="tx" id="spts"></table></div></div>
@@ -1026,6 +1027,12 @@ const FIREBASE_CONFIG={apiKey:"AIzaSyARohr-gd-yUzcTM4ZrVOp345dKI0_2x_s",authDoma
 const FBV="10.12.2",DONO_UID="CDcwBbB7M1aLDRmGM74p45UDnLz1";
 const nv={db:null,uid:null,pend:new Set(),del:new Set(),cfg:false,t:null,msg:"",tomb:new Set(),tombSujo:false,tk:0};
 const lsG=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const HOST_ANT="max-paes.github.io",NOVO_URL="";
+let migrando=false;
+async function migra(logado){if(location.host!==HOST_ANT||!NOVO_URL||migrando)return;
+  if(logado){try{if(tSalvar)salvar();await enviaNuvem()}catch(e){return}if(nv.pend&&nv.pend.size)return}
+  migrando=true;try{stNuvem("O app mudou de endereço. Abrindo o novo…")}catch(e){}
+  setTimeout(()=>location.replace(NOVO_URL),logado?1500:300)}
 function dispId(){let v=lsG("mpv:disp");if(!v){try{v=crypto.randomUUID()}catch(e){v=Date.now().toString(36)+Math.random().toString(36).slice(2)}lsS("mpv:disp",v)}return v}
 function dispNome(){const u=navigator.userAgent||"";return /iPhone|iPad|iPod/.test(u)?"iPhone/iPad":/Android/.test(u)?"Android":/Windows/.test(u)?"Windows":/Mac OS/.test(u)?"Mac":"Computador"}
 async function liberaDisp(){try{const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb||!perfil||(perfil.papelReal||perfil.papel)==="developer")return;
@@ -1113,7 +1120,7 @@ function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mu
   $("lgb").textContent=loc?"Começar":nova||mud?"Salvar nova senha":"Entrar";
   $("lgsub").textContent=loc?"Informe seu nome. Ele identifica os seus registros.":nova?"Primeiro acesso: crie a sua senha pessoal. A senha inicial deixa de valer.":mud?"Digite a senha atual e a nova senha.":"Entre com seu e-mail e senha.";
   $("lgs").autocomplete=mud?"current-password":"current-password";["lgs","lgs2","lgs3"].forEach(i=>$(i).value="");lgMsg("")}
-function mostraLogin(m){if(!$("lglogo").src)$("lglogo").src="logo-app.webp";lgModoSet(m);$("lg").classList.add("on");setTimeout(()=>{try{({entrar:$("lge"),nova:$("lgs2"),mudar:$("lgs")}[m]||$("lgn")).focus()}catch(e){}},50)}
+function mostraLogin(m){if(m==="entrar")migra(false);if(!$("lglogo").src)$("lglogo").src="logo-app.webp";lgModoSet(m);$("lg").classList.add("on");setTimeout(()=>{try{({entrar:$("lge"),nova:$("lgs2"),mudar:$("lgs")}[m]||$("lgn")).focus()}catch(e){}},50)}
 const ERR={"auth/invalid-credential":"E-mail ou senha incorretos.","auth/wrong-password":"E-mail ou senha incorretos.","auth/user-not-found":"E-mail não cadastrado.","auth/requires-recent-login":"Por segurança, saia e entre de novo antes de mudar a senha.",
   "auth/invalid-email":"E-mail inválido.","auth/email-already-in-use":"Esse e-mail já tem conta.","auth/weak-password":"A senha precisa ter pelo menos 6 caracteres.",
   "auth/network-request-failed":"Sem internet. Conecte e tente de novo.","auth/too-many-requests":"Muitas tentativas. Espere alguns minutos.","auth/missing-password":"Digite a senha."};
@@ -1209,7 +1216,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
     const rows=Object.entries(lj).filter(([,v])=>v.p||v.t).sort((a,b)=>(b[1].t/(b[1].p||1))-(a[1].t/(a[1].p||1)));
     $("spts").innerHTML="<tr><th>Loja</th><th class='n'>Pedido</th><th class='n'>Troca</th><th class='n'>%</th></tr>"+(rows.length?rows.map(([k,v])=>{const pc=v.p?Math.round(v.t/v.p*100):null;return "<tr class='"+(pc===null||pc>10?"alto":"")+"'><td>"+esc(k)+"</td><td class='n'>"+v.p+"</td><td class='n'>"+v.t+"</td><td class='n'>"+(pc===null?"—":pc+"%")+"</td></tr>"}).join(""):"<tr><td colspan='4' class='vazio'>Sem dados na semana.</td></tr>")}
 }
-function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&perfil.papel==="developer",ger=dono||!!(perfil&&perfil.papel==="admin");$("sgv").hidden=!ger;if(!ger)return;
+function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&perfil.papel==="developer",ger=dono||!!(perfil&&perfil.papel==="admin");$("sgv").hidden=!ger;$("bkw").hidden=!dono;if(!ger)return;
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
@@ -1452,12 +1459,13 @@ async function entrou(u){
   if(perfil.ativo===false){barra(perfil.pendente?"Pedido de acesso enviado. Aguarde a liberação e entre de novo.":"Seu acesso está desativado.");return}
   if(perfil.papel!=="developer"){
     const meu=dispId(),dp=perfil.disp||"";
-    if(dp&&dp!==meu){barra("Esta conta já está aberta em outro aparelho"+(perfil.dispNome?" ("+perfil.dispNome+")":"")+". Saia da conta nele ou peça para liberar.");return}
-    if(!dp){try{await pref.set({disp:meu,dispNome:dispNome(),dispEm:Date.now()},{merge:true});perfil.disp=meu}catch(e){barra("Não deu para registrar este aparelho. Tente de novo.");return}}
+    const troca=dp&&dp!==meu&&perfil.dispHost!==location.host&&location.host!==HOST_ANT;
+    if(dp&&dp!==meu&&!troca){barra("Esta conta já está aberta em outro aparelho"+(perfil.dispNome?" ("+perfil.dispNome+")":"")+". Saia da conta nele ou peça para liberar.");return}
+    if(!dp||troca){try{await pref.set({disp:meu,dispNome:dispNome(),dispEm:Date.now(),dispHost:location.host},{merge:true});perfil.disp=meu;perfil.dispHost=location.host}catch(e){barra("Não deu para registrar este aparelho. Tente de novo.");return}}
   }
   pref.set({ultimoAcesso:Date.now()},{merge:true}).catch(()=>{});
   lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");mostraVendedor();
-  const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta()};
+  const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta();migra(true)};
   if(perfil.trocarSenha){pendEntrada=seguir;mostraLogin("nova");return}
   await seguir();
 }
@@ -2309,6 +2317,18 @@ $("fabs").onclick=async()=>{const b=$("fabs");if(fab.dosp){fabDesliga();supAbrir
   b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
   if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
 $("spfp").onclick=()=>{fab.dosp=true;$("sp").classList.remove("on");fabAbrir("producao")};$("spfe").onclick=()=>{fab.dosp=true;$("sp").classList.remove("on");fabAbrir("expedicao")};
+$("bkb").onclick=async()=>{const b=$("bkb"),m=$("bkm");b.disabled=true;m.textContent="Lendo o banco…";
+  try{const out={geradoEm:new Date().toISOString(),versao:VER,vendedores:{},docs:{},expedicao:{},rotas:{}};let bytes=0,nf=0,bf=0;
+    const vs=await fbDb.collection("vendedores").get();
+    for(const d of vs.docs){out.vendedores[d.id]=d.data();out.docs[d.id]={};
+      const ds=await fbDb.collection("vendedores/"+d.id+"/docs").get();ds.docs.forEach(x=>{const v=x.data();out.docs[d.id][x.id]=v;bytes+=JSON.stringify(v).length});
+      try{const fs=await fbDb.collection("vendedores/"+d.id+"/fotos").get();fs.docs.forEach(x=>{nf++;bf+=JSON.stringify(x.data()).length})}catch(e){}}
+    for(const c of ["expedicao","rotas"]){try{const sn=await fbDb.collection(c).get();sn.docs.forEach(x=>{out[c][x.id]=x.data();bytes+=JSON.stringify(x.data()).length})}catch(e){}}
+    const blob=new Blob([JSON.stringify(out)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="backup-max-paes-"+hojeISO()+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+    const mb=x=>(x/1048576).toFixed(1).replace(".",",")+" MB",tot=bytes+bf,pc=Math.round(tot/1073741824*100);
+    m.textContent="Backup baixado (sem as fotos). Uso estimado do banco: "+mb(tot)+" de 1 GB grátis ("+pc+"%) · fotos: "+nf+" ("+mb(bf)+")."+(pc>=70?" Atenção: perto do limite grátis.":"")}
+  catch(e){m.textContent="Não foi possível gerar o backup: "+(e.code||e.message)}
+  b.disabled=false};
 $("vcs").onchange=()=>verComo($("vcs").value);
 $("mots").onclick=async()=>{const b=$("mots");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
   b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
@@ -2448,7 +2468,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="76";
+const VER="77";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
