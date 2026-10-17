@@ -1078,16 +1078,7 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
 const rotP=p=>p==="admin"?"Administrador":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
-const SEEDS=[{id:"seed8020",conta:/^DILSON/,
-  cli:{nome:"TELEFRANGO REDENÇÃO",endereco:"REDENÇÃO-CE",comprador:""},data:"2026-10-13",quando:[2026,9,13,15,2],vendedor:"DILSON ALVES",
-  pedido:{"BOLO 500g":120,"PANETONE CHOCOLATE 400g":16,"PANETONE FRUTAS 400g":16,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 500g":14,"PÃO HAMBURGUER 400g":45,"PÃO HOT DOG 400g":16,"PÃO HOT DOG 550g":7,"PÃO DE FORMA INTEGRAL 500g":20,"PÃO BRIOCHE 400g":30,"PÃO GUARÚ 350g":20,"PÃO INTEGRAL MULTIGRÃOS 350g":5,"PÃO MULTIGRÃO S/ AÇÚCAR 350g":5}},
- {id:"seedNF94415",conta:/^(DILSON|WESLEY)/,atualiza:/lemos/,de:"2026-10-03",ate:"2026-10-10",
-  cli:{nome:"LEMOS",endereco:"RUA PRETRORIO, 1749 - ATO ALEGRE II",comprador:""},data:"2026-10-09",quando:[2026,9,9,16,3],
-  pedido:{"BOLO 500g":32,"FARINHA DE ROSCA":6,"PÃO ÁRABE 400g":12,"PÃO BOLÃO C/6 UNID. 550g":12,"PÃO BOLÃO COM GERGELIM 500g":12,"PÃO HAMBURGUER 400g":63,"PÃO HOT DOG 400g":16,"PÃO DE FORMA INTEGRAL 500g":25,"PÃO BRIOCHE 400g":10,"PÃO GUARÚ 350g":10,"PÃO INTEGRAL MULTIGRÃOS 350g":15,"PÃO DE REQUEIJÃO 330g":18}},
- {id:"seedPassare1015b",conta:/./,semSup:true,evita:"seedPassare1015",agora:true,status:"fechado",
-  cli:{nome:"TELEFRANGO PASSARÉ",endereco:"",comprador:""},data:"2026-10-15",quando:[2026,9,15,11,20],
-  pedido:{"PÃO BRIOCHE 400g":40,"PÃO GUARÚ 350g":10,"PÃO DE REQUEIJÃO 330g":15,"PÃO HAMBURGUER 400g":50,"BOLO 500g":20,"PÃO ÁRABE 400g":40},
-  troca:{"BOLO 500g":23,"PÃO HAMBURGUER 400g":11,"PÃO HAMBURGUER 500g":1,"PÃO BOLÃO COM GERGELIM 500g":4,"PÃO BRIOCHE 400g":1,"PÃO INTEGRAL MULTIGRÃOS 350g":2,"PÃO GUARÚ 350g":1,"PÃO ÁRABE 400g":10,"PÃO DE FORMA INTEGRAL 500g":2}}];
+const SEEDS=[];/* pedidos entregues pela empresa já aplicados; lista esvaziada para não recriar pedidos excluídos */
 const CLI_NOVOS=[["BOAMA","MARAPONGA"],["VOLTA A VIDA","LAGOA REDONDA"],["MANÁ SEDE","ALTO ALEGRE"],["MANÁ 1","MARACANAÚ"],["MANÁ 2","ITAITINGA"],["MANÁ 3","ITAITINGA"]];
 function garanteClientes(){let n=0;CLI_NOVOS.forEach(([nm,en])=>{const k=chave2(canon(nm)),ex=clientes.find(c=>chave2(canon(c.nome))===k);
   if(!ex){clientes.push({nome:nm,endereco:en,comprador:""});n++}else if(!ex.endereco){ex.endereco=en;n++}});
@@ -2457,7 +2448,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="75";
+const VER="76";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
