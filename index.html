@@ -115,12 +115,12 @@ header .vnd:empty{display:none}
 #rl .seg button,#rl #rla,#rl #rln,#rl #rlx{border:1.5px solid var(--brand);background:transparent;color:var(--brand);border-radius:9px;padding:8px 12px;font:800 14px Archivo,sans-serif}
 #rl .seg button{flex:1}
 #rl .seg button[aria-pressed="true"]{background:var(--brand);color:var(--on)}
-#rl .rk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0}
-#rl .rk div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-#rl .rk small{display:block;font-size:11px;font-weight:800;color:var(--mute);text-transform:uppercase}
-#rl .rk b{font-size:20px}
+#rl .rk,#fab .rk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0}
+#rl .rk div,#fab .rk div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+#rl .rk small,#fab .rk small{display:block;font-size:11px;font-weight:800;color:var(--mute);text-transform:uppercase}
+#rl .rk b,#fab .rk b{font-size:20px}
 #rl h3{margin:14px 0 6px;font-size:15px}
-#rl .tx tr.tot td{font-weight:800;border-top:2px solid var(--line)}
+#rl .tx tr.tot td,#fab .tx tr.tot td{font-weight:800;border-top:2px solid var(--line)}
 .gv{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .gv summary{font-weight:800;cursor:pointer;color:var(--brand)}
 .gvf{display:grid;gap:8px;margin:12px 0}
@@ -280,6 +280,24 @@ body.trv #edbar{border-color:#0b7a75}
 .sn button.nao[aria-pressed="true"]{background:var(--mute);border-color:var(--mute)}
 
 #mot{padding:0;background:var(--bg);z-index:20}
+#fab{padding:0;background:var(--bg);z-index:4}
+#vcb{position:fixed;left:8px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;gap:6px;align-items:center;background:rgba(17,24,39,.88);color:#fff;border-radius:999px;padding:3px 4px 3px 9px;font:700 12px Archivo,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#vcb[hidden]{display:none}
+#vcb select{font:700 12px Archivo,sans-serif;border-radius:999px;border:0;padding:4px 8px;background:#fff;color:#111}
+#vcb.on{background:#b26a00}
+#fab .sw{max-width:760px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 40px}
+#fab .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
+#fab .stop h2{margin:0;font-size:19px;flex:1 1 auto}
+#fab .stop button{border:1.5px solid currentColor;background:transparent;color:inherit;border-radius:9px;padding:7px 11px;font:700 14px Archivo,sans-serif}
+#fab .fctl{display:flex;align-items:center;gap:8px;margin:0 0 8px}#fab .fctl b{flex:1;text-align:center}
+#fab .xc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px}
+#fab .xc.ok{border-color:#1a8a4a;background:rgba(26,138,74,.10)}
+#fab .xh{display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+#fab .xs{font-size:12px;color:var(--mute)}
+#fab .xa{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#fab .xa button,#fab .fbt{padding:8px 11px;border-radius:9px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif}
+#fab .xa button.on{background:#1a8a4a;border-color:#1a8a4a;color:#fff}
+#fab details{margin-top:6px;font-size:13px}#fab summary{cursor:pointer;color:var(--mute)}
 #mot .sw{max-width:640px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 40px}
 #mot .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
 #mot .stop h2{margin:0;font-size:19px;flex:1 1 auto}
@@ -387,7 +405,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
-      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="supervisor">Supervisor</option></select></label>
+      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="supervisor">Supervisor</option></select></label>
       <label>Nome<input id="nvn" autocapitalize="characters"></label>
       <label>E-mail<input id="nve" type="email" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
@@ -399,6 +417,13 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="sh" id="spl">Visitas e pedidos</div><div class="tl" id="spt2"></div>
   <div id="spsem" hidden><div class="sh">Troca por loja na semana</div><div class="tl" style="padding:4px 4px"><table class="tx" id="spts"></table></div></div>
 </div></div>
+<div class="ov" id="fab" role="dialog" aria-modal="true" aria-labelledby="fabt"><div class="sw">
+  <div class="stop"><h2 id="fabt">Produção</h2><button id="fabr">Atualizar</button><button id="fabs">Sair</button></div>
+  <div class="fctl"><button id="faba" aria-label="Dia anterior">◀</button><b id="fabd"></b><button id="fabn" aria-label="Próximo dia">▶</button><button id="fabh">Hoje</button></div>
+  <p class="msg" id="fabm" style="margin:0 2px 10px"></p>
+  <div id="fabc"></div>
+</div></div>
+<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option></select></div>
 <div class="ov" id="rl"><div class="box" style="max-width:760px">
   <div class="hhead"><b>Relatórios da equipe</b><button id="rlx">Fechar</button></div>
   <div class="seg" id="rlseg" style="display:flex;gap:6px;margin:6px 0"><button id="rld" aria-pressed="false">Dia</button><button id="rls" aria-pressed="true">Semana</button><button id="rlm2" aria-pressed="false">Mês</button></div>
@@ -1003,7 +1028,7 @@ const nv={db:null,uid:null,pend:new Set(),del:new Set(),cfg:false,t:null,msg:"",
 const lsG=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 function dispId(){let v=lsG("mpv:disp");if(!v){try{v=crypto.randomUUID()}catch(e){v=Date.now().toString(36)+Math.random().toString(36).slice(2)}lsS("mpv:disp",v)}return v}
 function dispNome(){const u=navigator.userAgent||"";return /iPhone|iPad|iPod/.test(u)?"iPhone/iPad":/Android/.test(u)?"Android":/Windows/.test(u)?"Windows":/Mac OS/.test(u)?"Mac":"Computador"}
-async function liberaDisp(){try{const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb||!perfil||perfil.papel==="developer")return;
+async function liberaDisp(){try{const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb||!perfil||(perfil.papelReal||perfil.papel)==="developer")return;
   if((perfil.disp||"")!==dispId())return;
   await fbDb.collection("vendedores").doc(u.uid).set({disp:"",dispNome:"",dispEm:0},{merge:true})}catch(e){}}
 function stNuvem(t){nv.msg=t;const e=$("nvst");if(e)e.textContent=t}
@@ -1050,7 +1075,7 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const sp=!!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer"));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const rotP=p=>p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
+const rotP=p=>p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[{id:"seed8020",conta:/^DILSON/,
@@ -1089,7 +1114,7 @@ function aplicaSeeds(){try{
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
-  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);garanteClientes();aplicaSeeds();motPronto()}
+  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);garanteClientes();aplicaSeeds();motPronto();fabPronto();vcPinta()}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
   $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud);$("lgsll").textContent=mud?"Senha atual":"Senha";
@@ -1169,7 +1194,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
     ["Pedidos fechados",fech.length,L.filter(x=>x.status==="rascunho"&&x.ped>0).length+" em rascunho"],["Unidades pedidas",un,(n=>n+(n===1?" loja":" lojas"))(L.filter(x=>x.ped>0).length)],["Trocas",tr+" un.",un?Math.round(tr/un*100)+"% do pedido":"—"]];
   $("spk").innerHTML=kp.map(([a,b,c])=>"<div><small>"+esc(a)+"</small><b>"+esc(b)+"</b><span>"+esc(c)+"</span></div>").join("");
   const V=$("spv");V.innerHTML="";
-  const uids=Object.keys(sup.vend).filter(u=>(sup.vend[u]||{}).papel!=="motorista").sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
+  const uids=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao)$/.test((sup.vend[u]||{}).papel||"")).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   if(!uids.length)V.innerHTML='<div class="vazio">Nenhum vendedor cadastrado ainda. Peça para cada um criar a conta no app.</div>';
   uids.forEach(uid=>{const v=sup.vend[uid]||{},mine=todos.filter(x=>x.uid===uid),hoje=Object.values(sup.docs).filter(x=>x.uid===uid&&x.id.startsWith("p_")&&x.data===hj);
     const ab=hoje.find(x=>x.ini&&!x.fim),ult=Math.max(0,...hoje.map(x=>x.ts||0));
@@ -1196,8 +1221,8 @@ function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=f
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["supervisor","Supervisor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
-    sel.value=["promotor","motorista","supervisor"].includes(v.papel)?v.papel:"vendedor";
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["supervisor","Supervisor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    sel.value=["promotor","motorista","producao","expedicao","supervisor"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
       try{await fbAuth.sendPasswordResetEmail(v.email);rs.textContent="E-mail enviado"}catch(e){rs.textContent="Falhou"}};
@@ -1238,7 +1263,7 @@ $("nvb").onclick=async()=>{const b=$("nvb"),m=$("nvm"),nome=U($("nvn").value).tr
     await a2.signOut();
     const ref=fbDb.collection("vendedores").doc(uid),ex=await ref.get().catch(()=>null);
     if(ex&&ex.exists){m.textContent="Esse e-mail já tem acesso liberado"+(ex.data().nome?" ("+ex.data().nome+")":"")+". Veja na lista acima.";return}
-    await ref.set({nome,email:em,papel:(["supervisor","promotor","motorista"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
+    await ref.set({nome,email:em,papel:(["supervisor","promotor","motorista","producao","expedicao"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
     m.textContent=(jaTinha?"Acesso liberado para ":"Acesso criado para ")+nome+". Passe a ela: "+em+" · senha "+se;$("nvn").value="";$("nve").value="";$("nvs").value="";$("nvr").hidden=true}
   catch(e){m.textContent=erroTxt(e)}
   finally{b.disabled=false;b.textContent="Criar acesso"}};
@@ -1400,6 +1425,10 @@ $("spav").onclick=async()=>{
   pintaAvisos()};
 setInterval(()=>{if($("sp").classList.contains("on"))supRender()},60000);
 function supDesliga(){if(sup.uv){sup.uv();sup.uv=null}Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.vend={};sup.ini="";$("sp").classList.remove("on");$("sbtn").hidden=true}
+const ehDev=()=>!!(perfil&&perfil.papelReal==="developer");
+function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;$("vcs").value=perfil.papel||"developer";b.classList.toggle("on",perfil.papel!=="developer")}
+function verComo(p){if(!ehDev())return;perfil.papel=p;try{localStorage.setItem("mpv:tela","")}catch(e){}
+  $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
 function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
   pintaAvisos();if(perfil.papel==="supervisor"||telaSalva()==="sp")supAbrir()}
 async function iniciaNuvem(){
@@ -1426,7 +1455,7 @@ async function entrou(u){
     let ped=false;try{await pref.set({nome:U((u.email||"").split("@")[0]),email:u.email||"",papel:"vendedor",ativo:false,pendente:true,criadoEm:Date.now()});ped=true}catch(e){errB=" ("+(e.code||e.message)+")"}
     barra(ped?"Pedido de acesso enviado. Peça a liberação e entre de novo."
              :"Seu acesso ainda não foi liberado."+errB+" ["+u.uid+"]");return}
-  perfil={...ps.data()};if(!perfil.nome)perfil.nome=U((u.email||"").split("@")[0]);
+  perfil={...ps.data()};perfil.papelReal=perfil.papel;if(!perfil.nome)perfil.nome=U((u.email||"").split("@")[0]);
   if(perfil.ativo===false){barra(perfil.pendente?"Pedido de acesso enviado. Aguarde a liberação e entre de novo.":"Seu acesso está desativado.");return}
   if(perfil.papel!=="developer"){
     const meu=dispId(),dp=perfil.disp||"";
@@ -2226,9 +2255,70 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   C.appendChild(c9)}
 document.addEventListener("focusout",()=>{setTimeout(()=>{if(mot.adiado)motRender()},150)});
 $("motr").onclick=()=>{mot.dia="";motAbrir()};
+
+// ===== Produção e Expedição =====
+const fab={dia:null,es:[],sep:{},un:null,ud:null,iv:null};
+const ehFab=()=>!!(perfil&&/^(producao|expedicao)$/.test(perfil.papel||"")&&fbDb&&fbAuth&&fbAuth.currentUser);
+function fabPronto(){if(!ehFab()){fabDesliga();return}fabAbrir()}
+function fabAbrir(){if(!fab.dia)fab.dia=hojeISO();$("fabt").textContent=rotP(perfil.papel);$("fab").classList.add("on");fabBusca();
+  if(!fab.iv)fab.iv=setInterval(()=>{if(!document.hidden&&$("fab").classList.contains("on"))fabBusca(true)},90000)}
+function fabDesliga(){if(fab.un){fab.un();fab.un=null}if(fab.iv){clearInterval(fab.iv);fab.iv=null}fab.es=[];fab.sep={};fab.ud=null;$("fab").classList.remove("on")}
+const fabK=e=>e.k.replace("/","_");
+function cxTxt(n,q){const k=CX[n];if(!k)return q+" un.";const c=Math.floor(q/k),r=q%k;return (c?c+" cx":"")+(c&&r?" + ":"")+(r?r+" un.":"")||"0"}
+async function fabBusca(quieto){const d=fab.dia,m=$("fabm");$("fabd").textContent=(d===hojeISO()?"Hoje · ":"")+dBR(d);if(!quieto){m.textContent="Carregando…";$("fabc").innerHTML=""}
+  try{const vs=await fbDb.collection("vendedores").get(),vv={};vs.docs.forEach(x=>{vv[x.id]=x.data()||{}});sup.vend=vv;
+    const out=[];
+    await Promise.all(Object.keys(vv).filter(u=>!/^(motorista|producao|expedicao)$/.test(vv[u].papel||"")).map(async uid=>{
+      const sn=await fbDb.collection("vendedores/"+uid+"/docs").where("data","==",d).get();
+      sn.docs.forEach(x=>{if(!x.id.startsWith("p_"))return;const raw=x.data()||{};let e;try{e=normEnt(JSON.parse(raw.j))}catch(_){return}if(!e||!e.id)return;
+        e.uid=uid;e.k=uid+"/"+x.id;sup.docs[e.k]={...raw,uid,id:x.id};out.push(e)})}));
+    if(d!==fab.dia)return;fab.es=out;
+    if(perfil&&perfil.papel==="expedicao"&&fab.ud!==d){if(fab.un){fab.un();fab.un=null}fab.ud=d;
+      fab.un=fbDb.collection("expedicao").doc(d).onSnapshot(sn=>{fab.sep=sn.exists?((sn.data()||{}).s||{}):{};fabRender()},()=>{$("fabm").textContent="Sem permissão para a separação. Peça para atualizar as regras do banco."})}
+    m.textContent="";fabRender()}
+  catch(e){m.textContent="Não foi possível carregar. Confira a internet e toque em Atualizar."}}
+function fabRender(){if(!perfil)return;const C=$("fabc"),es=fab.es.filter(e=>e.status!=="rascunho"&&soma(e.pedido)>0),rasc=fab.es.filter(e=>e.status==="rascunho"&&soma(e.pedido)>0).length;
+  let h="";
+  if(perfil.papel==="producao"){const P={};es.forEach(e=>ITENS.forEach(n=>{if(e.pedido[n]>0)P[n]=(P[n]||0)+e.pedido[n]}));
+    const ns=ITENS.filter(n=>P[n]>0),un=soma(P),cx=ns.reduce((a,n)=>a+(CX[n]?Math.floor(P[n]/CX[n]):0),0);
+    h+="<div class='rk'><div><small>Pedidos</small><b>"+es.length+"</b></div><div><small>Unidades</small><b>"+un+"</b></div><div><small>Caixas fechadas</small><b>"+cx+"</b></div></div>";
+    if(rasc)h+="<p class='msg'>"+rasc+(rasc===1?" pedido em rascunho ainda não entra":" pedidos em rascunho ainda não entram")+" na lista.</p>";
+    h+=ns.length?"<table class='tx'><tr><th>Produto</th><th class='n'>Unid.</th><th class='n'>Caixas</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+P[n]+"</td><td class='n'>"+esc(cxTxt(n,P[n]))+"</td></tr>").join("")+"<tr class='tot'><td>Total</td><td class='n'>"+un+"</td><td></td></tr></table>"+
+      "<div class='acts' style='margin-top:10px'><button class='fbt' id='fabj'>Gerar lista (JPG/PDF)</button></div>":"<p class='vazio'>Nenhum pedido neste dia.</p>";
+    C.innerHTML=h;const bj=$("fabj");if(bj)bj.onclick=async()=>{bj.textContent="Gerando…";
+      try{try{await document.fonts.load("800 28px Archivo")}catch(_){}const logo=await carregaImg(LOGO);
+        const c=folhaProducao(logo,P,dBR(fab.dia),es.length+(es.length===1?" pedido":" pedidos")),jb=await new Promise(z=>c.toBlob(z,"image/jpeg",0.92)),arq="lista-producao-"+fab.dia+".jpg";
+        ultimo={blob:jb,nome:arq,pdf:pdfDeJpeg(new Uint8Array(await jb.arrayBuffer()),c.width,c.height,595,Math.round(595*c.height/c.width)),nomePdf:arq.replace(/\.jpg$/,".pdf"),url:c.toDataURL("image/jpeg",0.92)};
+        abrirPrev("Lista de produção pronta. Salve o PDF para imprimir.")}catch(e){$("fabm").textContent="Não foi possível gerar a lista."}
+      bj.textContent="Gerar lista (JPG/PDF)"};return}
+  const rk={faturar:0,separando:1,alterado:2,fechado:3},sp=e=>!!(fab.sep[fabK(e)]&&fab.sep[fabK(e)].on);
+  es.sort((a,b)=>(sp(a)-sp(b))||((rk[a.status]??9)-(rk[b.status]??9))||(a.cliente||"").localeCompare(b.cliente||"","pt-BR"));
+  const nS=es.filter(sp).length;
+  h+="<div class='rk'><div><small>Pedidos</small><b>"+es.length+"</b></div><div><small>Separados</small><b>"+nS+" de "+es.length+"</b></div><div><small>Unidades</small><b>"+es.reduce((a,e)=>a+soma(e.pedido),0)+"</b></div></div>";
+  if(rasc)h+="<p class='msg'>"+rasc+(rasc===1?" pedido ainda em rascunho":" pedidos ainda em rascunho")+" (não aparecem aqui).</p>";
+  if(!es.length)h+="<p class='vazio'>Nenhum pedido neste dia.</p>";
+  C.innerHTML=h;
+  es.forEach(e=>{const ok=sp(e),s=fab.sep[fabK(e)]||{},ns=ITENS.filter(n=>e.pedido[n]>0),cx=ns.reduce((a,n)=>a+(CX[n]?Math.floor(e.pedido[n]/CX[n]):0),0);
+    const d=document.createElement("div");d.className="xc"+(ok?" ok":"");
+    d.innerHTML="<div class='xh'><b>"+esc(e.cliente||"(sem nome)")+"</b><span class='xs'>"+esc(STN[e.status]||"")+"</span></div>"+
+      "<div class='xs'>"+esc(nomeV(e.uid))+" · "+soma(e.pedido)+" un. · "+cx+(cx===1?" caixa":" caixas")+(e.endereco?" · "+esc(e.endereco):"")+"</div>"+
+      "<details><summary>Itens ("+ns.length+")</summary><table class='tx'><tr><th>Produto</th><th class='n'>Unid.</th><th class='n'>Caixas</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+e.pedido[n]+"</td><td class='n'>"+esc(cxTxt(n,e.pedido[n]))+"</td></tr>").join("")+"</table></details>"+
+      "<div class='xa'><button class='"+(ok?"on":"")+"'>"+(ok?"✓ Separado"+(s.em?" "+new Date(s.em).toTimeString().slice(0,5):""):"Marcar separado")+"</button><button>Abrir pedido</button></div>";
+    const [bs,bo]=d.querySelectorAll(".xa button");
+    bs.onclick=async()=>{if(ok&&bs.dataset.c!=="1"){bs.dataset.c="1";bs.textContent="Desmarcar?";setTimeout(()=>{bs.dataset.c="";fabRender()},3000);return}
+      bs.disabled=true;try{await fbDb.collection("expedicao").doc(fab.dia).set({s:{[fabK(e)]:{on:!ok,em:Date.now(),por:(perfil&&perfil.nome)||""}}},{merge:true})}
+      catch(_){bs.disabled=false;$("fabm").textContent="Não foi possível salvar. Confira a internet ou as regras do banco."}};
+    bo.onclick=()=>supDetalhe(e.k);
+    C.appendChild(d)})}
+$("fabr").onclick=()=>fabBusca();$("fabh").onclick=()=>{fab.dia=hojeISO();fabBusca()};
+$("faba").onclick=()=>{fab.dia=addD(fab.dia||hojeISO(),-1);fabBusca()};$("fabn").onclick=()=>{fab.dia=addD(fab.dia||hojeISO(),1);fabBusca()};
+$("fabs").onclick=async()=>{const b=$("fabs");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
+  b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
+  if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
+$("vcs").onchange=()=>verComo($("vcs").value);
 $("mots").onclick=async()=>{const b=$("mots");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
   b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
-  if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;motDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
+  if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;motDesliga();fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
 
 // ===== Supervisor: montar a rota do motorista =====
 const rm={dia:"",mot:"",paradas:[]};
@@ -2364,7 +2454,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="72";
+const VER="73";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;

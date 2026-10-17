@@ -7,11 +7,12 @@ service cloud.firestore {
     function perfil(u) { return get(/databases/$(database)/documents/vendedores/$(u)).data; }
     function temPerfil() { return logado() && exists(/databases/$(database)/documents/vendedores/$(request.auth.uid)); }
     function supervisor() { return temPerfil() && (perfil(request.auth.uid).papel == 'supervisor' || perfil(request.auth.uid).papel == 'developer'); }
+    function equipe() { return supervisor() || (temPerfil() && perfil(request.auth.uid).papel in ['producao', 'expedicao'] && perfil(request.auth.uid).get('ativo', true) != false); }
     function ativo() { return temPerfil() && perfil(request.auth.uid).get('ativo', true) != false; }
 
     // Perfil de cada usuário: só o dono (conta do Wesley) cria e altera acessos
     match /vendedores/{uid} {
-      allow read: if logado() && (request.auth.uid == uid || supervisor());
+      allow read: if logado() && (request.auth.uid == uid || equipe());
       // O dono cria acessos; quem entra sem perfil só consegue registrar um pedido (inativo)
       allow create: if dono() || (logado() && request.auth.uid == uid
                       && request.resource.data.ativo == false
@@ -33,7 +34,7 @@ service cloud.firestore {
       // Pedidos, trocas, visitas, agenda e cadastro do vendedor
       match /docs/{doc} {
         allow read, write: if logado() && request.auth.uid == uid && ativo();
-        allow read: if supervisor();
+        allow read: if equipe();
         allow delete: if dono();
       }
     }
@@ -44,9 +45,15 @@ service cloud.firestore {
       allow write: if supervisor();
     }
 
-    // Painel do supervisor
+    // Separação de pedidos: a expedição marca, supervisão e produção leem
+    match /expedicao/{dia} {
+      allow read: if equipe();
+      allow write: if supervisor() || (equipe() && perfil(request.auth.uid).papel == 'expedicao');
+    }
+
+    // Painel do supervisor, produção e expedição
     match /{caminho=**}/docs/{doc} {
-      allow read: if supervisor();
+      allow read: if equipe();
     }
   }
 }
