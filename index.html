@@ -397,7 +397,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="lgl"><button id="lgc">Cancelar</button><button id="lgr">Esqueci a senha</button></div>
 </div></div>
 <div class="ov" id="sp" role="dialog" aria-modal="true" aria-labelledby="spt"><div class="sw">
-  <div class="stop"><h2 id="spt">Painel do supervisor</h2><button id="spr">Relatórios</button><button id="sprt">Rota do motorista</button><button id="spen">Entregas</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button></div>
+  <div class="stop"><h2 id="spt">Painel do supervisor</h2><button id="spr">Relatórios</button><button id="spfp" hidden>Produção</button><button id="spfe" hidden>Expedição</button><button id="sprt">Rota do motorista</button><button id="spen">Entregas</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button></div>
   <div class="ctl"><button id="spa" aria-label="Dia anterior">◀</button><span class="dl" id="spd"></span><button id="spn" aria-label="Próximo dia">▶</button><button id="sph">Hoje</button>
     <span style="flex:1"></span><button id="smd" aria-pressed="true">Dia</button><button id="sms" aria-pressed="false">Semana</button></div>
   <p class="msg" id="spm" style="margin:0 2px 10px"></p>
@@ -405,7 +405,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
-      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="supervisor">Supervisor</option></select></label>
+      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="supervisor">Supervisor</option><option value="admin">Administrador</option></select></label>
       <label>Nome<input id="nvn" autocapitalize="characters"></label>
       <label>E-mail<input id="nve" type="email" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
@@ -423,7 +423,7 @@ body.trv #edbar{border-color:#0b7a75}
   <p class="msg" id="fabm" style="margin:0 2px 10px"></p>
   <div id="fabc"></div>
 </div></div>
-<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option></select></div>
+<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Administrador</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option></select></div>
 <div class="ov" id="rl"><div class="box" style="max-width:760px">
   <div class="hhead"><b>Relatórios da equipe</b><button id="rlx">Fechar</button></div>
   <div class="seg" id="rlseg" style="display:flex;gap:6px;margin:6px 0"><button id="rld" aria-pressed="false">Dia</button><button id="rls" aria-pressed="true">Semana</button><button id="rlm2" aria-pressed="false">Mês</button></div>
@@ -1072,10 +1072,10 @@ $("tema").onclick=()=>{let t="claro";try{t=localStorage.getItem("mpv:tema")||"cl
   const n=t==="claro"?"escuro":t==="escuro"?"auto":"claro";try{localStorage.setItem("mpv:tema",n)}catch(e){}aplicaTema()};
 aplicaTema();
 function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-gondola").style.display=dono?"":"none";
-  const sp=!!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer"));$("rsb").style.display=sp?"":"none";
+  const sp=!!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||""));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const rotP=p=>p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
+const rotP=p=>p==="admin"?"Administrador":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[{id:"seed8020",conta:/^DILSON/,
@@ -1096,7 +1096,7 @@ function aplicaSeeds(){try{
   if(!perfil||!perfil.nome)return;
   SEEDS.forEach(sd=>{
     if(!sd.conta.test(U(perfil.nome).trim())||lsG("mpv:seed:"+sd.id)==="1")return;
-    if(sd.semSup&&/^(supervisor|motorista)$/.test(perfil.papel||""))return;
+    if(sd.semSup&&/^(supervisor|motorista|admin|producao|expedicao)$/.test(perfil.papel||""))return;
     if(sd.evita&&hist.some(h=>h.id===sd.evita)){lsS("mpv:seed:"+sd.id,"1");return}
     lembraCli(sd.cli.nome,sd.cli.endereco,sd.cli.comprador,false);salvaCli();
     if(sd.atualiza&&!hist.some(h=>h.id===sd.id)){
@@ -1160,7 +1160,8 @@ const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const STN={faturar:"Pronto para faturar",separando:"Separando",fechado:"Fechado",alterado:"Alterado",alterando:"Alterando",rascunho:"Rascunho"};
 const rotSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?(fat?"Alterado · Pronto para faturar":"Pronto para faturar"):(STN[st]||"Rascunho");
 const clsSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?"faturar":(st||"rascunho");
-function ehSup(){return !!(perfil&&(perfil.papel==="supervisor"||perfil.papel==="developer")&&fbDb)}
+function ehSup(){return !!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||"")&&fbDb)}
+const ehAdm=()=>!!(perfil&&/^(developer|admin)$/.test(perfil.papel||""));
 function supAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("sp").classList.add("on");supLiga();supRender()}
 function supLiga(){
   if(!sup.uv)sup.uv=fbDb.collection("vendedores").onSnapshot(sn=>{const vv={};sn.docs.forEach(d=>{vv[d.id]=d.data()||{}});sup.vend=vv;supDocs();supRender()},e=>{$("spm").textContent="Sem permissão para ver os vendedores. Confira se sua conta está marcada como supervisor no Firebase."});
@@ -1217,20 +1218,21 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
     const rows=Object.entries(lj).filter(([,v])=>v.p||v.t).sort((a,b)=>(b[1].t/(b[1].p||1))-(a[1].t/(a[1].p||1)));
     $("spts").innerHTML="<tr><th>Loja</th><th class='n'>Pedido</th><th class='n'>Troca</th><th class='n'>%</th></tr>"+(rows.length?rows.map(([k,v])=>{const pc=v.p?Math.round(v.t/v.p*100):null;return "<tr class='"+(pc===null||pc>10?"alto":"")+"'><td>"+esc(k)+"</td><td class='n'>"+v.p+"</td><td class='n'>"+v.t+"</td><td class='n'>"+(pc===null?"—":pc+"%")+"</td></tr>"}).join(""):"<tr><td colspan='4' class='vazio'>Sem dados na semana.</td></tr>")}
 }
-function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID;$("sgv").hidden=!dono;if(!dono)return;
+function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&perfil.papel==="developer",ger=dono||!!(perfil&&perfil.papel==="admin");$("sgv").hidden=!ger;if(!ger)return;
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
+    const mx=uid!==me&&(dono||v.papel!=="developer");
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["supervisor","Supervisor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
-    sel.value=["promotor","motorista","producao","expedicao","supervisor"].includes(v.papel)?v.papel:"vendedor";
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["supervisor","Supervisor"],["admin","Administrador"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    sel.value=["promotor","motorista","producao","expedicao","supervisor","admin"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
       try{await fbAuth.sendPasswordResetEmail(v.email);rs.textContent="E-mail enviado"}catch(e){rs.textContent="Falhou"}};
-    r.appendChild(rs);
-    if(uid!==me&&v.disp){const lb=document.createElement("button");lb.className="sec";lb.textContent="Liberar aparelho";
+    if(dono||v.papel!=="developer")r.appendChild(rs);
+    if(mx&&v.disp){const lb=document.createElement("button");lb.className="sec";lb.textContent="Liberar aparelho";
       lb.onclick=async()=>{if(lb.dataset.c!=="1"){lb.dataset.c="1";lb.textContent="Confirmar?";setTimeout(()=>{lb.dataset.c="";lb.textContent="Liberar aparelho"},3000);return}
         try{await fbDb.collection("vendedores").doc(uid).set({disp:"",dispNome:"",dispEm:0},{merge:true});lb.textContent="Liberado"}catch(e){lb.textContent="Falhou"}};r.appendChild(lb)}
-    if(uid!==me){const ex=document.createElement("button");ex.className="sec";ex.textContent="Excluir";
+    if(mx){const ex=document.createElement("button");ex.className="sec";ex.textContent="Excluir";
       ex.onclick=async()=>{if(ex.dataset.c!=="1"){ex.dataset.c="1";ex.textContent="Apagar acesso e pedidos?";setTimeout(()=>{ex.dataset.c="";ex.textContent="Excluir"},4000);return}
         ex.dataset.c="";ex.disabled=true;ex.textContent="Excluindo…";
         try{const col=fbDb.collection("vendedores/"+uid+"/docs");
@@ -1240,9 +1242,9 @@ function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=f
           delete sup.vend[uid];$("nvm").textContent="Acesso excluído.";supGerencia()}
         catch(e){ex.disabled=false;ex.textContent="Falhou";$("nvm").textContent=erroTxt(e)}};
       r.appendChild(ex)}
-    if(uid!==me){const pf=sel;
+    if(mx){const pf=sel;
       pf.onchange=async()=>{if(v.ativo===false&&v.pendente)return;try{await fbDb.collection("vendedores").doc(uid).set({papel:pf.value},{merge:true})}catch(e){pf.value=v.papel||"vendedor"}};r.appendChild(pf)}
-    if(uid!==me){const at=document.createElement("button");at.className="sec";const rotAt=v.ativo===false?(v.pendente?"Liberar como…":"Reativar"):"Desativar";at.textContent=rotAt;
+    if(mx){const at=document.createElement("button");at.className="sec";const rotAt=v.ativo===false?(v.pendente?"Liberar como…":"Reativar"):"Desativar";at.textContent=rotAt;
       at.onclick=async()=>{if(at.dataset.c!=="1"){at.dataset.c="1";at.textContent=v.ativo===false&&v.pendente?"Liberar como "+(sel.selectedOptions[0]||{}).text+"?":"Confirmar?";setTimeout(()=>{at.dataset.c="";at.textContent=rotAt},4000);return}
         at.dataset.c="";const dados={ativo:v.ativo===false,pendente:false};if(v.ativo===false&&v.pendente)dados.papel=sel.value;
         try{await fbDb.collection("vendedores").doc(uid).set(dados,{merge:true})}catch(e){at.textContent="Falhou"}};r.appendChild(at)}
@@ -1263,7 +1265,7 @@ $("nvb").onclick=async()=>{const b=$("nvb"),m=$("nvm"),nome=U($("nvn").value).tr
     await a2.signOut();
     const ref=fbDb.collection("vendedores").doc(uid),ex=await ref.get().catch(()=>null);
     if(ex&&ex.exists){m.textContent="Esse e-mail já tem acesso liberado"+(ex.data().nome?" ("+ex.data().nome+")":"")+". Veja na lista acima.";return}
-    await ref.set({nome,email:em,papel:(["supervisor","promotor","motorista","producao","expedicao"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
+    await ref.set({nome,email:em,papel:(["supervisor","promotor","motorista","producao","expedicao","admin"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
     m.textContent=(jaTinha?"Acesso liberado para ":"Acesso criado para ")+nome+". Passe a ela: "+em+" · senha "+se;$("nvn").value="";$("nve").value="";$("nvs").value="";$("nvr").hidden=true}
   catch(e){m.textContent=erroTxt(e)}
   finally{b.disabled=false;b.textContent="Criar acesso"}};
@@ -1427,10 +1429,10 @@ setInterval(()=>{if($("sp").classList.contains("on"))supRender()},60000);
 function supDesliga(){if(sup.uv){sup.uv();sup.uv=null}Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.vend={};sup.ini="";$("sp").classList.remove("on");$("sbtn").hidden=true}
 const ehDev=()=>!!(perfil&&perfil.papelReal==="developer");
 function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;$("vcs").value=perfil.papel||"developer";b.classList.toggle("on",perfil.papel!=="developer")}
-function verComo(p){if(!ehDev())return;perfil.papel=p;try{localStorage.setItem("mpv:tela","")}catch(e){}
+function verComo(p){if(!ehDev())return;perfil.papel=p;fabDesliga();try{localStorage.setItem("mpv:tela","")}catch(e){}
   $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
 function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
-  pintaAvisos();if(perfil.papel==="supervisor"||telaSalva()==="sp")supAbrir()}
+  pintaAvisos();$("spfp").hidden=$("spfe").hidden=!ehAdm();if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir()}
 async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
     stNuvem("Modo sem nuvem: os dados ficam só neste celular. Faça backup com frequência.");return}
@@ -2111,7 +2113,7 @@ function voltaUm(){
   if($("rsv")&&!$("rsv").hidden&&ovAberto("hs")){$("rsx").click();return true}
   for(const [id,x] of OVS){
     if(!ovAberto(id)||!x)continue;
-    if(id==="sp"&&perfil&&perfil.papel==="supervisor")return false;
+    if(id==="sp"&&perfil&&(perfil.papel==="supervisor"||perfil.papel==="admin"))return false;
     $(x).click();return true}
   if(mode!=="pedido"){mode="pedido";render();window.scrollTo(0,0);return true}
   return false}
@@ -2259,10 +2261,10 @@ $("motr").onclick=()=>{mot.dia="";motAbrir()};
 // ===== Produção e Expedição =====
 const fab={dia:null,es:[],sep:{},un:null,ud:null,iv:null};
 const ehFab=()=>!!(perfil&&/^(producao|expedicao)$/.test(perfil.papel||"")&&fbDb&&fbAuth&&fbAuth.currentUser);
-function fabPronto(){if(!ehFab()){fabDesliga();return}fabAbrir()}
-function fabAbrir(){if(!fab.dia)fab.dia=hojeISO();$("fabt").textContent=rotP(perfil.papel);$("fab").classList.add("on");fabBusca();
+function fabPronto(){if(fab.dosp&&ehAdm())return;if(!ehFab()){fabDesliga();return}fab.dosp=false;fabAbrir(perfil.papel)}
+function fabAbrir(m){fab.modo=m;if(fab.ud&&m!=="expedicao"){if(fab.un){fab.un();fab.un=null}fab.ud=null}if(!fab.dia)fab.dia=hojeISO();$("fabt").textContent=rotP(m);$("fabs").textContent=fab.dosp?"Voltar":"Sair";$("fab").classList.add("on");fabBusca();
   if(!fab.iv)fab.iv=setInterval(()=>{if(!document.hidden&&$("fab").classList.contains("on"))fabBusca(true)},90000)}
-function fabDesliga(){if(fab.un){fab.un();fab.un=null}if(fab.iv){clearInterval(fab.iv);fab.iv=null}fab.es=[];fab.sep={};fab.ud=null;$("fab").classList.remove("on")}
+function fabDesliga(){fab.dosp=false;if(fab.un){fab.un();fab.un=null}if(fab.iv){clearInterval(fab.iv);fab.iv=null}fab.es=[];fab.sep={};fab.ud=null;$("fab").classList.remove("on")}
 const fabK=e=>e.k.replace("/","_");
 function cxTxt(n,q){const k=CX[n];if(!k)return q+" un.";const c=Math.floor(q/k),r=q%k;return (c?c+" cx":"")+(c&&r?" + ":"")+(r?r+" un.":"")||"0"}
 async function fabBusca(quieto){const d=fab.dia,m=$("fabm");$("fabd").textContent=(d===hojeISO()?"Hoje · ":"")+dBR(d);if(!quieto){m.textContent="Carregando…";$("fabc").innerHTML=""}
@@ -2273,13 +2275,13 @@ async function fabBusca(quieto){const d=fab.dia,m=$("fabm");$("fabd").textConten
       sn.docs.forEach(x=>{if(!x.id.startsWith("p_"))return;const raw=x.data()||{};let e;try{e=normEnt(JSON.parse(raw.j))}catch(_){return}if(!e||!e.id)return;
         e.uid=uid;e.k=uid+"/"+x.id;sup.docs[e.k]={...raw,uid,id:x.id};out.push(e)})}));
     if(d!==fab.dia)return;fab.es=out;
-    if(perfil&&perfil.papel==="expedicao"&&fab.ud!==d){if(fab.un){fab.un();fab.un=null}fab.ud=d;
+    if(fab.modo==="expedicao"&&fab.ud!==d){if(fab.un){fab.un();fab.un=null}fab.ud=d;
       fab.un=fbDb.collection("expedicao").doc(d).onSnapshot(sn=>{fab.sep=sn.exists?((sn.data()||{}).s||{}):{};fabRender()},()=>{$("fabm").textContent="Sem permissão para a separação. Peça para atualizar as regras do banco."})}
     m.textContent="";fabRender()}
   catch(e){m.textContent="Não foi possível carregar. Confira a internet e toque em Atualizar."}}
 function fabRender(){if(!perfil)return;const C=$("fabc"),es=fab.es.filter(e=>e.status!=="rascunho"&&soma(e.pedido)>0),rasc=fab.es.filter(e=>e.status==="rascunho"&&soma(e.pedido)>0).length;
   let h="";
-  if(perfil.papel==="producao"){const P={};es.forEach(e=>ITENS.forEach(n=>{if(e.pedido[n]>0)P[n]=(P[n]||0)+e.pedido[n]}));
+  if(fab.modo==="producao"){const P={};es.forEach(e=>ITENS.forEach(n=>{if(e.pedido[n]>0)P[n]=(P[n]||0)+e.pedido[n]}));
     const ns=ITENS.filter(n=>P[n]>0),un=soma(P),cx=ns.reduce((a,n)=>a+(CX[n]?Math.floor(P[n]/CX[n]):0),0);
     h+="<div class='rk'><div><small>Pedidos</small><b>"+es.length+"</b></div><div><small>Unidades</small><b>"+un+"</b></div><div><small>Caixas fechadas</small><b>"+cx+"</b></div></div>";
     if(rasc)h+="<p class='msg'>"+rasc+(rasc===1?" pedido em rascunho ainda não entra":" pedidos em rascunho ainda não entram")+" na lista.</p>";
@@ -2312,9 +2314,10 @@ function fabRender(){if(!perfil)return;const C=$("fabc"),es=fab.es.filter(e=>e.s
     C.appendChild(d)})}
 $("fabr").onclick=()=>fabBusca();$("fabh").onclick=()=>{fab.dia=hojeISO();fabBusca()};
 $("faba").onclick=()=>{fab.dia=addD(fab.dia||hojeISO(),-1);fabBusca()};$("fabn").onclick=()=>{fab.dia=addD(fab.dia||hojeISO(),1);fabBusca()};
-$("fabs").onclick=async()=>{const b=$("fabs");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
+$("fabs").onclick=async()=>{const b=$("fabs");if(fab.dosp){fabDesliga();supAbrir();return}if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
   b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
   if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
+$("spfp").onclick=()=>{fab.dosp=true;$("sp").classList.remove("on");fabAbrir("producao")};$("spfe").onclick=()=>{fab.dosp=true;$("sp").classList.remove("on");fabAbrir("expedicao")};
 $("vcs").onchange=()=>verComo($("vcs").value);
 $("mots").onclick=async()=>{const b=$("mots");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
   b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
@@ -2454,7 +2457,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="73";
+const VER="74";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;

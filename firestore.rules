@@ -6,7 +6,9 @@ service cloud.firestore {
     function dono() { return logado() && request.auth.uid == 'CDcwBbB7M1aLDRmGM74p45UDnLz1'; }
     function perfil(u) { return get(/databases/$(database)/documents/vendedores/$(u)).data; }
     function temPerfil() { return logado() && exists(/databases/$(database)/documents/vendedores/$(request.auth.uid)); }
-    function supervisor() { return temPerfil() && (perfil(request.auth.uid).papel == 'supervisor' || perfil(request.auth.uid).papel == 'developer'); }
+    function supervisor() { return temPerfil() && perfil(request.auth.uid).papel in ['supervisor', 'developer', 'admin']; }
+    function admin() { return temPerfil() && perfil(request.auth.uid).papel == 'admin' && perfil(request.auth.uid).get('ativo', true) != false; }
+    function naoDev(u) { return !exists(/databases/$(database)/documents/vendedores/$(u)) || perfil(u).papel != 'developer'; }
     function equipe() { return supervisor() || (temPerfil() && perfil(request.auth.uid).papel in ['producao', 'expedicao'] && perfil(request.auth.uid).get('ativo', true) != false); }
     function ativo() { return temPerfil() && perfil(request.auth.uid).get('ativo', true) != false; }
 
@@ -14,15 +16,15 @@ service cloud.firestore {
     match /vendedores/{uid} {
       allow read: if logado() && (request.auth.uid == uid || equipe());
       // O dono cria acessos; quem entra sem perfil só consegue registrar um pedido (inativo)
-      allow create: if dono() || (logado() && request.auth.uid == uid
+      allow create: if dono() || (admin() && request.resource.data.papel != 'developer') || (logado() && request.auth.uid == uid
                       && request.resource.data.ativo == false
                       && request.resource.data.pendente == true
                       && request.resource.data.papel == 'vendedor');
       // Cada um atualiza o próprio perfil (ex.: troca de senha), mas não muda papel nem ativo
-      allow update: if dono() || (logado() && request.auth.uid == uid
+      allow update: if dono() || (admin() && resource.data.papel != 'developer' && request.resource.data.papel != 'developer') || (logado() && request.auth.uid == uid
                       && request.resource.data.papel == resource.data.papel
                       && request.resource.data.get('ativo', true) == resource.data.get('ativo', true));
-      allow delete: if dono();
+      allow delete: if dono() || (admin() && resource.data.papel != 'developer');
 
       // Fotos das telas coletadas pelo motorista
       match /fotos/{f} {
@@ -35,7 +37,7 @@ service cloud.firestore {
       match /docs/{doc} {
         allow read, write: if logado() && request.auth.uid == uid && ativo();
         allow read: if equipe();
-        allow delete: if dono();
+        allow delete: if dono() || (admin() && naoDev(uid));
       }
     }
 
