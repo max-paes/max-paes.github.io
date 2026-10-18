@@ -388,7 +388,7 @@ body.trv #edbar{border-color:#0b7a75}
       <div class="lt"><span class="n">Pedido<small id="vauto_pd" class="gi"></small></span><div class="sn" data-k="pd"><button>Sim</button><button class="nao">Não</button></div></div>
     </div>
     <div class="card"><b>📷 Fotos da visita</b><div id="vfotos" class="fb"></div><input id="vfi" type="file" accept="image/*" multiple hidden>
-      <p class="msg" style="margin:0">Até 5 fotos. A supervisão e a administração veem no painel.</p></div>
+      <p class="msg" style="margin:0">Até 5 fotos. A supervisão e a direção veem no painel.</p></div>
     <div class="card"><b>Mensagem para o WhatsApp</b><pre id="vtxt" class="vtxt"></pre><button id="vwpp" class="agj">Enviar no WhatsApp</button><button id="vcopy" class="agj">Copiar texto</button>
       <p class="msg" style="margin:0">Copie e cole na conversa do WhatsApp.</p></div>
   </div>
@@ -422,7 +422,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
-      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option><option value="supervisor">Supervisor</option><option value="admin">Administrador</option></select></label>
+      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option><option value="supervisor">Supervisor</option><option value="admin">Diretor</option></select></label>
       <label>Nome<input id="nvn" autocapitalize="characters"></label>
       <label>E-mail<input id="nve" type="email" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
@@ -441,7 +441,7 @@ body.trv #edbar{border-color:#0b7a75}
   <p class="msg" id="fabm" style="margin:0 2px 10px"></p>
   <div id="fabc"></div>
 </div></div>
-<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Administrador</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option></select></div>
+<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Diretor</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option></select></div>
 <div class="ov" id="ocm"><div class="box">
   <div class="hhead"><b id="ocmt">Ocorrência</b><button id="ocmx">Fechar</button></div>
   <div id="occ"></div>
@@ -1173,7 +1173,7 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const sp=!!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||""));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Administrador":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
+const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[];/* pedidos entregues pela empresa já aplicados; lista esvaziada para não recriar pedidos excluídos */
@@ -1318,7 +1318,7 @@ function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=f
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Supervisor"],["admin","Administrador"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Supervisor"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
     sel.value=["promotor","motorista","producao","expedicao","faturamento","supervisor","admin"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
@@ -2653,7 +2653,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="82";
+const VER="83";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
