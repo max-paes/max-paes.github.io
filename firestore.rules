@@ -9,7 +9,7 @@ service cloud.firestore {
     function supervisor() { return temPerfil() && perfil(request.auth.uid).papel in ['supervisor', 'developer', 'admin']; }
     function admin() { return temPerfil() && perfil(request.auth.uid).papel == 'admin' && perfil(request.auth.uid).get('ativo', true) != false; }
     function naoDev(u) { return !exists(/databases/$(database)/documents/vendedores/$(u)) || perfil(u).papel != 'developer'; }
-    function equipe() { return supervisor() || (temPerfil() && perfil(request.auth.uid).papel in ['producao', 'expedicao'] && perfil(request.auth.uid).get('ativo', true) != false); }
+    function equipe() { return supervisor() || (temPerfil() && perfil(request.auth.uid).papel in ['producao', 'expedicao', 'faturamento'] && perfil(request.auth.uid).get('ativo', true) != false); }
     function ativo() { return temPerfil() && perfil(request.auth.uid).get('ativo', true) != false; }
 
     // Perfil de cada usuário: só o dono (conta do Wesley) cria e altera acessos
@@ -56,6 +56,19 @@ service cloud.firestore {
     // Observação do promotor para a entrega: quem está ativo lê (motorista, equipe) e grava
     match /obsent/{dia} {
       allow read, write: if logado() && ativo();
+    }
+
+    // Entrega e ocorrência de cada pedido: todos os usuários ativos leem e acrescentam;
+    // só o motorista finaliza e só o faturamento reabre (o developer pode os dois)
+    match /entrega/{id} {
+      allow read: if logado() && ativo();
+      allow create: if logado() && ativo()
+                    && (request.resource.data.get('fin', false) == false
+                        || perfil(request.auth.uid).papel in ['motorista', 'developer']);
+      allow update: if logado() && ativo()
+                    && (request.resource.data.get('fin', false) == resource.data.get('fin', false)
+                        || (request.resource.data.get('fin', false) == true && perfil(request.auth.uid).papel in ['motorista', 'developer'])
+                        || (request.resource.data.get('fin', false) == false && perfil(request.auth.uid).papel in ['faturamento', 'developer']));
     }
 
     // Painel do supervisor, produção e expedição

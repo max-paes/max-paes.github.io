@@ -330,6 +330,13 @@ body.trv #edbar{border-color:#0b7a75}
 .pn{background:rgba(217,160,30,.13);color:inherit;border:1px solid rgba(217,160,30,.45);border-radius:10px;padding:8px 10px;font-weight:600;font-size:13px;margin:8px 0}
 .mk label.pd{border-color:#b3261e}
 #fs{z-index:40}
+#ocm{z-index:30}#ov{z-index:45}
+.ocl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.oci{border-left:3px solid var(--brand);padding:4px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}.oci small{display:block;color:var(--mute);font-size:12px;font-weight:700}
+.ocst{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:800;font-size:13px}.ocst.fin{background:#1a8a4a;color:#fff}.ocst.ab{background:var(--hit);border:1px solid var(--line)}
+#ent textarea,#occ textarea,.mc textarea.oct{width:100%;min-height:70px;box-sizing:border-box}
+#ent .acts button,#occ .acts button{padding:9px 12px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif}
+#ent .acts button.fin,#occ .acts button.fin{background:#1a8a4a;border-color:#1a8a4a;color:#fff}
 .rr{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
 .rr .t{flex:1;min-width:0}
 .rr button{padding:6px 10px;border-radius:9px;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}
@@ -343,6 +350,7 @@ body.trv #edbar{border-color:#0b7a75}
   <button role="tab" id="t-troca" aria-selected="false">Troca</button>
   <button role="tab" id="t-gondola" aria-selected="false">Gôndola</button>
   <button role="tab" id="t-visita" aria-selected="false">Visita</button>
+  <button role="tab" id="t-entrega" aria-selected="false">Entrega</button>
 </div>
 <main>
   <div class="ed" id="aviso" role="alert" hidden><span id="avtx" class="warn"></span><button id="avx">OK</button></div>
@@ -376,12 +384,10 @@ body.trv #edbar{border-color:#0b7a75}
     </div>
     <div class="card"><b>📷 Fotos da visita</b><div id="vfotos" class="fb"></div><input id="vfi" type="file" accept="image/*" multiple hidden>
       <p class="msg" style="margin:0">Até 5 fotos. A supervisão e a administração veem no painel.</p></div>
-    <div class="card"><b>🚚 Observação para a entrega</b>
-      <label class="vl">O que o motorista precisa saber nesta loja<textarea id="voe" rows="3" placeholder="Ex.: entregar pela lateral, recolher 2 telas no estoque" autocomplete="off"></textarea></label>
-      <p class="msg" style="margin:0">Aparece para o motorista na parada desta loja, e para a supervisão e a administração.</p></div>
     <div class="card"><b>Mensagem para o WhatsApp</b><pre id="vtxt" class="vtxt"></pre><button id="vwpp" class="agj">Enviar no WhatsApp</button><button id="vcopy" class="agj">Copiar texto</button>
       <p class="msg" style="margin:0">Copie e cole na conversa do WhatsApp.</p></div>
   </div>
+  <div id="ent" hidden></div>
   <div class="card" id="asscard"><b>Assinatura do cliente</b><img id="assimg" alt="Assinatura" hidden><button id="ass">Assinar</button></div>
 </main>
 <div class="bar">
@@ -410,7 +416,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
-      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="supervisor">Supervisor</option><option value="admin">Administrador</option></select></label>
+      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option><option value="supervisor">Supervisor</option><option value="admin">Administrador</option></select></label>
       <label>Nome<input id="nvn" autocapitalize="characters"></label>
       <label>E-mail<input id="nve" type="email" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
@@ -429,7 +435,11 @@ body.trv #edbar{border-color:#0b7a75}
   <p class="msg" id="fabm" style="margin:0 2px 10px"></p>
   <div id="fabc"></div>
 </div></div>
-<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Administrador</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option></select></div>
+<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Administrador</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option></select></div>
+<div class="ov" id="ocm"><div class="box">
+  <div class="hhead"><b id="ocmt">Ocorrência</b><button id="ocmx">Fechar</button></div>
+  <div id="occ"></div>
+</div></div>
 <div class="ov" id="rl"><div class="box" style="max-width:760px">
   <div class="hhead"><b>Relatórios da equipe</b><button id="rlx">Fechar</button></div>
   <div class="seg" id="rlseg" style="display:flex;gap:6px;margin:6px 0"><button id="rld" aria-pressed="false">Dia</button><button id="rls" aria-pressed="true">Semana</button><button id="rlm2" aria-pressed="false">Mês</button></div>
@@ -442,7 +452,7 @@ body.trv #edbar{border-color:#0b7a75}
 <div class="ov" id="sdt"><div class="box">
   <div class="hhead"><b id="sdtt">Detalhe</b><button id="sdx">Fechar</button></div>
   <div id="sdc"></div>
-  <div class="acts" style="margin-top:10px"><button id="sdp">JPG do pedido</button><button id="sdtr">JPG da troca</button><button id="sdcp">Copiar resumo</button></div>
+  <div class="acts" style="margin-top:10px"><button id="sdp">JPG do pedido</button><button id="sdtr">JPG da troca</button><button id="sdcp">Copiar resumo</button><button id="sdoc">Ocorrência</button></div>
   <p class="msg" id="sdm" style="margin:6px 2px 0"></p>
 </div></div>
 <div class="ov" id="mot" role="dialog" aria-modal="true" aria-labelledby="mott"><div class="sw">
@@ -993,7 +1003,7 @@ function atualizaTxt(){$("vtxt").textContent=textoChecklist()}
 function renderVis(){
   preencheCtt();
   const set=(id,v)=>{if(document.activeElement!==$(id))$(id).value=v||""};
-  set("vini",visita.ini);set("vfim",visita.fim);set("voe",visita.oe);visFotos();set("vctt",visita.ctt);set("vexp",visita.exp);set("vvp",visita.vp);set("vopv",visita.opv);
+  set("vini",visita.ini);set("vfim",visita.fim);visFotos();set("vctt",visita.ctt);set("vexp",visita.exp);set("vvp",visita.vp);set("vopv",visita.opv);
   [["tr","troca"],["pd","pedido"]].forEach(([k,m])=>{const val=snVis(k,m),[bs,bn]=document.querySelectorAll('#vis .sn[data-k="'+k+'"] button');
     bs.setAttribute("aria-pressed",val==="sim");bn.setAttribute("aria-pressed",val==="nao");
     $("vauto_"+k).textContent=visita[k]?"escolhido por você · toque de novo para voltar ao automático":"automático: "+(soma(state[m])>0?(m==="troca"?"há troca lançada":"há pedido lançado"):(m==="troca"?"nenhuma troca lançada":"nenhum pedido lançado"))});
@@ -1028,7 +1038,6 @@ function visFoto(file){const uid=visUid();if(!uid)return Promise.resolve();
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,5-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 function enviaOe(){const uid=visUid(),cli=U($("cliente").value.trim()),dt=$("data").value;if(!uid||!cli||!dt)return;
   const k=uid+"_"+pkey(cli);fbDb.collection("obsent").doc(dt).set({ts:Date.now(),l:{[k]:{c:cli,t:(visita.oe||"").trim(),por:(perfil&&perfil.nome)||"",ts:Date.now(),d:dt}}},{merge:true}).catch(()=>{})}
-$("voe").addEventListener("input",()=>{visita.oe=$("voe").value;atualizaTxt();agenda();clearTimeout(tOe);tOe=setTimeout(enviaOe,1500)});
 async function copiaTexto(t){
   let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
   if(!ok){try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e){}}
@@ -1112,7 +1121,7 @@ function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-g
   const sp=!!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||""));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const rotP=p=>p==="admin"?"Administrador":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
+const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Administrador":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Developer":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[];/* pedidos entregues pela empresa já aplicados; lista esvaziada para não recriar pedidos excluídos */
@@ -1124,7 +1133,7 @@ function aplicaSeeds(){try{
   if(!perfil||!perfil.nome)return;
   SEEDS.forEach(sd=>{
     if(!sd.conta.test(U(perfil.nome).trim())||lsG("mpv:seed:"+sd.id)==="1")return;
-    if(sd.semSup&&/^(supervisor|motorista|admin|producao|expedicao)$/.test(perfil.papel||""))return;
+    if(sd.semSup&&/^(supervisor|motorista|admin|producao|expedicao|faturamento)$/.test(perfil.papel||""))return;
     if(sd.evita&&hist.some(h=>h.id===sd.evita)){lsS("mpv:seed:"+sd.id,"1");return}
     lembraCli(sd.cli.nome,sd.cli.endereco,sd.cli.comprador,false);salvaCli();
     if(sd.atualiza&&!hist.some(h=>h.id===sd.id)){
@@ -1197,6 +1206,8 @@ function supLiga(){
 function supDocs(){const hj=hojeISO(),dia=sup.modo==="dia",a=dia?sup.dia:semDe(sup.dia),b=dia?sup.dia:addD(semDe(sup.dia),6);
   const rs=[[a,b]];if(hj<a||hj>b)rs.push([hj,hj]);const key=rs.map(r=>r.join("_")).join("|");
   if(key!==sup.ini){Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.pronto={};sup.ini=key}
+  rs.forEach(([x0,y0])=>{const lk="ent|"+x0+"_"+y0;if(sup.lst[lk])return;sup.ent=sup.ent||{};
+    sup.lst[lk]=fbDb.collection("entrega").where("d",">=",x0).where("d","<=",y0).onSnapshot(sn=>{sn.docs.forEach(d=>{sup.ent[d.id]=d.data()||{}});supRender()},()=>{})});
   Object.keys(sup.vend).forEach(uid=>rs.forEach(([x0,y0])=>{const lk=uid+"|"+x0+"_"+y0;if(sup.lst[lk])return;
     sup.lst[lk]=fbDb.collection("vendedores/"+uid+"/docs").where("data",">=",x0).where("data","<=",y0).onSnapshot(sn=>{
       sn.docChanges().forEach(ch=>{const k=uid+"/"+ch.doc.id;if(ch.type==="removed"){delete sup.docs[k];return}
@@ -1223,7 +1234,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
     ["Pedidos fechados",fech.length,L.filter(x=>x.status==="rascunho"&&x.ped>0).length+" em rascunho"],["Unidades pedidas",un,(n=>n+(n===1?" loja":" lojas"))(L.filter(x=>x.ped>0).length)],["Trocas",tr+" un.",un?Math.round(tr/un*100)+"% do pedido":"—"]];
   $("spk").innerHTML=kp.map(([a,b,c])=>"<div><small>"+esc(a)+"</small><b>"+esc(b)+"</b><span>"+esc(c)+"</span></div>").join("");
   const V=$("spv");V.innerHTML="";
-  const uids=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao)$/.test((sup.vend[u]||{}).papel||"")).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
+  const uids=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test((sup.vend[u]||{}).papel||"")).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   if(!uids.length)V.innerHTML='<div class="vazio">Nenhum vendedor cadastrado ainda. Peça para cada um criar a conta no app.</div>';
   uids.forEach(uid=>{const v=sup.vend[uid]||{},mine=todos.filter(x=>x.uid===uid),hoje=Object.values(sup.docs).filter(x=>x.uid===uid&&x.id.startsWith("p_")&&x.data===hj);
     const ab=hoje.find(x=>x.ini&&!x.fim),ult=Math.max(0,...hoje.map(x=>x.ts||0));
@@ -1237,7 +1248,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
   const ord=L.slice().sort((a,b)=>(b.data+(b.ini||hhDe(b.ts))).localeCompare(a.data+(a.ini||hhDe(a.ts))));
   if(!ord.length)T.innerHTML='<div class="vazio">Nenhuma visita ou pedido '+(dia?"neste dia":"nesta semana")+".</div>";
   ord.forEach(x=>{const r=document.createElement("button");r.className="tr"+(sup.novo===x.uid+"/"+x.id?" novo":"");
-    const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),st=rotSt(x.status,x.fat)+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
+    const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),en=(sup.ent||{})[x.uid+"_"+x.id]||{},noc=ocLista(en).filter(o=>!o.sis).length,st=rotSt(x.status,x.fat)+(en.fin?" · ✅ Entregue":"")+(noc?" · 📝 "+noc:"")+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
     r.innerHTML="<span class='tt'>"+esc(dia?(x.ini||hhDe(x.ts)):dBR(x.data).slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc(nomeV(x.uid))+" · "+esc(hora)+"</small></span>"+
       "<span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+clsSt(x.status,x.fat)+"'>"+esc(st)+"</span></span>";
     r.onclick=()=>supDetalhe(x.uid+"/"+x.id);T.appendChild(r)});
@@ -1251,8 +1262,8 @@ function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=f
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["supervisor","Supervisor"],["admin","Administrador"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
-    sel.value=["promotor","motorista","producao","expedicao","supervisor","admin"].includes(v.papel)?v.papel:"vendedor";
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Supervisor"],["admin","Administrador"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    sel.value=["promotor","motorista","producao","expedicao","faturamento","supervisor","admin"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
       try{await fbAuth.sendPasswordResetEmail(v.email);rs.textContent="E-mail enviado"}catch(e){rs.textContent="Falhou"}};
@@ -1293,7 +1304,7 @@ $("nvb").onclick=async()=>{const b=$("nvb"),m=$("nvm"),nome=U($("nvn").value).tr
     await a2.signOut();
     const ref=fbDb.collection("vendedores").doc(uid),ex=await ref.get().catch(()=>null);
     if(ex&&ex.exists){m.textContent="Esse e-mail já tem acesso liberado"+(ex.data().nome?" ("+ex.data().nome+")":"")+". Veja na lista acima.";return}
-    await ref.set({nome,email:em,papel:(["supervisor","promotor","motorista","producao","expedicao","admin"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
+    await ref.set({nome,email:em,papel:(["supervisor","promotor","motorista","producao","expedicao","faturamento","admin"].includes($("nvp").value)?$("nvp").value:"vendedor"),ativo:true,trocarSenha:true,criadoEm:Date.now(),criadoPor:fbAuth.currentUser.uid});
     m.textContent=(jaTinha?"Acesso liberado para ":"Acesso criado para ")+nome+". Passe a ela: "+em+" · senha "+se;$("nvn").value="";$("nve").value="";$("nvs").value="";$("nvr").hidden=true}
   catch(e){m.textContent=erroTxt(e)}
   finally{b.disabled=false;b.textContent="Criar acesso"}};
@@ -1421,7 +1432,7 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=sup.docs[k];if(!e)return;su
   if(v.ctt||v.exp||v.vp||v.opv)h+="<p class='msg' style='margin:0 0 8px'>"+(v.ctt?"Contato: "+esc(v.ctt).replace(/\n/g,", ")+"<br>":"")+(v.exp?"Exposição: "+esc(v.exp)+"<br>":"")+(v.vp?"Validade e precificação: "+esc(v.vp)+"<br>":"")+(v.opv?"Oportunidade: "+esc(v.opv):"")+"</p>";
   h+=linhas.length?"<table class='tx'><tr><th>Item</th><th class='n'>Pedido</th><th class='n'>Troca</th><th class='n'>Gôndola</th></tr>"+linhas.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+(e.pedido[n]||"")+"</td><td class='n'>"+(e.troca[n]||"")+"</td><td class='n'>"+(e.gondola[n]!==undefined?e.gondola[n]:"")+"</td></tr>").join("")+
     "<tr><td><b>Total</b></td><td class='n'><b>"+soma(e.pedido)+"</b></td><td class='n'><b>"+soma(e.troca)+"</b></td><td></td></tr></table>":"<p class='vazio'>Sem itens lançados.</p>";
-  if(v.oe&&v.oe.trim())h+="<p class='pn' style='font-size:14px'>🚚 Observação para a entrega: "+esc(v.oe)+"</p>";
+  if(v.oe&&v.oe.trim())h+="<p class='pn' style='font-size:14px'>📝 Observação anterior: "+esc(v.oe)+"</p>";
   if(v.fo&&v.fo.length)h+="<p class='msg' style='margin:8px 0 4px'><b>Fotos da visita ("+v.fo.length+")</b></p><div class='fb' id='sdfo'>"+v.fo.map(id=>"<a target='_blank' data-f='"+esc(id)+"'><div style='width:64px;height:64px;border-radius:8px;background:var(--line)'></div></a>").join("")+"</div>";
   $("sdc").innerHTML=h;
   (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a||!sn.exists)return;const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();const w=window.open();if(w)w.document.write("<img src='"+d+"' style='max-width:100%'>")}}).catch(()=>{})});
@@ -1445,6 +1456,7 @@ $("sdcp").onclick=async()=>{const e=entDe(sup.det);if(!e)return;const x=sup.docs
   const bloco=(t,o)=>{const l=ITENS.filter(n=>o[n]>0);return l.length?["*"+t+"*",...l.map(n=>n+": "+o[n]),"Total: "+soma(o)+" un.",""]:[]};
   const t=["*"+U(e.cliente)+"* · "+dBR(e.data),"Vendedor: "+nomeV(x.uid),e.comprador?"Comprador: "+e.comprador:"","",...bloco("PEDIDO",e.pedido),...bloco("TROCA",e.troca)].filter((l,i,a)=>l!==""||a[i-1]!=="").join("\n").trim();
   $("sdm").textContent=(await copiaTexto(t))?"Resumo copiado. Cole no WhatsApp.":"Não foi possível copiar."};
+$("sdoc").onclick=()=>{const x=sup.docs[sup.det],e=entDe(sup.det);if(!x||!e)return;ocAbrir(sup.det.replace("/","_"),{c:e.cliente,d:e.data},e.cliente)};
 $("sdx").onclick=()=>{sup.det=null;$("sdt").classList.remove("on")};
 $("spx").onclick=()=>$("sp").classList.remove("on");$("sbtn").onclick=supAbrir;
 $("spa").onclick=()=>{sup.dia=addD(sup.dia,sup.modo==="dia"?-1:-7);supDocs();supRender()};$("spn").onclick=()=>{sup.dia=addD(sup.dia,sup.modo==="dia"?1:7);supDocs();supRender()};
@@ -1552,15 +1564,17 @@ function carregar(){
   }catch(e){}
 }
 function contar(){
+  if(mode==="entrega"){$("count").textContent="Entrega · "+(entFin?"finalizada":"em aberto");return}
   if(mode==="visita"){$("count").textContent="Visita · "+(!visita.ini?"não iniciada":!visita.fim?"em andamento desde "+visita.ini:visita.ini+" às "+visita.fim);return}
   if(mode==="gondola"){const n=Object.keys(state.gondola).length;$("count").textContent="Gôndola · "+n+(n===1?" item contado":" itens contados");return}
   const n=Object.values(state[mode]).filter(x=>x>0).length;
   $("count").textContent=(mode==="troca"?"Troca":"Pedido")+" · "+n+(n===1?" item":" itens")+(temPreco()&&n?" · "+fR(valor(state[mode])):"");
 }
 function render(){
-  const gond=mode==="gondola",vis=mode==="visita";
-  ["pedido","troca","gondola","visita"].forEach(m=>$("t-"+m).setAttribute("aria-selected",mode===m));
-  $("list").hidden=vis;$("asscard").hidden=gond||vis;$("vis").hidden=!vis;
+  const gond=mode==="gondola",vis=mode==="visita",ent=mode==="entrega";entVigia();
+  ["pedido","troca","gondola","visita","entrega"].forEach(m=>$("t-"+m).setAttribute("aria-selected",mode===m));
+  $("list").hidden=vis||ent;$("asscard").hidden=gond||vis||ent;$("vis").hidden=!vis;$("ent").hidden=!ent;
+  if(ent){$("list").innerHTML="";renderVisBar();renderEnt();contar();$("edbar").hidden=!curId;pintaFat();return}
   $("list").innerHTML="";renderVisBar();
   if(vis){renderVis();contar();salvar();$("edbar").hidden=!curId;pintaFat();apoio();gondSum();return}
   const q=state[mode];
@@ -1634,6 +1648,7 @@ $("t-pedido").onclick=()=>{mode="pedido";render()};
 $("t-troca").onclick=()=>{mode="troca";render()};
 $("t-gondola").onclick=()=>{mode="gondola";render()};
 $("t-visita").onclick=()=>{mode="visita";render()};
+$("t-entrega").onclick=()=>{mode="entrega";render()};
 CAMPOS.forEach(i=>$(i).addEventListener("input",agenda));
 const SEM_CAIXA=new Set(["lge","lgs","lgs2","lgs3","nve","nvs","hq"]);
 const TIPO_FORA=new Set(["password","email","number","date","time","month","file","checkbox","radio","range","color"]);
@@ -1663,14 +1678,16 @@ function limparTudo(){
 let confirma=false;
 function marcaFechado(){if(stPed!=="faturar"&&stPed!=="alterando"&&stPed!=="separando"){stPed="fechado";fechEm=Date.now()}salvar();pintaFat()}
 function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const ok=!!curId;b.hidden=!ok;
-  const trv=ok&&stPed==="faturar";
+  const trv=ok&&(stPed==="faturar"||entFin);
   document.body.classList.toggle("trv",trv);
   CAMPOS.forEach(i=>{const el=$(i);if(el)el.readOnly=trv});$("data").readOnly=trv;
-  const tx=$("edtx");if(tx)tx.textContent=trv?"Pedido travado para o faturamento. Para mudar algo, toque em Reabrir.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
+  const tx=$("edtx");if(tx)tx.textContent=entFin&&ok?"Entrega finalizada pelo motorista. Só o faturamento pode reabrir.":trv?"Pedido travado para o faturamento. Para mudar algo, toque em Reabrir.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
   if(!ok)return;const f=stPed==="faturar",sep=stPed==="separando",ad=stPed==="alterando",al=stPed==="alterado";
   b.className=f?"on":sep?"sep":(ad||al)?"alt":"";
+  if(entFin){b.className="on";b.textContent="✅ Entrega finalizada";return}
   b.textContent=f?"🔒 Travado · Reabrir para editar":sep?"📦 Separando · marcar Pronto para faturar":ad?"✏ Alterando · marcar Pronto para faturar":al?"⚠ Alterado · marcar Pronto para faturar":"Separando";}
 $("fat").onclick=()=>{const b=$("fat");
+  if(entFin){b.textContent="Só o faturamento reabre";setTimeout(pintaFat,2500);return}
   if(stPed==="faturar"){if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Reabrir para editar? Toque de novo";setTimeout(()=>{if(b.dataset.c==="1"){b.dataset.c="";pintaFat()}},3000);return}
     b.dataset.c="";stPed="alterando";snapFat=assinaCt()}
   else if(stPed==="separando"||stPed==="alterando"||stPed==="alterado"){
@@ -2190,7 +2207,7 @@ function motAbrir(){if(!ehMot())return;const uid=fbAuth.currentUser.uid,hj=hojeI
     mot.uP=fbDb.collection("vendedores/"+uid+"/docs").doc("m_pend").onSnapshot(sn=>{mot.pend=sn.exists?((sn.data()||{}).l||{}):{};motRender()},()=>{});
     mot.oe={};mot.uO=[0,1,2].map(n=>{const d=addD(hj,-n);return fbDb.collection("obsent").doc(d).onSnapshot(sn=>{mot.oe[d]=sn.exists?((sn.data()||{}).l||{}):{};motRender()},()=>{})})}
   $("mot").classList.add("on");motRender()}
-function motDesliga(manter){["uR","uM","uP"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});(mot.uO||[]).forEach(f=>{try{f()}catch(e){}});mot.uO=null;mot.oe={};mot.rota=null;mot.reg={};mot.pend={};if(!manter)$("mot").classList.remove("on")}
+function motDesliga(manter){Object.values(mot.ocU||{}).forEach(f=>{try{f()}catch(e){}});mot.ocU={};mot.ocd={};["uR","uM","uP"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});(mot.uO||[]).forEach(f=>{try{f()}catch(e){}});mot.uO=null;mot.oe={};mot.rota=null;mot.reg={};mot.pend={};if(!manter)$("mot").classList.remove("on")}
 setInterval(()=>{if($("mot").classList.contains("on")&&mot.dia&&mot.dia!==hojeISO())motAbrir()},300000);
 function motGrava(patch){if(!ehMot())return;const uid=fbAuth.currentUser.uid;
   $("motm").textContent="";
@@ -2231,6 +2248,7 @@ function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.cre
     fi.onchange=async()=>{const L=[...fi.files].slice(0,MAXF-ids.length);if(!L.length)return;fb.textContent="Enviando…";for(const f of L)await motFoto(sid,cat,f)};
     b.append(fb,fi)}
   return b}
+function motOc(k){mot.ocU=mot.ocU||{};mot.ocd=mot.ocd||{};if(!mot.ocU[k])mot.ocU[k]=ocOuve(k,d=>{mot.ocd[k]=d;clearTimeout(mot.ocT);mot.ocT=setTimeout(motRender,60)});return mot.ocd[k]||{}}
 function oesDe(cli){const k=pkey(cli),out=[];Object.keys(mot.oe||{}).sort().reverse().forEach(d=>{const L=mot.oe[d]||{};Object.keys(L).forEach(x=>{const o=L[x];if(o&&o.t&&pkey(o.c||"")===k)out.push(o)})});return out.slice(0,3)}
 function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   const a=document.activeElement;if(a&&$("motc").contains(a)&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.type!=="checkbox"&&a.type!=="file"){mot.adiado=true;return}
@@ -2250,6 +2268,15 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
     {const pd=(mot.pend||{})[pkey(s.cliente)];if(pd&&(pd.e||pd.x)&&!r.tl&&pd.d!==mot.dia){const pn=document.createElement("div");pn.className="pn";
       pn.textContent="🔔 Lembrete: na visita de "+dBR(pd.d)+" havia telas "+[pd.e?"no estoque":"",pd.x?"no ponto extra":""].filter(Boolean).join(" e ")+" para coletar.";c.appendChild(pn)}}
     oesDe(s.cliente).forEach(o=>{const pn=document.createElement("div");pn.className="pn oe";pn.textContent="📝 Promotor"+(o.por?" ("+o.por.split(" ")[0]+")":"")+", "+dBR(o.d).slice(0,5)+": "+o.t;c.appendChild(pn)});
+    if(s.ref){const k=s.ref.replace("/","_"),od=motOc(k),it=ocLista(od),meta={c:s.cliente,d:mot.dia};
+      it.filter(x=>!x.sis).slice(-3).forEach(o=>{const pn=document.createElement("div");pn.className="pn oe";pn.textContent="📝 "+(o.por||"").split(" ")[0]+" ("+rotP(o.papel||"")+"), "+hmTs(o.ts)+": "+o.t;c.appendChild(pn)});
+      const ge=document.createElement("div");ge.className="mb";
+      const bo=document.createElement("button");bo.className="sec";bo.textContent="📝 Ocorrência"+(it.filter(x=>!x.sis).length?" ("+it.filter(x=>!x.sis).length+")":"");bo.onclick=()=>ocAbrir(k,meta,s.cliente);
+      const bfz=document.createElement("button");
+      if(od.fin){bfz.className="on";bfz.textContent="✅ Entrega finalizada"+(od.finEm?" "+new Date(od.finEm).toTimeString().slice(0,5):"");bfz.onclick=()=>{bfz.textContent="Só o faturamento reabre";setTimeout(motRender,2000)}}
+      else{bfz.className="big";bfz.textContent="✅ Finalizar entrega";bfz.onclick=async()=>{if(bfz.dataset.c!=="1"){bfz.dataset.c="1";bfz.textContent="Finalizar? Toque de novo";setTimeout(()=>{if(bfz.dataset.c==="1")motRender()},3000);return}
+        bfz.disabled=true;try{await ocFin(k,meta,true)}catch(e){$("motm").textContent="Não foi possível finalizar ("+(e.code||e.message)+")."}}}
+      ge.append(bfz,bo);c.appendChild(ge)}
     const g=document.createElement("div");g.className="mb";
     g.append(motBtn("Chegada na loja",r.c,()=>motP(s.id,{c:Date.now()}),()=>motP(s.id,{c:0})),
              motBtn("Passagem da nota",r.n,()=>motP(s.id,{n:Date.now()}),()=>motP(s.id,{n:0})),
@@ -2294,23 +2321,83 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
 document.addEventListener("focusout",()=>{setTimeout(()=>{if(mot.adiado)motRender()},150)});
 $("motr").onclick=()=>{mot.dia="";motAbrir()};
 
+// ===== Entrega e ocorrência (por pedido) =====
+const ocRef=k=>fbDb.collection("entrega").doc(k);
+const podeFin=()=>!!(perfil&&/^(motorista|developer)$/.test(perfil.papel||""));
+const podeReab=()=>!!(perfil&&/^(faturamento|developer)$/.test(perfil.papel||""));
+const ocL={};
+function ocOuve(k,fn){let o=ocL[k];if(!o){o=ocL[k]={data:null,subs:new Set()};
+    o.un=ocRef(k).onSnapshot(sn=>{o.data=sn.exists?(sn.data()||{}):{};o.subs.forEach(f=>{try{f(o.data)}catch(e){}})},()=>{o.data=o.data||{};o.subs.forEach(f=>{try{f(o.data)}catch(e){}})})}
+  o.subs.add(fn);if(o.data)setTimeout(()=>{if(o.subs.has(fn))fn(o.data)},0);
+  return()=>{o.subs.delete(fn);if(!o.subs.size){try{o.un()}catch(e){}delete ocL[k]}}}
+function ocLista(d){return Object.entries((d&&d.oc)||{}).map(([id,v])=>({id,...(v||{})})).filter(x=>x.t).sort((a,b)=>(a.ts||0)-(b.ts||0))}
+const hmTs=ts=>{const t=new Date(ts);return dBR(isoD(t)).slice(0,5)+" "+String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0")};
+function ocNovo(t,sis){return {[Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36)]:{t,por:(perfil&&perfil.nome)||"",papel:(perfil&&perfil.papel)||"",ts:Date.now(),...(sis?{sis:1}:{})}}}
+async function ocAdd(k,meta,t){t=(t||"").trim();if(!t)return;await ocRef(k).set({c:meta.c||"",d:meta.d||"",ts:Date.now(),oc:ocNovo(t)},{merge:true})}
+async function ocFin(k,meta,v){const n=(perfil&&perfil.nome)||"";
+  await ocRef(k).set({c:meta.c||"",d:meta.d||"",ts:Date.now(),...(v?{fin:true,finEm:Date.now(),finPor:n}:{fin:false,reabEm:Date.now(),reabPor:n}),oc:ocNovo(v?"Entrega finalizada.":"Entrega reaberta pelo faturamento.",1)},{merge:true})}
+function ocPainel(B,k,meta){B.innerHTML="";const st=document.createElement("div"),L=document.createElement("div");L.className="ocl";
+  const ta=document.createElement("textarea");ta.rows=3;ta.placeholder="Escreva a ocorrência: loja fechada, faltou caixa, avaria, recado para a entrega…";
+  const acts=document.createElement("div");acts.className="acts";const ba=document.createElement("button");ba.textContent="Acrescentar";
+  const bg=document.createElement("button");bg.textContent="Gerar ocorrência";const bf=document.createElement("button");bf.hidden=true;
+  const m=document.createElement("p");m.className="msg";m.style.margin="6px 0 0";acts.append(ba,bg,bf);B.append(st,L,ta,acts,m);let cur={};
+  const pinta=d=>{cur=d||{};const fin=!!cur.fin;
+    st.innerHTML="<span class='ocst "+(fin?"fin":"ab")+"'>"+(fin?"✅ Entrega finalizada"+(cur.finEm?" · "+esc(hmTs(cur.finEm)):"")+(cur.finPor?" · "+esc(cur.finPor.split(" ")[0]):""):"🚚 Entrega em aberto")+"</span>";
+    const it=ocLista(cur);L.innerHTML=it.length?it.map(x=>"<div class='oci'><small>"+esc(hmTs(x.ts))+" · "+esc(x.por||"")+(x.papel?" ("+esc(rotP(x.papel))+")":"")+"</small>"+esc(x.t)+"</div>").join(""):"<p class='msg' style='margin:0'>Nenhuma ocorrência registrada.</p>";
+    bf.dataset.c="";if(!fin&&podeFin()){bf.hidden=false;bf.className="fin";bf.textContent="✅ Finalizar entrega"}else if(fin&&podeReab()){bf.hidden=false;bf.className="";bf.textContent="↺ Reabrir entrega"}else bf.hidden=true};
+  ba.onclick=async()=>{if(!ta.value.trim()){ta.focus();return}ba.disabled=true;try{await ocAdd(k,meta,ta.value);ta.value="";m.textContent=""}catch(e){m.textContent="Não foi possível salvar ("+(e.code||e.message)+")."}ba.disabled=false};
+  bf.onclick=async()=>{if(bf.dataset.c!=="1"){bf.dataset.c="1";bf.textContent=cur.fin?"Reabrir? Toque de novo":"Finalizar? Toque de novo";setTimeout(()=>{if(bf.dataset.c==="1")pinta(cur)},3000);return}
+    bf.disabled=true;try{await ocFin(k,meta,!cur.fin)}catch(e){m.textContent="Sem permissão ou sem internet ("+(e.code||e.message)+")."}bf.disabled=false};
+  bg.onclick=()=>ocGera(meta,cur,bg);pinta({});
+  return ocOuve(k,pinta)}
+async function ocGera(meta,d,b){const r0=b.textContent;b.textContent="Gerando…";
+  try{try{await document.fonts.load("800 28px Archivo")}catch(_){}const logo=await carregaImg(LOGO);
+    const W=900,P=32,c=document.createElement("canvas"),x=c.getContext("2d"),mw=W-2*P-24,it=ocLista(d),L=[];
+    const quebra=(t,f)=>{x.font=f;const out=[];String(t).split("\n").forEach(par=>{let ln="";par.split(" ").forEach(w=>{const tt=ln?ln+" "+w:w;if(x.measureText(tt).width>mw&&ln){out.push(ln);ln=w}else ln=tt});out.push(ln)});return out};
+    it.forEach(o=>{L.push({f:"800 21px "+FT,c:AZ,t:hmTs(o.ts)+" · "+(o.por||"")+(o.papel?" ("+rotP(o.papel)+")":"")});quebra(o.t,"600 24px "+FT).forEach(t=>L.push({f:"600 24px "+FT,c:TX,t}));L.push({sp:1})});
+    if(!it.length)L.push({f:"600 24px "+FT,c:"#8a96ad",t:"Nenhuma ocorrência registrada."});
+    const T=300,H=T+150+L.reduce((a,l)=>a+(l.sp?16:34),0)+90;c.width=W;c.height=H;
+    x.fillStyle="#fff";x.fillRect(0,0,W,H);cabecalho(x,W,P,logo,"OCORRÊNCIA",[],dBR(meta.d||""));
+    x.textAlign="left";x.fillStyle=TX;x.font="800 28px "+FT;x.fillText("Loja: "+(meta.c||""),P,T+10);
+    x.font="700 22px "+FT;x.fillStyle=d.fin?"#1a8a4a":AZ;x.fillText(d.fin?"Entrega finalizada"+(d.finEm?" em "+hmTs(d.finEm):"")+(d.finPor?" por "+d.finPor:""):"Entrega em aberto",P,T+50);
+    let y=T+110;L.forEach(l=>{if(l.sp){y+=16;return}x.font=l.f;x.fillStyle=l.c;x.fillText(l.t,P+12,y);y+=34});
+    x.font="600 18px "+FT;x.fillStyle="#5b6b8c";x.fillText("Gerado em "+hmTs(Date.now())+" por "+((perfil&&perfil.nome)||""),P,H-40);
+    const jb=await new Promise(z=>c.toBlob(z,"image/jpeg",0.92)),arq="ocorrencia-"+(meta.c||"loja").toLowerCase().replace(/[^a-z0-9]+/g,"-")+"-"+(meta.d||"")+".jpg";
+    ultimo={blob:jb,nome:arq,pdf:pdfDeJpeg(new Uint8Array(await jb.arrayBuffer()),c.width,c.height,595,Math.round(595*c.height/c.width)),nomePdf:arq.replace(/\.jpg$/,".pdf"),url:c.toDataURL("image/jpeg",0.92)};
+    abrirPrev("Ocorrência pronta. Salve o PDF ou a imagem.")}
+  catch(e){aviso("Não foi possível gerar a ocorrência.")}
+  b.textContent=r0}
+let ocmUn=null;
+function ocAbrir(k,meta,tit){if(!fbDb){aviso("Entre na sua conta e conecte à internet.");return}$("ocmt").textContent="Ocorrência · "+(tit||"");if(ocmUn){ocmUn();ocmUn=null}ocmUn=ocPainel($("occ"),k,meta);$("ocm").classList.add("on")}
+$("ocmx").onclick=()=>{if(ocmUn){ocmUn();ocmUn=null}$("ocm").classList.remove("on")};
+// aba Entrega do vendedor/promotor
+var entUn=null,entK=null,entFin=false,entUnCur=null,entKCur=null;
+function entKey(){const u=fbAuth&&fbAuth.currentUser;return u&&fbDb&&curId?u.uid+"_p_"+curId:null}
+function entVigia(){const k=entKey();if(k===entKCur)return;if(entUnCur){entUnCur();entUnCur=null}entKCur=k;if(entFin){entFin=false;pintaFat()}
+  if(k)entUnCur=ocOuve(k,d=>{const f=!!(d&&d.fin);if(f!==entFin){entFin=f;pintaFat();if(mode==="entrega")contar()}})}
+function renderEnt(){const B=$("ent"),k=entKey();if(entUn&&entK!==k){entUn();entUn=null;entK=null}
+  if(!k){B.innerHTML="<div class='card'><b>🚚 Entrega e ocorrência</b><p class='msg' style='margin:6px 0 0'>"+(visUid()?"Lance o pedido (cliente e itens) para abrir a ocorrência desta entrega.":"Entre na sua conta e conecte à internet para usar a ocorrência.")+"</p></div>";return}
+  if(entUn)return;entK=k;B.innerHTML="<div class='card'><b>🚚 Entrega e ocorrência</b><p class='msg' style='margin:4px 0 8px'>Vendedor, promotor, expedição, motorista e supervisão podem acrescentar informações. Cada uma fica assinada com nome e horário.</p><div id='entp'></div></div>";
+  entUn=ocPainel($("entp"),k,{c:U($("cliente").value.trim()),d:$("data").value})}
 // ===== Produção e Expedição =====
 const fab={dia:null,es:[],sep:{},un:null,ud:null,iv:null};
-const ehFab=()=>!!(perfil&&/^(producao|expedicao)$/.test(perfil.papel||"")&&fbDb&&fbAuth&&fbAuth.currentUser);
+const ehFab=()=>!!(perfil&&/^(producao|expedicao|faturamento)$/.test(perfil.papel||"")&&fbDb&&fbAuth&&fbAuth.currentUser);
 function fabPronto(){if(fab.dosp&&ehAdm())return;if(!ehFab()){fabDesliga();return}fab.dosp=false;fabAbrir(perfil.papel)}
 function fabAbrir(m){fab.modo=m;if(fab.ud&&m!=="expedicao"){if(fab.un){fab.un();fab.un=null}fab.ud=null}if(!fab.dia)fab.dia=hojeISO();$("fabt").textContent=rotP(m);$("fabs").textContent=fab.dosp?"Voltar":"Sair";$("fab").classList.add("on");fabBusca();
   if(!fab.iv)fab.iv=setInterval(()=>{if(!document.hidden&&$("fab").classList.contains("on"))fabBusca(true)},90000)}
-function fabDesliga(){fab.dosp=false;if(fab.un){fab.un();fab.un=null}if(fab.iv){clearInterval(fab.iv);fab.iv=null}fab.es=[];fab.sep={};fab.ud=null;$("fab").classList.remove("on")}
+function fabDesliga(){fab.dosp=false;if(fab.un){fab.un();fab.un=null}if(fab.ue){fab.ue();fab.ue=null}fab.ed=null;fab.ent={};if(fab.iv){clearInterval(fab.iv);fab.iv=null}fab.es=[];fab.sep={};fab.ud=null;$("fab").classList.remove("on")}
 const fabK=e=>e.k.replace("/","_");
 function cxTxt(n,q){const k=CX[n];if(!k)return q+" un.";const c=Math.floor(q/k),r=q%k;return (c?c+" cx":"")+(c&&r?" + ":"")+(r?r+" un.":"")||"0"}
 async function fabBusca(quieto){const d=fab.dia,m=$("fabm");$("fabd").textContent=(d===hojeISO()?"Hoje · ":"")+dBR(d);if(!quieto){m.textContent="Carregando…";$("fabc").innerHTML=""}
   try{const vs=await fbDb.collection("vendedores").get(),vv={};vs.docs.forEach(x=>{vv[x.id]=x.data()||{}});sup.vend=vv;
     const out=[];
-    await Promise.all(Object.keys(vv).filter(u=>!/^(motorista|producao|expedicao)$/.test(vv[u].papel||"")).map(async uid=>{
+    await Promise.all(Object.keys(vv).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test(vv[u].papel||"")).map(async uid=>{
       const sn=await fbDb.collection("vendedores/"+uid+"/docs").where("data","==",d).get();
       sn.docs.forEach(x=>{if(!x.id.startsWith("p_"))return;const raw=x.data()||{};let e;try{e=normEnt(JSON.parse(raw.j))}catch(_){return}if(!e||!e.id)return;
         e.uid=uid;e.k=uid+"/"+x.id;sup.docs[e.k]={...raw,uid,id:x.id};out.push(e)})}));
     if(d!==fab.dia)return;fab.es=out;
+    if(fab.ed!==d){if(fab.ue){fab.ue();fab.ue=null}fab.ed=d;fab.ent={};
+      fab.ue=fbDb.collection("entrega").where("d","==",d).onSnapshot(sn=>{const m={};sn.docs.forEach(x=>{m[x.id]=x.data()||{}});fab.ent=m;fabRender()},()=>{})}
     if(fab.modo==="expedicao"&&fab.ud!==d){if(fab.un){fab.un();fab.un=null}fab.ud=d;
       fab.un=fbDb.collection("expedicao").doc(d).onSnapshot(sn=>{fab.sep=sn.exists?((sn.data()||{}).s||{}):{};fabRender()},()=>{$("fabm").textContent="Sem permissão para a separação. Peça para atualizar as regras do banco."})}
     m.textContent="";fabRender()}
@@ -2329,20 +2416,22 @@ function fabRender(){if(!perfil)return;const C=$("fabc"),es=fab.es.filter(e=>e.s
         ultimo={blob:jb,nome:arq,pdf:pdfDeJpeg(new Uint8Array(await jb.arrayBuffer()),c.width,c.height,595,Math.round(595*c.height/c.width)),nomePdf:arq.replace(/\.jpg$/,".pdf"),url:c.toDataURL("image/jpeg",0.92)};
         abrirPrev("Lista de produção pronta. Salve o PDF para imprimir.")}catch(e){$("fabm").textContent="Não foi possível gerar a lista."}
       bj.textContent="Gerar lista (JPG/PDF)"};return}
-  const rk={faturar:0,separando:1,alterado:2,fechado:3},sp=e=>!!(fab.sep[fabK(e)]&&fab.sep[fabK(e)].on);
+  const fat=fab.modo==="faturamento",fin=e=>!!((fab.ent||{})[fabK(e)]||{}).fin,noc=e=>ocLista((fab.ent||{})[fabK(e)]).filter(o=>!o.sis).length;
+  const rk={faturar:0,separando:1,alterado:2,fechado:3},sp=e=>fat?fin(e):!!(fab.sep[fabK(e)]&&fab.sep[fabK(e)].on);
   es.sort((a,b)=>(sp(a)-sp(b))||((rk[a.status]??9)-(rk[b.status]??9))||(a.cliente||"").localeCompare(b.cliente||"","pt-BR"));
   const nS=es.filter(sp).length;
-  h+="<div class='rk'><div><small>Pedidos</small><b>"+es.length+"</b></div><div><small>Separados</small><b>"+nS+" de "+es.length+"</b></div><div><small>Unidades</small><b>"+es.reduce((a,e)=>a+soma(e.pedido),0)+"</b></div></div>";
+  h+="<div class='rk'><div><small>Pedidos</small><b>"+es.length+"</b></div><div><small>"+(fat?"Entregas finalizadas":"Separados")+"</small><b>"+nS+" de "+es.length+"</b></div><div><small>Unidades</small><b>"+es.reduce((a,e)=>a+soma(e.pedido),0)+"</b></div></div>";
   if(rasc)h+="<p class='msg'>"+rasc+(rasc===1?" pedido ainda em rascunho":" pedidos ainda em rascunho")+" (não aparecem aqui).</p>";
   if(!es.length)h+="<p class='vazio'>Nenhum pedido neste dia.</p>";
   C.innerHTML=h;
   es.forEach(e=>{const ok=sp(e),s=fab.sep[fabK(e)]||{},ns=ITENS.filter(n=>e.pedido[n]>0),cx=ns.reduce((a,n)=>a+(CX[n]?Math.floor(e.pedido[n]/CX[n]):0),0);
     const d=document.createElement("div");d.className="xc"+(ok?" ok":"");
-    d.innerHTML="<div class='xh'><b>"+esc(e.cliente||"(sem nome)")+"</b><span class='xs'>"+esc(STN[e.status]||"")+"</span></div>"+
+    d.innerHTML="<div class='xh'><b>"+esc(e.cliente||"(sem nome)")+"</b><span class='xs'>"+esc(fin(e)?"✅ Entregue":STN[e.status]||"")+(noc(e)?" · 📝 "+noc(e):"")+"</span></div>"+
       "<div class='xs'>"+esc(nomeV(e.uid))+" · "+soma(e.pedido)+" un. · "+cx+(cx===1?" caixa":" caixas")+(e.endereco?" · "+esc(e.endereco):"")+"</div>"+
       "<details><summary>Itens ("+ns.length+")</summary><table class='tx'><tr><th>Produto</th><th class='n'>Unid.</th><th class='n'>Caixas</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+e.pedido[n]+"</td><td class='n'>"+esc(cxTxt(n,e.pedido[n]))+"</td></tr>").join("")+"</table></details>"+
-      "<div class='xa'><button class='"+(ok?"on":"")+"'>"+(ok?"✓ Separado"+(s.em?" "+new Date(s.em).toTimeString().slice(0,5):""):"Marcar separado")+"</button><button>Abrir pedido</button></div>";
-    const [bs,bo]=d.querySelectorAll(".xa button");
+      "<div class='xa'>"+(fat?"":"<button class='"+(ok?"on":"")+"'>"+(ok?"✓ Separado"+(s.em?" "+new Date(s.em).toTimeString().slice(0,5):""):"Marcar separado")+"</button>")+"<button>Ocorrência</button><button>Abrir pedido</button></div>";
+    const bb=[...d.querySelectorAll(".xa button")],bo=bb.pop(),boc=bb.pop(),bs=bb.pop()||document.createElement("button");
+    boc.onclick=()=>ocAbrir(fabK(e),{c:e.cliente,d:e.data},e.cliente);
     bs.onclick=async()=>{if(ok&&bs.dataset.c!=="1"){bs.dataset.c="1";bs.textContent="Desmarcar?";setTimeout(()=>{bs.dataset.c="";fabRender()},3000);return}
       bs.disabled=true;try{await fbDb.collection("expedicao").doc(fab.dia).set({s:{[fabK(e)]:{on:!ok,em:Date.now(),por:(perfil&&perfil.nome)||""}}},{merge:true})}
       catch(_){bs.disabled=false;$("fabm").textContent="Não foi possível salvar. Confira a internet ou as regras do banco."}};
@@ -2505,7 +2594,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="80";
+const VER="81";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
