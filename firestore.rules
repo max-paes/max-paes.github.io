@@ -53,6 +53,11 @@ service cloud.firestore {
       allow write: if supervisor() || (equipe() && perfil(request.auth.uid).papel == 'expedicao');
     }
 
+    // Observação do promotor para a entrega: quem está ativo lê (motorista, equipe) e grava
+    match /obsent/{dia} {
+      allow read, write: if logado() && ativo();
+    }
+
     // Painel do supervisor, produção e expedição
     match /{caminho=**}/docs/{doc} {
       allow read: if equipe();
