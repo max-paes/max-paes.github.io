@@ -30,7 +30,7 @@ service cloud.firestore {
       match /fotos/{f} {
         allow read, write: if logado() && request.auth.uid == uid && ativo();
         allow read: if supervisor();
-        allow delete: if dono();
+        allow delete: if dono() || admin();
       }
 
       // Pedidos, trocas, visitas, agenda e cadastro do vendedor
@@ -69,6 +69,13 @@ service cloud.firestore {
                     && (request.resource.data.get('fin', false) == resource.data.get('fin', false)
                         || (request.resource.data.get('fin', false) == true && perfil(request.auth.uid).papel in ['motorista', 'developer'])
                         || (request.resource.data.get('fin', false) == false && perfil(request.auth.uid).papel in ['faturamento', 'developer']));
+    }
+
+    // Controle de vida das fotos: qualquer usuário ativo registra a foto que tirou;
+    // só o diretor (administrador) marca como vista ou liberada (documentos v_...)
+    match /fotoidx/{id} {
+      allow read: if supervisor();
+      allow create, update: if id.matches('v_.*') ? (dono() || admin()) : (logado() && ativo());
     }
 
     // Painel do supervisor, produção e expedição

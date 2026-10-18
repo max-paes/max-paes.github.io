@@ -96,6 +96,11 @@ header .vnd:empty{display:none}
 .vc .vn{display:flex;gap:12px;font-size:13px}
 .vc .vn span b{font-size:15px}
 .tl{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fiav{margin:8px 0 0;padding:6px 10px;border-radius:10px;background:rgba(217,160,30,.12);border:1px solid rgba(217,160,30,.4);font-size:12.5px;color:#8a6a10;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.fiav.ok{background:none;border-color:var(--line);color:var(--mut,#6b7280)}
+.fiav button{padding:2px 10px;border-radius:12px;font-size:12px}
+.fich{margin:0 0 10px;padding:5px 12px;border-radius:14px;font-size:12.5px;background:rgba(217,160,30,.12);border:1px solid rgba(217,160,30,.4);color:#8a6a10}
+.fim{color:#8a6a10}.fin{display:block;color:var(--mut,#6b7280);font-size:12px;margin-top:4px}
 .tr{display:grid;grid-template-columns:62px 1fr auto;gap:4px 10px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;font:inherit;color:inherit}
 .tr:last-child{border-bottom:0}
 .tr .tt{font-weight:800;font-size:14px}
@@ -412,6 +417,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="ctl"><button id="spa" aria-label="Dia anterior">◀</button><span class="dl" id="spd"></span><button id="spn" aria-label="Próximo dia">▶</button><button id="sph">Hoje</button>
     <span style="flex:1"></span><button id="smd" aria-pressed="true">Dia</button><button id="sms" aria-pressed="false">Semana</button></div>
   <p class="msg" id="spm" style="margin:0 2px 10px"></p>
+  <button id="fiav" class="fich" hidden></button>
   <div class="kp" id="spk"></div>
   <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
@@ -1014,6 +1020,51 @@ document.querySelectorAll('#vis .sn').forEach(sn=>{const k=sn.dataset.k,[bs,bn]=
 [["vctt","ctt"],["vexp","exp"],["vvp","vp"],["vopv","opv"]].forEach(([id,k])=>$(id).addEventListener("input",()=>{visita[k]=$(id).value;atualizaTxt();agenda()}));
 [["vini","ini"],["vfim","fim"]].forEach(([id,k])=>$(id).addEventListener("input",()=>{visita[k]=$(id).value;if(k==="ini"&&!visita.ini)visita.fim="";renderVisBar();contar();atualizaTxt();agenda()}));
 document.querySelectorAll('#vis .chips button').forEach(b=>b.onclick=()=>{const k=b.dataset.f;visita[k]="OK";renderVis();agenda()});
+// ===== Ciclo das fotos: o diretor (administrador) vê ou libera; 7 dias depois a foto é apagada =====
+const FOTO_DIAS=7,FOTO_AVISO=6,DIA_MS=864e5;
+const fi={l:{},v:{},busy:0,iv:0};
+const fiYmd=ts=>{const d=new Date(ts);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const fiK=(u,f)=>u+"~"+f;
+const fiDel=()=>firebase.firestore.FieldValue.delete();
+function fiReg(uid,f,info){if(!fbDb||!uid)return;const ts=Date.now();
+  fbDb.collection("fotoidx").doc(fiYmd(ts)).set({l:{[fiK(uid,f)]:{u:uid,f,ts,...info}}},{merge:true}).catch(()=>{})}
+function fiTira(uid,f){if(!fbDb||!uid)return;const k=fiK(uid,f),e=fi.l[k];
+  fbDb.collection("fotoidx").doc(fiYmd(e?e.ts:Date.now())).update({["l."+k]:fiDel()}).catch(()=>{});
+  const v=fi.v[k];if(v)fbDb.collection("fotoidx").doc("v_"+v.dx).update({["l."+k]:fiDel()}).catch(()=>{});
+  delete fi.l[k];delete fi.v[k]}
+async function fiCarrega(){if(!ehAdm()||!fbDb||fi.busy)return;fi.busy=1;
+  if(!fi.iv)fi.iv=setInterval(fiCarrega,30*60*1000);
+  try{const sn=await fbDb.collection("fotoidx").get(),l={},v={};
+    sn.docs.forEach(d=>{const m=(d.data()||{}).l||{},dst=d.id.startsWith("v_")?v:l;Object.keys(m).forEach(k=>{dst[k]=m[k]})});
+    fi.l=l;fi.v=v;await fiLimpa()}catch(e){}
+  fi.busy=0;try{supRender();mdRender()}catch(e){}}
+async function fiLimpa(){const agora=Date.now();
+  for(const [k,e] of Object.entries(fi.v)){if(!e||!e.vis||agora-e.vis<FOTO_DIAS*DIA_MS)continue;
+    try{await fbDb.collection("vendedores/"+e.u+"/fotos").doc(e.f).delete();fiTira(e.u,e.f)}catch(x){}}}
+function fiMarca(itens,lib){if(!ehAdm()||!fbDb)return;const now=Date.now(),dx=fiYmd(now),upd={};
+  itens.forEach(({u,f})=>{const k=fiK(u,f);if(fi.v[k])return;const e={u,f,vis:now,por:(perfil&&perfil.nome)||"",dx};if(lib)e.lib=1;fi.v[k]=e;upd[k]=e});
+  if(!Object.keys(upd).length)return;
+  fbDb.collection("fotoidx").doc("v_"+dx).set({l:upd},{merge:true}).catch(()=>{Object.keys(upd).forEach(k=>delete fi.v[k])});
+  try{supRender();mdRender()}catch(e){}}
+const fiAntiga=e=>Date.now()-e.ts>=FOTO_AVISO*DIA_MS;
+const fiPend=fn=>Object.entries(fi.l).filter(([k,e])=>!fi.v[k]&&fiAntiga(e)&&(!fn||fn(e))).map(([k,e])=>e);
+function fiDoCard(e,x){return e.u===x.uid&&e.t==="v"&&(e.p?e.p===x.id:(e.d===x.data&&(e.c||"")===U(x.cliente||"")))}
+async function fiAbre(itens){let L=[],falt=[];
+  for(const {u,f} of itens){try{const sn=await fbDb.collection("vendedores/"+u+"/fotos").doc(f).get();if(sn.exists&&(sn.data()||{}).j)L.push(sn.data().j);else falt.push({u,f})}catch(e){}}
+  falt.forEach(({u,f})=>fiTira(u,f));
+  if(L.length){mostraFotos(L);fiMarca(itens.filter(i=>!falt.some(x=>x.f===i.f&&x.u===i.u)))}else aviso("Essas fotos já expiraram e foram apagadas.");
+  return L.length}
+// Aviso discreto (e estado) das fotos de um card: itens = [{u,f}]
+function fiBloco(itens){if(!ehAdm()||!itens.length)return null;
+  const pend=itens.filter(i=>{const k=fiK(i.u,i.f),e=fi.l[k];return e&&!fi.v[k]&&fiAntiga(e)}),vis=itens.map(i=>fi.v[fiK(i.u,i.f)]).filter(Boolean);
+  const d=document.createElement("div");d.className="fiav";
+  if(pend.length){d.innerHTML="<span>⏳ "+pend.length+(pend.length===1?" foto chegou":" fotos chegaram")+" ao último dia sem visualização.</span>";
+    const a=document.createElement("button");a.textContent="Ver";a.onclick=()=>fiAbre(pend);
+    const b=document.createElement("button");b.textContent="Liberar";b.onclick=()=>{if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar?";setTimeout(()=>{b.dataset.c="";b.textContent="Liberar"},2500);return}fiMarca(pend,true)};
+    d.appendChild(a);d.appendChild(b);return d}
+  if(vis.length){const m=Math.min(...vis.map(v=>v.vis)),ap=new Date(m+FOTO_DIAS*DIA_MS);
+    d.className="fiav ok";d.textContent=(vis[0].lib?"Liberada":"Vista")+" por "+(vis[0].por||"diretor")+" em "+dBR(fiYmd(m))+" · será apagada em "+dBR(fiYmd(ap.getTime()));return d}
+  return null}
 // ===== Fotos e observação para a entrega (promotor) =====
 const vfoto={};let tOe=null;
 function visUid(){return fbAuth&&fbAuth.currentUser&&fbDb?fbAuth.currentUser.uid:null}
@@ -1023,8 +1074,9 @@ function visFotos(){const B=$("vfotos");if(!B)return;B.innerHTML="";const ids=vi
     const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
     const x=document.createElement("button");x.textContent="🗑 Excluir";
     x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}
-      visita.fo=(visita.fo||[]).filter(y=>y!==id);delete vfoto[id];if(uid)fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).delete().catch(()=>{});salvar();visFotos();atualizaTxt()};
+      visita.fo=(visita.fo||[]).filter(y=>y!==id);delete vfoto[id];if(uid){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).delete().catch(()=>{});fiTira(uid,"v_"+id)}salvar();visFotos();atualizaTxt()};
     w.appendChild(x);B.appendChild(w)});
+  if(ids.length){const n=document.createElement("small");n.className="fin";n.textContent="As fotos são apagadas "+FOTO_DIAS+" dias depois que a direção as visualiza.";B.appendChild(n)}
   if(ids.length<5){const b=document.createElement("button");b.textContent="📷 Fotos da visita ("+ids.length+"/5)";b.onclick=()=>{if(!visUid()){aviso("Entre na sua conta e conecte à internet para enviar fotos.");return}if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);return}$("vfi").click()};B.appendChild(b)}}
 function visFoto(file){const uid=visUid();if(!uid)return Promise.resolve();
   return new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(file);
@@ -1033,7 +1085,7 @@ function visFoto(file){const uid=visUid();if(!uid)return Promise.resolve();
       if((visita.fo||[]).length>=5){ok();return}
       const id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);vfoto[id]=d;visita.fo=(visita.fo||[]).concat([id]);
       fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:d,ts:Date.now(),data:$("data").value,cli:U($("cliente").value.trim()),tipo:"visita"}).catch(e=>aviso("Não consegui enviar a foto ("+(e.code||e.message)+")."));
-      salvar();ok()};
+      salvar();fiReg(uid,"v_"+id,{t:"v",d:$("data").value,c:U($("cliente").value.trim()),p:curId?"p_"+curId:""});ok()};
     im.onerror=()=>{URL.revokeObjectURL(u);ok()};im.src=u})}
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,5-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 function enviaOe(){const uid=visUid(),cli=U($("cliente").value.trim()),dt=$("data").value;if(!uid||!cli||!dt)return;
@@ -1199,7 +1251,7 @@ const rotSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?(fat?"Alterado ·
 const clsSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?"faturar":(st||"rascunho");
 function ehSup(){return !!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||"")&&fbDb)}
 const ehAdm=()=>!!(perfil&&/^(developer|admin)$/.test(perfil.papel||""));
-function supAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("sp").classList.add("on");supLiga();supRender()}
+function supAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("sp").classList.add("on");supLiga();supRender();fiCarrega()}
 function supLiga(){
   if(!sup.uv)sup.uv=fbDb.collection("vendedores").onSnapshot(sn=>{const vv={};sn.docs.forEach(d=>{vv[d.id]=d.data()||{}});sup.vend=vv;supDocs();supRender()},e=>{$("spm").textContent="Sem permissão para ver os vendedores. Confira se sua conta está marcada como supervisor no Firebase."});
   supDocs()}
@@ -1222,7 +1274,10 @@ function supAviso(x,k,tipo){const t=tipo==="faturar"?"Pronto para faturar · "+n
   const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,6000);
   try{navigator.vibrate&&navigator.vibrate(150)}catch(e){}
   try{if(document.hidden&&window.Notification&&Notification.permission==="granted")new Notification("Max Pães",{body:t,icon:"icon-192.png"})}catch(e){}}
-function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
+function fiChip(){const b=$("fiav");if(!b)return;const P=ehAdm()?fiPend():[];b.hidden=!P.length;if(!P.length)return;
+  P.sort((a,c)=>a.ts-c.ts);const o=P[0],d=o.d||fiYmd(o.ts);b.textContent="⏳ "+P.length+(P.length===1?" foto aguardando":" fotos aguardando")+" sua visualização · ir para "+dBR(d).slice(0,5);
+  b.onclick=()=>{sup.modo="dia";sup.dia=d;supDocs();supRender()}}
+function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();fiChip();
   const d=sup.dia,hj=hojeISO(),s0=semDe(d),s1=addD(s0,6),dia=sup.modo==="dia";
   $("spd").textContent=dia?(d===hj?"Hoje · ":["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][new Date(d+"T12:00:00").getDay()]+" · ")+dBR(d):dBR(s0)+" a "+dBR(s1);
   $("smd").setAttribute("aria-pressed",dia);$("sms").setAttribute("aria-pressed",!dia);$("spsem").hidden=dia;
@@ -1249,7 +1304,8 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();
   if(!ord.length)T.innerHTML='<div class="vazio">Nenhuma visita ou pedido '+(dia?"neste dia":"nesta semana")+".</div>";
   ord.forEach(x=>{const r=document.createElement("button");r.className="tr"+(sup.novo===x.uid+"/"+x.id?" novo":"");
     const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),en=(sup.ent||{})[x.uid+"_"+x.id]||{},noc=ocLista(en).filter(o=>!o.sis).length,st=rotSt(x.status,x.fat)+(en.fin?" · ✅ Entregue":"")+(noc?" · 📝 "+noc:"")+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
-    r.innerHTML="<span class='tt'>"+esc(dia?(x.ini||hhDe(x.ts)):dBR(x.data).slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc(nomeV(x.uid))+" · "+esc(hora)+"</small></span>"+
+    const fiN=ehAdm()?fiPend(e=>fiDoCard(e,x)).length:0;
+    r.innerHTML="<span class='tt'>"+esc(dia?(x.ini||hhDe(x.ts)):dBR(x.data).slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc(nomeV(x.uid))+" · "+esc(hora)+(fiN?" · <span class='fim'>⏳ fotos</span>":"")+"</small></span>"+
       "<span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+clsSt(x.status,x.fat)+"'>"+esc(st)+"</span></span>";
     r.onclick=()=>supDetalhe(x.uid+"/"+x.id);T.appendChild(r)});
   sup.novo=null;
@@ -1435,7 +1491,8 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=sup.docs[k];if(!e)return;su
   if(v.oe&&v.oe.trim())h+="<p class='pn' style='font-size:14px'>📝 Observação anterior: "+esc(v.oe)+"</p>";
   if(v.fo&&v.fo.length)h+="<p class='msg' style='margin:8px 0 4px'><b>Fotos da visita ("+v.fo.length+")</b></p><div class='fb' id='sdfo'>"+v.fo.map(id=>"<a target='_blank' data-f='"+esc(id)+"'><div style='width:64px;height:64px;border-radius:8px;background:var(--line)'></div></a>").join("")+"</div>";
   $("sdc").innerHTML=h;
-  (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a||!sn.exists)return;const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();const w=window.open();if(w)w.document.write("<img src='"+d+"' style='max-width:100%'>")}}).catch(()=>{})});
+  {const fb=fiBloco((v.fo||[]).map(id=>({u:x.uid,f:"v_"+id})));if(fb)$("sdc").appendChild(fb)}
+  (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a)return;if(!sn.exists){a.innerHTML="<small class='fim'>foto expirada</small>";return}const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();fiMarca([{u:x.uid,f:"v_"+id}]);const w=window.open();if(w)w.document.write("<img src='"+d+"' style='max-width:100%'>")}}).catch(()=>{})});
   $("sdp").hidden=!(soma(e.pedido)>0);$("sdtr").hidden=!(soma(e.troca)>0);if(!silencioso)$("sdm").textContent="";
   $("sdt").classList.add("on")}
 async function comEntrada(e,fn){
@@ -1476,7 +1533,7 @@ function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;$("vcs"
 function verComo(p){if(!ehDev())return;perfil.papel=p;fabDesliga();try{localStorage.setItem("mpv:tela","")}catch(e){}
   $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
 function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
-  pintaAvisos();$("spfp").hidden=$("spfe").hidden=!ehAdm();if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir()}
+  pintaAvisos();$("spfp").hidden=$("spfe").hidden=!ehAdm();if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir();if(ehAdm())setTimeout(fiCarrega,2500)}
 async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
     stNuvem("Modo sem nuvem: os dados ficam só neste celular. Faça backup com frequência.");return}
@@ -2232,10 +2289,11 @@ function motFoto(sid,cat,file){const uid=fbAuth.currentUser.uid;
       const id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
       mot.fotos[sid+"_"+cat+"_"+id]=d;
       fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).set({j:d,ts:Date.now(),data:mot.dia,sid,cat}).catch(e=>{$("motm").textContent="Não consegui enviar a foto ("+(e.code||e.message)+")."});
+      fiReg(uid,fdoc(sid,cat,id),{t:"e",d:mot.dia,s:sid});
       motP(sid,{fo:{[cat]:ids.concat([id])}});motRender();ok()};
     im.onerror=()=>{URL.revokeObjectURL(u);$("motm").textContent="Não consegui ler essa foto.";ok()};im.src=u})}
 function motFotoTira(sid,cat,id){const uid=fbAuth.currentUser.uid,ids=((((mot.reg.p||{})[sid]||{}).fo||{})[cat]||[]).filter(x=>x!==id);
-  fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).delete().catch(()=>{});delete mot.fotos[sid+"_"+cat+"_"+id];motP(sid,{fo:{[cat]:ids}})}
+  fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).delete().catch(()=>{});fiTira(uid,fdoc(sid,cat,id));delete mot.fotos[sid+"_"+cat+"_"+id];motP(sid,{fo:{[cat]:ids}})}
 function motCarregaFoto(sid,cat,id){const k=sid+"_"+cat+"_"+id;if(mot.fotos[k]||mot.fq[k])return;mot.fq[k]=1;const uid=fbAuth.currentUser.uid;
   fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).get().then(sn=>{if(sn.exists){mot.fotos[k]=(sn.data()||{}).j;motRender()}}).catch(()=>{})}
 function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.createElement("div");b.className="fb";
@@ -2534,6 +2592,7 @@ function mdRender(){if(!$("md").classList.contains("on"))return;
       if((r.est||r.ex)&&!r.tl){const x=document.createElement("span");x.textContent="🔔 telas a coletar";x.style.color="#8a6a10";nb.appendChild(x)}
       if(nb.childNodes.length)e.appendChild(nb);
       if(r.ob){const o=document.createElement("small");o.style.display="block";o.textContent="Obs.: "+r.ob;e.appendChild(o)}
+      {const it=[];["est","ex","tl","gd"].forEach(cat=>(nfo(r,cat)?(r.fo[cat]||[]):[]).forEach(id=>it.push({u:m.uid,f:sup.dia+"_"+p.s.id+"_"+cat+"_"+id})));const fb=fiBloco(it);if(fb)e.appendChild(fb)}
       box.appendChild(e)});
     if(m.reg.obs){const o=document.createElement("div");o.className="me";o.innerHTML="<b>Observações do dia</b><br><small>"+esc(m.reg.obs)+"</small>";box.appendChild(o)}
     C.appendChild(box)})}
@@ -2541,11 +2600,11 @@ function mostraFotos(L){document.querySelectorAll("#fs .fsx2").forEach(e=>e.remo
   L.slice(1).forEach(u=>{const im=document.createElement("img");im.className="fsx2";im.src=u;im.alt="Foto";im.style.cssText="width:100%;display:block;margin-top:6px";$("fs").appendChild(im)});$("fs").scrollTop=0;$("fs").classList.add("on")}
 async function mdFotos(uid,dia,sid,cat,ids){$("mdm").textContent="Abrindo fotos…";
   try{const L=[];for(const id of ids){const sn=await fbDb.collection("vendedores/"+uid+"/fotos").doc(dia+"_"+sid+"_"+cat+"_"+id).get();if(sn.exists&&(sn.data()||{}).j)L.push(sn.data().j)}
-    if(L.length){mostraFotos(L);$("mdm").textContent=""}else $("mdm").textContent="Foto não encontrada."}
+    if(L.length){mostraFotos(L);fiMarca(ids.map(id=>({u:uid,f:dia+"_"+sid+"_"+cat+"_"+id})));$("mdm").textContent=""}else $("mdm").textContent="Foto expirada (apagada "+FOTO_DIAS+" dias após a visualização)."}
   catch(e){$("mdm").textContent="Não consegui abrir as fotos ("+(e.code||e.message)+")."}}
 async function mdFotosPend(uid,p){try{const sn=await fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+p.d).get(),r=(((sn.data()||{}).p||{})[p.s])||{},fo=r.fo||{};
     const L=[];for(const cat of ["est","ex"])for(const id of (fo[cat]||[])){const f=await fbDb.collection("vendedores/"+uid+"/fotos").doc(p.d+"_"+p.s+"_"+cat+"_"+id).get();if(f.exists&&(f.data()||{}).j)L.push(f.data().j)}
-    if(L.length){mostraFotos(L);$("mdm").textContent=""}else $("mdm").textContent="Sem fotos nessa pendência."}catch(e){$("mdm").textContent="Não consegui abrir as fotos."}}
+    if(L.length){mostraFotos(L);fiMarca(["est","ex"].flatMap(cat=>(fo[cat]||[]).map(id=>({u:uid,f:p.d+"_"+p.s+"_"+cat+"_"+id}))));$("mdm").textContent=""}else $("mdm").textContent="Sem fotos nessa pendência."}catch(e){$("mdm").textContent="Não consegui abrir as fotos."}}
 const mdPendL={u:{},v:{}};
 function mdPend(){motoristas().forEach(u=>{if(mdPendL.u[u])return;
   mdPendL.u[u]=fbDb.collection("vendedores/"+u+"/docs").doc("m_pend").onSnapshot(sn=>{mdPendL.v[u]=sn.exists?((sn.data()||{}).l||{}):{};mdRender()},()=>{})})}
@@ -2594,7 +2653,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="81";
+const VER="82";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
