@@ -1675,7 +1675,7 @@ setInterval(()=>{if($("sp").classList.contains("on"))supRender()},60000);
 function supDesliga(){if(sup.uv){sup.uv();sup.uv=null}Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.vend={};sup.ini="";$("sp").classList.remove("on");$("sbtn").hidden=true}
 const ehDev=()=>!!(perfil&&(perfil.papelReal==="developer"||(fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID)||(!perfil.papelReal&&lsG("mpv:papelReal")==="developer")));
 function vcPos(){try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&getComputedStyle(bar).display!=="none"&&bar.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden&&a.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
-window.addEventListener("resize",vcPos);setInterval(vcPos,2000);
+window.addEventListener("resize",vcPos);setInterval(()=>{vcPos();try{if(!$("vcb").hidden!==ehDev()&&typeof ESP!=="undefined"&&!ESP)vcPinta()}catch(e){}},2000);
 function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTimeout(vcPos,0);vcUsuarios();
   $("vcs").value=ESP?"u:"+ESP.uid:(perfil.papel||"developer");b.classList.toggle("on",!!ESP||perfil.papel!=="developer");
   const g=$("vcg");g.hidden=!ESP;if(ESP){g.className=ESP.grava?"on":"";g.textContent=ESP.grava?"✍ Gravando":"🔒 Só ver"}}
@@ -1698,7 +1698,7 @@ async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
     stNuvem("Modo sem nuvem: os dados ficam só neste celular. Faça backup com frequência.");return}
   try{for(const m of ["app","auth","firestore"])if(!(window.firebase&&firebase[m==="app"?"initializeApp":m]))await carregaScript("https://www.gstatic.com/firebasejs/"+FBV+"/firebase-"+m+"-compat.js")}
-  catch(e){stNuvem("☁ Sem internet para conectar. Abra o app de novo quando tiver sinal.");const n=lsG("mpv:nome");if(n){perfil={nome:n,papel:lsG("mpv:papel")||"vendedor",papelReal:lsG("mpv:papelReal")||lsG("mpv:papel")||"vendedor"};mostraVendedor()}
+  catch(e){stNuvem("☁ Sem internet para conectar. Abra o app de novo quando tiver sinal.");const n=lsG("mpv:nome");if(n){perfil={nome:n,papel:lsG("mpv:papel")||"vendedor",papelReal:lsG("mpv:papelReal")||lsG("mpv:papel")||"vendedor"};mostraVendedor();try{vcPinta();supPronto()}catch(e2){}}
     window.addEventListener("online",()=>location.reload(),{once:true});return}
   if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
   fbDb=firebase.firestore();try{await fbDb.enablePersistence({synchronizeTabs:true})}catch(e){}
@@ -1709,12 +1709,16 @@ async function entrou(u){
   const dono=lsG("mpv:dono");
   if(dono&&dono!==u.uid){CHAVES_APP().forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});lsS("mpv:dono",u.uid);location.reload();return}
   lsS("mpv:dono",u.uid);
-  const pref=fbDb.collection("vendedores").doc(u.uid);let ps=null;try{ps=await pref.get()}catch(e){}
+  const pref=fbDb.collection("vendedores").doc(u.uid);let ps=null;try{ps=await pref.get()}catch(e){try{ps=await pref.get({source:"cache"})}catch(e2){}}
+  if(!ps||!ps.exists){const cp=lsG("mpv:papel"),cn=lsG("mpv:nome");
+    if(u.uid===DONO_UID)ps={exists:true,data:()=>({nome:cn||"WESLEY FALCÃO",email:u.email||"",papel:"developer",ativo:true})};
+    else if(!ps&&cp&&cn&&lsG("mpv:dono")===u.uid)ps={exists:true,data:()=>({nome:cn,email:u.email||"",papel:lsG("mpv:papelReal")||cp,ativo:true})}}
   const barra=t=>{perfil=null;try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}mostraVendedor();fbAuth.signOut().catch(()=>{});setTimeout(()=>{mostraLogin("entrar");lgMsg(t)},300)};
   if(!ps){barra("Sem internet para conferir seu acesso. Conecte e tente de novo.");return}
   var errB="";
-  if(!ps.exists&&u.uid===DONO_UID){try{await pref.set({nome:"WESLEY FALCÃO",email:u.email||"",papel:"developer",ativo:true,criadoEm:Date.now()});ps=await pref.get()}catch(e){errB=" ("+(e.code||e.message)+")"}}
-  if(!ps.exists){
+  if(ps&&!ps.exists&&u.uid===DONO_UID){try{await pref.set({nome:"WESLEY FALCÃO",email:u.email||"",papel:"developer",ativo:true,criadoEm:Date.now()});ps=await pref.get()}catch(e){errB=" ("+(e.code||e.message)+")"}}
+  if(!ps||!ps.exists){
+    if(!ps){stNuvem("☁ Nuvem indisponível agora. Abra de novo quando tiver sinal.");return}
     let ped=false;try{await pref.set({nome:U((u.email||"").split("@")[0]),email:u.email||"",papel:"vendedor",ativo:false,pendente:true,criadoEm:Date.now()});ped=true}catch(e){errB=" ("+(e.code||e.message)+")"}
     barra(ped?"Pedido de acesso enviado. Peça a liberação e entre de novo."
              :"Seu acesso ainda não foi liberado."+errB+" ["+u.uid+"]");return}
@@ -2914,7 +2918,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="102";
+const VER="103";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
