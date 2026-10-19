@@ -1635,7 +1635,7 @@ $("spav").onclick=async()=>{
 setInterval(()=>{if($("sp").classList.contains("on"))supRender()},60000);
 function supDesliga(){if(sup.uv){sup.uv();sup.uv=null}Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.vend={};sup.ini="";$("sp").classList.remove("on");$("sbtn").hidden=true}
 const ehDev=()=>!!(perfil&&(perfil.papelReal==="developer"||(fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID)||(!perfil.papelReal&&lsG("mpv:papelReal")==="developer")));
-function vcPos(){try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&bar.offsetParent!==null&&getComputedStyle(bar).display!=="none")y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
+function vcPos(){try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&getComputedStyle(bar).display!=="none"&&bar.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden&&a.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
 window.addEventListener("resize",vcPos);setInterval(vcPos,2000);
 function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTimeout(vcPos,0);$("vcs").value=perfil.papel||"developer";b.classList.toggle("on",perfil.papel!=="developer")}
 function verComo(p){if(!ehDev())return;perfil.papel=p;fabDesliga();try{localStorage.setItem("mpv:tela","")}catch(e){}
@@ -2836,7 +2836,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="92";
+const VER="93";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
