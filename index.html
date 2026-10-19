@@ -42,18 +42,18 @@ input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--
 .row .n{flex:1;font-weight:600;font-size:15px}
 .cxb{display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:400}
 .cxb button{padding:4px 10px;border-radius:14px;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:700 13px/1.2 Archivo,sans-serif}
-#fat{padding:8px 12px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif}
-#fat.on{background:var(--brand);color:var(--on)}
-#fat.sep{background:transparent;border-color:#1f4fa8;color:#1f4fa8}
-#fat.alt{border-color:#b26a00;color:#b26a00;background:rgba(178,106,0,.12)}
-#fat.fec{border-color:#0b7a75;color:#0b7a75;background:rgba(11,122,117,.1)}
+.bar #fat{flex:1.5;background:var(--brand);color:var(--on);border:2px solid var(--brand);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar #fat.fec{background:#0b7a75;border-color:#0b7a75;color:#fff}
+.bar #fat.alt{background:#b26a00;border-color:#b26a00;color:#fff}
+.bar #fat.sep{background:#1f4fa8;border-color:#1f4fa8;color:#fff}
+.bar #fat.on{background:#1a8f4c;border-color:#1a8f4c;color:#fff}
 .q{display:flex;align-items:center;gap:4px}
 .q button{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:800 20px/1 Archivo,sans-serif}
 .q input{width:46px;text-align:center;padding:8px 2px;font-weight:800}
 @media (min-width:700px){.bar{left:50%!important;right:auto!important;transform:translateX(-50%);width:640px;border-radius:12px 12px 0 0;border:1px solid var(--line)}}
 .bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);display:flex;gap:8px}
 .bar button{padding:13px 14px;border-radius:10px;border:0;font:800 15px Archivo,sans-serif}
-#clr{background:transparent;color:var(--mute);border:1px solid var(--line)}
+#clr{flex:0 0 auto;background:transparent;color:var(--tx,inherit);border:1px solid var(--line)}
 button:focus-visible,input:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;z-index:5;overflow:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
 .ov.on{display:block}
@@ -182,7 +182,7 @@ header .vnd:empty{display:none}
 .sgb{display:flex;gap:8px}
 .sgb button{flex:1;padding:14px 8px;border-radius:12px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 16px Archivo,sans-serif}
 #pad{flex:1 1 0;min-height:0;width:100%;background:#fff;border:2px dashed var(--line);border-radius:10px;touch-action:none;display:block}
-#garq{flex:1;background:var(--brand);color:var(--on)}
+#garq{flex:0 0 auto;background:transparent;color:var(--brand);border:1px solid var(--line)!important;padding-left:14px!important;padding-right:14px!important;font-size:18px!important}
 .gfo{display:flex;flex-direction:column;gap:10px}
 .gfo button{padding:16px;border-radius:12px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 17px Archivo,sans-serif;text-align:left}
 .gfo #dup{background:var(--brand);color:var(--on)}
@@ -374,7 +374,7 @@ body.trv #edbar{border-color:#0b7a75}
 </div>
 <main>
   <div class="ed" id="aviso" role="alert" hidden><span id="avtx" class="warn"></span><button id="avx">OK</button></div>
-  <div class="ed" id="edbar" hidden><span id="edtx">Pedido salvo no histórico. As alterações são salvas sozinhas.</span><button id="fat" hidden>Pronto para faturar</button><button id="novo">Novo pedido</button></div>
+  <div class="ed" id="edbar" hidden><span id="edtx">Pedido salvo no histórico. As alterações são salvas sozinhas.</span></div>
   <div class="head">
     <label class="full">Cliente<input id="cliente" autocomplete="off" autocorrect="off" spellcheck="false"></label><div id="sug" class="sug" role="listbox" aria-label="Clientes sugeridos" hidden></div>
     <label class="full">Endereço<input id="endereco" autocomplete="off"></label>
@@ -411,8 +411,9 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="card" id="asscard"><b>Assinatura do cliente</b><img id="assimg" alt="Assinatura" hidden><button id="ass">Assinar</button></div>
 </main>
 <div class="bar">
-  <button id="clr">Limpar</button>
-  <button id="garq">Gerar arquivo</button>
+  <button id="clr">Novo pedido</button>
+  <button id="garq" aria-label="Gerar JPG ou PDF" title="Gerar JPG ou PDF">📄</button>
+  <button id="fat">Fechar pedido</button>
 </div>
 <div class="ov" id="lg" role="dialog" aria-modal="true" aria-labelledby="lgt"><div class="box">
   <img id="lglogo" alt="Max Pães" class="lglogo">
@@ -1835,36 +1836,34 @@ function limparTudo(){
   CAMPOS.forEach(i=>$(i).value="");$("data").value=hojeISO();mode="pedido";render();
 }
 let confirma=false;
-function marcaFechado(){if(stPed!=="faturar"&&stPed!=="alterando"&&stPed!=="separando"){stPed="fechado";fechEm=Date.now()}salvar();pintaFat()}
-function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const ok=!!curId;b.hidden=!ok;
-  const trv=ok&&(stPed==="faturar"||entFin);
+function marcaFechado(){salvar();pintaFat()}
+function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const ok=!!curId;b.hidden=false;b.disabled=false;
+  const trv=ok&&entFin;
   document.body.classList.toggle("trv",trv);
   CAMPOS.forEach(i=>{const el=$(i);if(el)el.readOnly=trv});$("data").readOnly=trv;
-  const tx=$("edtx");if(tx)tx.textContent=entFin&&ok?"Entrega finalizada pelo motorista. Só o faturamento pode reabrir.":entRota&&ok?"Em rota: o motorista já saiu da empresa com este pedido.":trv?"Pedido travado para o faturamento. Para mudar algo, toque em Reabrir.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
-  if(!ok)return;const f=stPed==="faturar",sep=stPed==="separando",ad=stPed==="alterando",al=stPed==="alterado",fe=stPed==="fechado";
-  b.className=f?"on":sep?"sep":(ad||al)?"alt":fe?"fec":"";
-  if(entFin){b.className="on";b.textContent="✅ Entrega finalizada";return}
-  if(entRota){b.className="sep";b.textContent="🚚 Em rota";return}
-  b.textContent=f?"🔒 Travado · Reabrir para editar":sep?"📦 Separando · marcar Pronto para faturar":ad?"✏ Alterando · marcar Pronto para faturar":al?"⚠ Alterado · marcar Pronto para faturar":fe?"✅ Fechado · marcar Separando":"✅ Fechar pedido";}
-$("fat").onclick=()=>{const b=$("fat");
-  if(entFin){b.textContent="Só o faturamento reabre";setTimeout(pintaFat,2500);return}
-  if(entRota){b.textContent="Pedido já saiu para entrega";setTimeout(pintaFat,2500);return}
-  if(stPed==="faturar"){if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Reabrir para editar? Toque de novo";setTimeout(()=>{if(b.dataset.c==="1"){b.dataset.c="";pintaFat()}},3000);return}
-    b.dataset.c="";stPed="alterando";snapFat=assinaCt()}
-  else if(stPed==="separando"||stPed==="alterando"||stPed==="alterado"){
-    eraFat=snapFat?assinaCt()!==snapFat:false;snapFat=null;stPed="faturar";if(!fechEm)fechEm=Date.now()}
-  else if(stPed==="fechado")stPed="separando";
-  else{if(!temItens()){b.textContent="Lance o pedido primeiro";setTimeout(pintaFat,2500);return}
-    if(!$("cliente").value.trim()){b.textContent="Escolha a loja primeiro";setTimeout(pintaFat,2500);return}
-    stPed="fechado";fechEm=Date.now()}
+  const fe=ok&&stPed!=="rascunho"&&stPed!=="alterando";
+  const tx=$("edtx");if(tx)tx.textContent=entFin&&ok?"Entrega finalizada pelo motorista. Só o faturamento pode reabrir.":entRota&&ok?"Em rota: o motorista já saiu da empresa com este pedido.":stPed==="alterado"&&ok?"Pedido fechado e alterado depois: a fábrica e o faturamento veem o aviso.":fe?"Pedido fechado. Se mudar algo, fica marcado como alterado.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
+  if(entFin&&ok){b.className="on";b.textContent="✅ Entregue";return}
+  if(entRota&&ok){b.className="sep";b.textContent="🚚 Em rota";return}
+  if(fe){b.className=stPed==="alterado"?"alt":"fec";b.textContent=stPed==="alterado"?"⚠ Fechado · alterado":"✓ Pedido fechado";return}
+  b.className="";b.textContent="Fechar pedido"}
+const fatAviso=(t)=>{const b=$("fat");b.textContent=t;clearTimeout(b._t);b._t=setTimeout(pintaFat,2200)};
+$("fat").onclick=()=>{
+  if(entFin){fatAviso("Só o faturamento reabre");return}
+  if(entRota){fatAviso("Já saiu para entrega");return}
+  if(curId&&stPed!=="rascunho"&&stPed!=="alterando"){fatAviso("Já está fechado");return}
+  if(!$("cliente").value.trim()){fatAviso("Escolha a loja");try{$("cliente").focus()}catch(e){}return}
+  if(!(soma(state.pedido)>0||soma(state.troca)>0)){fatAviso("Lance os itens");return}
+  if(!curId)salvar();
+  if(!curId){fatAviso("Lance os itens");return}
+  stPed=(stPed==="alterando"&&snapFat&&assinaCt()!==snapFat)?"alterado":"fechado";snapFat=null;fechEm=Date.now();
   salvar();pintaFat()};
 $("clr").onclick=()=>{
   const b=$("clr");
   const vAberta=visita.ini&&!visita.fim;
-  if((vAberta||(!curId&&temItens()))&&!confirma){confirma=true;b.textContent=vAberta?"Visita aberta! Limpar?":"Confirmar?";setTimeout(()=>{confirma=false;b.textContent="Limpar"},3000);return}
-  confirma=false;b.textContent="Limpar";limparTudo();
+  if((vAberta||(!curId&&temItens()))&&!confirma){confirma=true;b.textContent=vAberta?"Visita aberta! Confirmar?":"Confirmar?";setTimeout(()=>{confirma=false;b.textContent="Novo pedido"},3000);return}
+  confirma=false;b.textContent="Novo pedido";limparTudo();
 };
-$("novo").onclick=()=>{const b=$("novo");if(visita.ini&&!visita.fim&&b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Visita aberta! Confirmar?";setTimeout(()=>{b.dataset.c="";b.textContent="Novo pedido"},3000);return}b.dataset.c="";b.textContent="Novo pedido";limparTudo()};
 
 const lim=o=>Object.fromEntries(Object.entries(o).filter(([,v])=>v>0));
 const semSt=o=>{const {status,fat,snap,fechadoEm,alteradoEm,vendedor,...r}=o;return JSON.stringify(r)};
@@ -1906,7 +1905,7 @@ function registrar(){
     }else{
       const {id,ts,...resto}=e;
       if(JSON.stringify(resto)===JSON.stringify(c))return;
-      if(semSt(resto)!==semSt(c)&&(resto.status==="fechado"||resto.status==="alterado"||resto.status==="faturar")&&c.status!=="rascunho"){if(resto.status==="separando"){c.status="separando"}else{if(resto.status==="faturar"||resto.fat){eraFat=true;c.fat=true}stPed=c.status="alterado";c.alteradoEm=Date.now()}}
+      if(semSt(resto)!==semSt(c)&&(resto.status==="fechado"||resto.status==="alterado"||resto.status==="faturar")&&c.status!=="rascunho"){if(resto.status==="separando"){c.status="separando"}else{if(resto.status==="faturar"||resto.fat){eraFat=true;c.fat=true}stPed=c.status="alterado";c.alteradoEm=Date.now();setTimeout(()=>{try{pintaFat()}catch(_){}},0)}}
       else if(resto.alteradoEm)c.alteradoEm=resto.alteradoEm;
       Object.assign(e,c);e.ts=Date.now();marcaPed(e.id);
     }
@@ -2646,7 +2645,7 @@ function fabRender(){if(!perfil)return;if(fab.modo==="producao"&&prEditando()){f
       bj.textContent="Gerar lista (JPG/PDF)"};return}
   const fat=fab.modo==="faturamento",fin=e=>!!((fab.ent||{})[fabK(e)]||{}).fin,emr=e=>!!(((fab.ent||{})[fabK(e)]||{}).rota&&!fin(e)),noc=e=>ocLista((fab.ent||{})[fabK(e)]).filter(o=>!o.sis).length;
   const sepDe=e=>(e.data===fab.dia?fab.sep:fab.sepAnt)[fabK(e)]||null;
-  const rk={faturar:0,separando:1,alterado:2,fechado:3},sp=e=>fat?fin(e):!!(sepDe(e)&&sepDe(e).on);
+  const rk={alterado:0,fechado:1,faturar:1,separando:1},sp=e=>fat?fin(e):!!(sepDe(e)&&sepDe(e).on);
   es.sort((a,b)=>(sp(a)-sp(b))||((rk[a.status]??9)-(rk[b.status]??9))||(a.cliente||"").localeCompare(b.cliente||"","pt-BR"));
   const nS=es.filter(sp).length;
   h+="<div class='rk'><div><small>Pedidos</small><b>"+es.length+"</b></div><div><small>"+(fat?"Entregas finalizadas":"Separados")+"</small><b>"+nS+" de "+es.length+"</b></div><div><small>Unidades</small><b>"+es.reduce((a,e)=>a+soma(e.pedido),0)+"</b></div></div>";
@@ -2703,18 +2702,18 @@ function rmAbrir(){if(!ehSup())return;rm.dia=sup.dia||hojeISO();$("rmd").value=r
   $("rmg").textContent=M.length?"":"Crie um acesso com perfil Motorista em Gerenciar acessos.";
   $("rm").classList.add("on");rmCarrega()}
 async function rmCarrega(){rm.paradas=[];rmRender();if(!rm.dia)return;
-  const dia=rm.dia;pedAnt(dia).then(A=>{if(rm.dia!==dia)return;rm.ant=A.es.filter(e=>{const x=e.raw;return x.status==="faturar"||(x.status==="alterado"&&x.fat)}).map(e=>({...e.raw,data:e.data}));rmRender()}).catch(()=>{});
+  const dia=rm.dia;pedAnt(dia).then(A=>{if(rm.dia!==dia)return;rm.ant=A.es.filter(e=>{const x=e.raw;return x.status&&x.status!=="rascunho"}).map(e=>({...e.raw,data:e.data}));rmRender()}).catch(()=>{});
   if(!rm.mot)return;
   try{const sn=await fbDb.collection("rotas").doc(rm.dia+"_"+rm.mot).get();rm.paradas=sn.exists?((sn.data()||{}).paradas||[]):[]}catch(e){$("rmg").textContent="Não consegui ler a rota salva ("+(e.code||e.message)+")."}
   rmRender()}
 function rmProntos(){const naRota=x=>rm.paradas.some(p=>p.ref===x.uid+"/"+x.id),entregue=x=>!!(((sup.ent||{})[x.uid+"_"+x.id]||{}).fin);
-  const hoje=Object.values(sup.docs).filter(x=>x.id.startsWith("p_")&&x.data===rm.dia&&(x.status==="faturar"||(x.status==="alterado"&&x.fat))&&(x.ped||0)>0&&(!entregue(x)||naRota(x)))
+  const hoje=Object.values(sup.docs).filter(x=>x.id.startsWith("p_")&&x.data===rm.dia&&x.status&&x.status!=="rascunho"&&(x.ped||0)>0&&(!entregue(x)||naRota(x)))
   .sort((a,b)=>(a.cliente||"").localeCompare(b.cliente||"","pt-BR"));
   const ja=new Set(hoje.map(x=>x.uid+"/"+x.id));return hoje.concat((rm.ant||[]).filter(x=>!ja.has(x.uid+"/"+x.id)&&(x.ped||0)>0).sort((a,b)=>(a.data||"").localeCompare(b.data||"")))}
 function rmRender(){if(!$("rm").classList.contains("on"))return;
   if(document.activeElement&&$("rm").contains(document.activeElement)&&/INPUT/.test(document.activeElement.tagName)&&document.activeElement.type==="text")return;
   const P=$("rmp");P.innerHTML="";const L=rmProntos();
-  if(!L.length)P.innerHTML='<div class="vazio">Nenhum pedido pronto para faturar neste dia nem pendente de dias anteriores.</div>';
+  if(!L.length)P.innerHTML='<div class="vazio">Nenhum pedido fechado neste dia nem pendente de dias anteriores.</div>';
   L.forEach(x=>{const sid="o_"+x.id,on=rm.paradas.some(p=>p.id===sid);const l=document.createElement("label");l.className="rr";
     const c=document.createElement("input");c.type="checkbox";c.checked=on;c.style.cssText="width:22px;height:22px;flex:none";
     c.onchange=()=>{if(c.checked){if(!rm.paradas.some(p=>p.id===sid))rm.paradas.push({id:sid,cliente:x.cliente||"",ped:x.ped||0,ref:x.uid+"/"+x.id,ob:"",pd:x.data||rm.dia})}else rm.paradas=rm.paradas.filter(p=>p.id!==sid);rmRender()};
@@ -2831,7 +2830,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="90";
+const VER="91";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
