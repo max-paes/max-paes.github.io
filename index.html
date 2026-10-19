@@ -630,7 +630,7 @@ function limpaDuplicados(){
   clientes.forEach(c=>{c.nome=FIX[chave2(c.nome)]||c.nome;c.endereco=String(c.endereco||"").replace(/^[\s,;.\/-]+/,"")});
   clientes.forEach(c=>{const k=chave2(c.nome);if(!k)return;const o=mp.get(k);if(!o)mp.set(k,{...c});else{if(c.nome.length>o.nome.length)o.nome=c.nome;if(!o.endereco)o.endereco=c.endereco;if(!o.comprador)o.comprador=c.comprador}});
   const l=[...mp.values()],W=c=>new Set(chave2(c.nome).split(" ")),rem=new Set();
-  const naRota=n=>{const k=norm(n);for(let d=1;d<=6;d++)if((rota[d]||[]).some(x=>norm(x.nome)===k))return true;return false};
+  const naRota=n=>{const k=norm(n);if(!rota)return false;for(let d=1;d<=6;d++)if((rota[d]||[]).some(x=>norm(x.nome)===k))return true;return false};
   l.forEach(c=>{if(rem.has(c))return;const wc=W(c),sup=l.filter(o=>{if(o===c||rem.has(o))return false;const wo=W(o);return wo.size>wc.size&&[...wc].every(w=>wo.has(w))});
     if(sup.length&&(FIXV.has(c.nome)||naRota(c.nome))){sup.forEach(sp=>{if(FIXV.has(sp.nome)||naRota(sp.nome))return;rem.add(sp);apelidos[chave2(sp.nome)]=c.nome;if(!c.endereco)c.endereco=sp.endereco;if(!c.comprador)c.comprador=sp.comprador});return}
     if(sup.length){rem.add(c);if(sup.length===1){const sp=sup[0];apelidos[chave2(c.nome)]=sp.nome;if(!sp.endereco)sp.endereco=c.endereco;if(!sp.comprador)sp.comprador=c.comprador}}});
@@ -2316,10 +2316,8 @@ $("ass").onclick=abrirSg;
 $("sgl").onclick=limpaPad;
 $("sgc").onclick=fecharSg;
 $("sgs").onclick=()=>{if(!tocou){$("sgmsg").textContent="Faça a assinatura antes de salvar";return}{const tw=Math.min(420,pad.width),th=Math.round(pad.height*tw/pad.width),cv=document.createElement("canvas");cv.width=tw;cv.height=th;cv.getContext("2d").drawImage(pad,0,0,tw,th);assin[mode]=cv.toDataURL("image/png")}fecharSg();render()};
-carregarHist();
-carregarCli();
-carregarAg();
-carregar();
+/* cada etapa isolada: um erro em uma não derruba o app inteiro */
+[carregarHist,carregarAg,carregarCli,carregar].forEach(f=>{try{f()}catch(e){diag(e,"inicio:"+f.name)}});
 if(curId){const e=hist.find(h=>h.id===curId);if(e){$("data").value=e.data||$("data").value;stPed=e.status||"rascunho";eraFat=!!e.fat;snapFat=e.snap||null;fechEm=e.fechadoEm||0}else curId=null}
 aplicaAcesso();render();
 iniciaNuvem();
@@ -2836,7 +2834,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="93";
+const VER="94";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
