@@ -2522,7 +2522,7 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
              motBtn("Saída da loja",r.s,()=>motP(s.id,{s:Date.now()}),()=>motP(s.id,{s:0})));
     c.appendChild(g);
     const mk=document.createElement("div");mk.className="mk";
-    [["est","Estoque"],["ex","Ponto extra"],["tl","Telas coletadas"],["gd","Gôndola"]].forEach(([k,t])=>{const l=document.createElement("label"),i2=document.createElement("input");i2.type="checkbox";i2.checked=!!r[k];l.className=r[k]?"on":"";
+    [["est","Estoque"],["ex","Ponto extra"],["tl","Telas coletadas"]].forEach(([k,t])=>{const l=document.createElement("label"),i2=document.createElement("input");i2.type="checkbox";i2.checked=!!r[k];l.className=r[k]?"on":"";
       i2.onchange=()=>{motP(s.id,{[k]:i2.checked});const ts=Date.now();
         if(k==="est")motPend(s.cliente,s.id,{e:i2.checked&&!r.tl?ts:0});
         else if(k==="ex")motPend(s.cliente,s.id,{x:i2.checked&&!r.tl?ts:0});
@@ -2902,7 +2902,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="99";
+const VER="100";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
