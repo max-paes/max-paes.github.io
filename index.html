@@ -1783,14 +1783,16 @@ function carregar(){
 // ===== Visitado sem pedido (na tela de vendas) =====
 let spAberto=false;
 function spRender(){const B=$("spbar");if(!B)return;const cli=($("cliente").value||"").trim(),dt=$("data").value||hojeISO();
-  if(!cli||mode==="entrega"||soma(state.pedido)>0){B.hidden=true;spAberto=false;return}
-  B.hidden=false;const k=norm(cli),marc=!!((visitas[dt]||{})[k]),mot=(motivos[dt]||{})[k]||"",sig=[k,dt,marc,mot,spAberto].join("|");if(B.dataset.sig===sig&&B.childNodes.length)return;B.dataset.sig=sig;B.className="ed spb"+(marc?" ok":"");B.innerHTML="";
+  if(!cli||mode==="entrega"){B.hidden=true;spAberto=false;return}
+  const k0=norm(cli),tem=soma(state.pedido)>0;
+  if(tem&&(visitas[dt]||{})[k0]===true&&(motivos[dt]||{})[k0]){delete visitas[dt][k0];delete motivos[dt][k0];salvaAg()}
+  B.hidden=false;const k=k0,marc=!!((visitas[dt]||{})[k]),mot=(motivos[dt]||{})[k]||"",sig=[k,dt,marc,mot,spAberto,tem].join("|");if(B.dataset.sig===sig&&B.childNodes.length)return;B.dataset.sig=sig;B.className="ed spb"+(marc?" ok":"");B.innerHTML="";
   const t=document.createElement("b");B.appendChild(t);
   if(marc){t.textContent="✓ Visitado sem pedido"+(mot?" · "+mot:"");const u=document.createElement("button");u.textContent="Desfazer";
     u.onclick=()=>{if(visitas[dt])delete visitas[dt][k];if(motivos[dt])delete motivos[dt][k];salvaAg();spRender()};B.appendChild(u);return}
-  if(!spAberto){t.textContent="Visitou e não houve pedido?";const b=document.createElement("button");b.textContent="Sem pedido";b.onclick=()=>{spAberto=true;spRender()};B.appendChild(b);return}
+  if(!spAberto){t.textContent=tem?"Não houve pedido nesta visita?":"Visitou e não houve pedido?";const b=document.createElement("button");b.textContent=tem?"Sem pedido (zera o pedido)":"Sem pedido";b.onclick=()=>{spAberto=true;spRender()};B.appendChild(b);return}
   t.textContent="Motivo:";MOTIVOS.forEach(m=>{const b=document.createElement("button");b.className="m";b.textContent=m;
-    b.onclick=()=>{(visitas[dt]=visitas[dt]||{})[k]=true;(motivos[dt]=motivos[dt]||{})[k]=m;spAberto=false;salvaAg();spRender()};B.appendChild(b)});
+    b.onclick=()=>{if(soma(state.pedido)>0){state.pedido={};render();salvar()}(visitas[dt]=visitas[dt]||{})[k]=true;(motivos[dt]=motivos[dt]||{})[k]=m;spAberto=false;salvaAg();spRender()};B.appendChild(b)});
   const x=document.createElement("button");x.className="m";x.textContent="Cancelar";x.onclick=()=>{spAberto=false;spRender()};B.appendChild(x)}
 function contar(){try{spRender()}catch(e){}
   if(mode==="entrega"){$("count").textContent="Entrega · "+(entFin?"finalizada":entRota?"em rota":"em aberto");return}
@@ -2897,7 +2899,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="96";
+const VER="97";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
