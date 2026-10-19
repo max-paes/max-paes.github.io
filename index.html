@@ -1134,6 +1134,17 @@ const FIREBASE_CONFIG={apiKey:"AIzaSyARohr-gd-yUzcTM4ZrVOp345dKI0_2x_s",authDoma
 const FBV="10.12.2",DONO_UID="CDcwBbB7M1aLDRmGM74p45UDnLz1";
 const nv={db:null,uid:null,pend:new Set(),del:new Set(),cfg:false,t:null,msg:"",tomb:new Set(),tombSujo:false,tk:0};
 const lsG=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+// ===== Diagnóstico: erros do aparelho ficam gravados para o suporte =====
+const DG={l:[],t:null};
+function diag(e,onde){try{const m=String((e&&(e.message||e.reason&&e.reason.message))||e||"").slice(0,240);if(!m||/ResizeObserver|Script error/.test(m))return;
+  const st=String((e&&e.stack)||(e&&e.reason&&e.reason.stack)||"").split("\n").slice(0,3).join(" | ").slice(0,300);
+  DG.l.push({m,onde:onde||"",st,ts:Date.now(),v:typeof VER!=="undefined"?VER:"",tela:typeof mode!=="undefined"?mode:""});if(DG.l.length>20)DG.l.shift();
+  clearTimeout(DG.t);DG.t=setTimeout(diagEnvia,1500)}catch(_){}}
+function diagEnvia(){try{const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb||!DG.l.length)return;const L=DG.l.splice(0);
+  const o={};L.forEach((x,i)=>{o[x.ts.toString(36)+i]=x});
+  fbDb.collection("vendedores/"+u.uid+"/docs").doc("diag").set({tipo:"diag",ts:Date.now(),ua:navigator.userAgent.slice(0,160),papel:(perfil&&perfil.papel)||"",e:o},{merge:true}).catch(()=>{})}catch(_){}}
+window.addEventListener("error",ev=>diag(ev.error||ev.message,"tela"));
+window.addEventListener("unhandledrejection",ev=>diag(ev.reason,"promessa"));
 const HOST_ANT="max-paes.github.io",NOVO_URL="https://max-paes.pages.dev/";
 let migrando=false;
 async function migra(logado){if(location.host!==HOST_ANT||!NOVO_URL||migrando)return;
@@ -1223,7 +1234,7 @@ function mostraVendedor(){aplicaAcesso();
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
   $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud);$("lgsll").textContent=mud?"Senha atual":"Senha";
-  $("lgs2l").hidden=!(nova||mud);$("lgs3l").hidden=!(nova||mud);$("lgr").hidden=!ent;$("lgc").hidden=!mud;
+  $("lgs2l").hidden=!(nova||mud);$("lgs3l").hidden=!(nova||mud);$("lgr").hidden=!ent;$("lgc").hidden=!(mud||nova);$("lgc").textContent=nova?"Sair e entrar de novo":"Cancelar";
   $("lgb").textContent=loc?"Começar":nova||mud?"Salvar nova senha":"Entrar";
   $("lgsub").textContent=loc?"Informe seu nome. Ele identifica os seus registros.":nova?"Primeiro acesso: crie a sua senha pessoal. A senha inicial deixa de valer.":mud?"Digite a senha atual e a nova senha.":"Entre com seu e-mail e senha.";
   $("lgs").autocomplete=mud?"current-password":"current-password";["lgs","lgs2","lgs3"].forEach(i=>$(i).value="");lgMsg("")}
@@ -1232,7 +1243,9 @@ const ERR={"auth/invalid-credential":"E-mail ou senha incorretos.","auth/wrong-p
   "auth/invalid-email":"E-mail inválido.","auth/email-already-in-use":"Esse e-mail já tem conta.","auth/weak-password":"A senha precisa ter pelo menos 6 caracteres.",
   "auth/network-request-failed":"Sem internet. Conecte e tente de novo.","auth/too-many-requests":"Muitas tentativas. Espere alguns minutos.","auth/missing-password":"Digite a senha."};
 const erroTxt=e=>ERR[e&&e.code]||"Não foi possível concluir. Tente de novo.";
-$("lgc").onclick=()=>{if(lgModo==="mudar")$("lg").classList.remove("on")};
+$("lgc").onclick=()=>{if(lgModo==="mudar"){$("lg").classList.remove("on");return}if(lgModo==="nova")sairDeNovo("")};
+function sairDeNovo(msg){pendEntrada=null;const f=fbAuth;try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
+  perfil=null;try{mostraVendedor()}catch(e){}const fim=()=>{mostraLogin("entrar");if(msg)lgMsg(msg)};if(f)f.signOut().then(()=>setTimeout(fim,200)).catch(fim);else fim()}
 $("msen").onclick=()=>{$("hs").classList.remove("on");mostraLogin("mudar")};
 $("lgr").onclick=async()=>{const em=$("lge").value.trim();if(!em){lgMsg("Digite seu e-mail acima e toque de novo em Esqueci a senha.");return}
   try{await fbAuth.sendPasswordResetEmail(em);lgMsg("Enviamos um link para "+em+". Abra o e-mail para criar uma nova senha.",true)}catch(e){lgMsg(erroTxt(e))}};
@@ -1244,9 +1257,11 @@ $("lgb").onclick=async()=>{const b=$("lgb"),nome=U($("lgn").value).trim(),em=$("
     if(lgModo==="mudar"&&n1===se){lgMsg("A nova senha precisa ser diferente da atual.");return}
     b.disabled=true;lgMsg("Salvando…",true);
     try{if(lgModo==="mudar")await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,se));
-      await u.updatePassword(n1);await fbDb.collection("vendedores").doc(u.uid).set({trocarSenha:false,senhaTrocadaEm:Date.now()},{merge:true});
+      await u.updatePassword(n1);lsS("mpv:senhaok",u.uid);
+      try{await Promise.race([fbDb.collection("vendedores").doc(u.uid).set({trocarSenha:false,senhaTrocadaEm:Date.now()},{merge:true}),new Promise((_,r)=>setTimeout(()=>r(new Error("lento")),8000))])}catch(_){}
       if(perfil)perfil.trocarSenha=false;const era=lgModo;lgMsg("Senha alterada.",true);setTimeout(()=>{$("lg").classList.remove("on");if(era==="nova"&&pendEntrada){const f=pendEntrada;pendEntrada=null;f()}},700)}
-    catch(e){lgMsg(lgModo==="mudar"&&e&&/credential|wrong-password/.test(e.code||"")?"Senha atual incorreta.":erroTxt(e))}finally{b.disabled=false}return}
+    catch(e){if(lgModo==="nova"&&e&&e.code==="auth/requires-recent-login"){lgMsg("Por segurança, entre de novo com a senha que recebeu. Em seguida você cria a sua senha.");setTimeout(()=>sairDeNovo("Entre com a senha que recebeu da empresa. Em seguida o app pede para você criar a sua senha."),1800);return}
+      lgMsg(lgModo==="mudar"&&e&&/credential|wrong-password/.test(e.code||"")?"Senha atual incorreta.":erroTxt(e))}finally{b.disabled=false}return}
   if(!em||!se){lgMsg("Preencha e-mail e senha.");return}
   b.disabled=true;lgMsg("Entrando…",true);
   try{await fbAuth.signInWithEmailAndPassword(em,se)}
@@ -1653,8 +1668,9 @@ async function entrou(u){
     if(!dp||troca){try{await pref.set({disp:meu,dispNome:dispNome(),dispEm:Date.now(),dispHost:location.host},{merge:true});perfil.disp=meu;perfil.dispHost=location.host}catch(e){barra("Não deu para registrar este aparelho. Tente de novo.");return}}
   }
   pref.set({ultimoAcesso:Date.now()},{merge:true}).catch(()=>{});
-  lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");mostraVendedor();
-  const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta();migra(true)};
+  lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");try{mostraVendedor()}catch(e){diag(e,"mostraVendedor")}
+  const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta();migra(true);setTimeout(diagEnvia,3000)};
+  if(perfil.trocarSenha&&lsG("mpv:senhaok")===u.uid){perfil.trocarSenha=false;pref.set({trocarSenha:false,senhaTrocadaEm:Date.now()},{merge:true}).catch(()=>{})}
   if(perfil.trocarSenha){pendEntrada=seguir;mostraLogin("nova");return}
   await seguir();
 }
@@ -2815,7 +2831,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="89";
+const VER="90";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
