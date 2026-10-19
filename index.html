@@ -1193,7 +1193,7 @@ const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="produca
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[];/* pedidos entregues pela empresa já aplicados; lista esvaziada para não recriar pedidos excluídos */
-const CLI_NOVOS=[["BOAMA","MARAPONGA"],["VOLTA A VIDA","LAGOA REDONDA"],["MANÁ SEDE","ALTO ALEGRE"],["MANÁ 1","MARACANAÚ"],["MANÁ 2","ITAITINGA"],["MANÁ 3","ITAITINGA"]];
+const CLI_NOVOS=[["BOAMA","MARAPONGA"],["VOLTA A VIDA","LAGOA REDONDA"],["MANÁ SEDE","ALTO ALEGRE"],["MANÁ 1","MARACANAÚ"],["MANÁ 2","ITAITINGA"],["MANÁ 3","ITAITINGA"],["ANA RISORLANGE 01","BOM JARDIM"],["ANA RISORLANGE 02","BOM SUCESSO"],["ANA RISORLANGE 03","PARQUE DOIS IRMÃOS"],["COMPREMAX SARGENTO HERMÍNIO","SARGENTO HERMÍNIO"],["COMPREMAX MISTER HULL","MISTER HULL"],["COMPREMAX PINDORETAMA","PINDORETAMA"],["COMPREMAX PECÉM","PECÉM"],["COMPREMAX ICARAÍ","ICARAÍ"],["COMPREMAX METRÓPOLE (POSTO)","METRÓPOLE (POSTO)"],["COMPREMAX NOVA METRÓPOLE","NOVA METRÓPOLE"],["OFERTÃO MAX CANINDÉ","CANINDÉ"],["OFERTÃO MAX CAUCAIA","CAUCAIA"],["REAL BOX","QUINTINO CUNHA"],["AZEVEDO","VILA VELHA"],["NOVO BOX","CRISTO REDENTOR"],["SUPER FREITAS","AQUIRAZ"],["BEBETO","AQUIRAZ"],["MOBYDICK","ICARAÍ"],["SUPER DIKA","PLANALTO CAUCAIA"],["SUPER BARATÃO","CANINDÉ"],["SUPER MARTIN","CANINDÉ"],["PRADO 02","CAUCAIA"],["QUEIROZ","CAUCAIA"],["ERIVALDO","CONJUNTO CEARÁ 02"],["BRASILEIRO FILIAL","JARDIM CEARENSE"],["BRASILEIRO","RODOLFO TEÓFILO"],["CENTRAL BOX","NOVO MONDUBIM"],["PROGRESSO","MARACANAÚ"],["POPULAR JOSÉ WALTER","JOSÉ WALTER"],["POPULAR AIRTON SENA","AIRTON SENA"]];
 function garanteClientes(){let n=0;CLI_NOVOS.forEach(([nm,en])=>{const k=chave2(canon(nm)),ex=clientes.find(c=>chave2(canon(c.nome))===k);
   if(!ex){clientes.push({nome:nm,endereco:en,comprador:""});n++}else if(!ex.endereco){ex.endereco=en;n++}});
   if(n){salvaCli();try{listaCli()}catch(e){}}return n}
@@ -2815,7 +2815,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="88";
+const VER="89";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
