@@ -730,7 +730,7 @@ const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","S
 const AG_PADRAO={1:[],2:[],3:[],4:[],5:[],6:[]};
 let rota=null,agDia=1,agEdit=false,agNota="";
 function normAg(a){const o={};for(let d=1;d<=6;d++)o[d]=(a&&Array.isArray(a[d])?a[d]:[]).filter(x=>x&&typeof x.nome==="string"&&x.nome.trim()).map(x=>({nome:U(x.nome).trim(),bairro:U(x.bairro).trim()}));return o}
-const MKEY="maxpaes:motivos:v1",MOTIVOS=["Estoque cheio","Comprador ausente","Loja fechada","Sem verba / pagamento","Outro"];let motivos={},agMot=null;
+const MKEY="maxpaes:motivos:v1",MOTIVOS=["Produtos no estoque","Gôndolas cheias","Comprador ausente","Boleto em aberto","Outro"];let motivos={},agMot=null;
 const VKEY="maxpaes:visitas:v1",MIGKEY="maxpaes:agenda:mig";let visitas={};
 function carregarAg(){try{const a=JSON.parse(localStorage.getItem(AGKEY)||"null");rota=a?normAg(a):normAg(AG_PADRAO)}catch(e){rota=normAg(AG_PADRAO)}
   let mig=0;try{mig=+(localStorage.getItem(MIGKEY)||0)}catch(e){}
@@ -1783,7 +1783,10 @@ function carregar(){
 // ===== Visitado sem pedido (na tela de vendas) =====
 let spAberto=false;
 function spRender(){const B=$("spbar");if(!B)return;const cli=($("cliente").value||"").trim(),dt=$("data").value||hojeISO();
-  if(!cli||mode==="entrega"){B.hidden=true;spAberto=false;return}
+  if(mode==="entrega"){B.hidden=true;spAberto=false;return}
+  if(!cli){spAberto=false;if(B.dataset.sig!=="vazio"||!B.childNodes.length){B.dataset.sig="vazio";B.hidden=false;B.className="ed spb";B.innerHTML="";
+    const t=document.createElement("b");t.textContent="Visitou e não houve pedido?";const b=document.createElement("button");b.textContent="Sem pedido";
+    b.onclick=()=>{t.textContent="Escolha a loja primeiro";try{$("cliente").focus()}catch(e){}setTimeout(()=>{t.textContent="Visitou e não houve pedido?"},2500)};B.append(t,b)}B.hidden=false;return}
   const k0=norm(cli),tem=soma(state.pedido)>0;
   if(tem&&(visitas[dt]||{})[k0]===true&&(motivos[dt]||{})[k0]){delete visitas[dt][k0];delete motivos[dt][k0];salvaAg()}
   B.hidden=false;const k=k0,marc=!!((visitas[dt]||{})[k]),mot=(motivos[dt]||{})[k]||"",sig=[k,dt,marc,mot,spAberto,tem].join("|");if(B.dataset.sig===sig&&B.childNodes.length)return;B.dataset.sig=sig;B.className="ed spb"+(marc?" ok":"");B.innerHTML="";
@@ -2899,7 +2902,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="97";
+const VER="98";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -2922,7 +2925,7 @@ async function checaVersao(){
     const v=(await r.text()).trim();
     if(v&&v!==VER)mostraAtt(swReg&&swReg.waiting||null)}catch(e){}
   try{if(swReg)swReg.update()}catch(e){}}
-setInterval(checaVersao,15*60*1000);
+setInterval(checaVersao,3*60*1000);window.addEventListener("focus",checaVersao);window.addEventListener("online",checaVersao);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checaVersao()});
 setTimeout(checaVersao,4000);
 </script>
