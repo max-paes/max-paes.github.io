@@ -71,6 +71,12 @@ service cloud.firestore {
                         || (request.resource.data.get('fin', false) == false && perfil(request.auth.uid).papel in ['faturamento', 'developer']));
     }
 
+    // Registro da produção: a produção (e a diretoria) lança produzido e entregue ao estoque; a equipe lê
+    match /producao/{dia} {
+      allow read: if equipe();
+      allow write: if ativo() && perfil(request.auth.uid).papel in ['producao', 'admin', 'developer'];
+    }
+
     // Controle de vida das fotos: qualquer usuário ativo registra a foto que tirou;
     // só o diretor (administrador) marca como vista ou liberada (documentos v_...)
     match /fotoidx/{id} {
