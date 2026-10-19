@@ -163,6 +163,8 @@ header .vnd:empty{display:none}
 #fsx{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:6;padding:10px 16px;border-radius:10px;border:0;background:rgba(0,0,0,.7);color:#fff;font:800 15px Archivo,sans-serif}
 [hidden]{display:none!important}
 #hbtn,#abtn,#sbtn{padding:10px 14px;border-radius:10px;border:2px solid var(--on);background:transparent;color:var(--on);font:800 14px Archivo,sans-serif}
+.spb{justify-content:flex-start}.spb b{margin-right:auto}.spb button.m{padding:6px 10px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:inherit;font:700 12.5px Archivo,sans-serif}
+.spb.ok{border-color:#0b7a75;background:rgba(11,122,117,.08)}
 .ed{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;background:var(--hit);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:13px}
 .ed>span{flex:1 1 100%;min-width:0}
 .ed button{flex:0 1 auto;max-width:100%;padding:8px 10px;border-radius:8px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif;white-space:nowrap}
@@ -383,6 +385,7 @@ body.trv #edbar{border-color:#0b7a75}
     <label>Data<input id="data" type="date"></label>
     <label>Comprador<input id="comprador" autocomplete="off"></label>
   </div>
+  <div class="ed spb" id="spbar" hidden></div>
   <div class="ed" id="vbar"><span id="vbtx">Visita não iniciada</span><button id="vbb">Iniciar visita</button></div>
   <div class="ed" id="rep" hidden><span id="reptx"></span><span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button id="sugb">Sugerir pedido</button><button id="repb">Repetir</button></span></div>
   <div class="ed" id="sugx" hidden style="display:block"></div>
@@ -722,7 +725,7 @@ $("cliente").addEventListener("input",()=>{
 $("cliente").addEventListener("focus",mostraSug);
 $("cliente").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("cliente"))$("sug").hidden=true},150));
 $("cliente").addEventListener("keydown",e=>{if(e.key==="Escape")$("sug").hidden=true});
-$("data").addEventListener("input",apoio);
+$("data").addEventListener("input",apoio);["input","change"].forEach(ev=>{$("cliente").addEventListener(ev,()=>{try{spRender()}catch(e){}});$("data").addEventListener(ev,()=>{try{spRender()}catch(e){}})});
 const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],DCURTO=["","Seg","Ter","Qua","Qui","Sex","Sáb"];
 const AG_PADRAO={1:[],2:[],3:[],4:[],5:[],6:[]};
 let rota=null,agDia=1,agEdit=false,agNota="";
@@ -1777,7 +1780,19 @@ function carregar(){
     if(s.mode==="troca"||s.mode==="gondola"||s.mode==="visita")mode=s.mode;
   }catch(e){}
 }
-function contar(){
+// ===== Visitado sem pedido (na tela de vendas) =====
+let spAberto=false;
+function spRender(){const B=$("spbar");if(!B)return;const cli=($("cliente").value||"").trim(),dt=$("data").value||hojeISO();
+  if(!cli||mode==="entrega"||soma(state.pedido)>0){B.hidden=true;spAberto=false;return}
+  B.hidden=false;const k=norm(cli),marc=!!((visitas[dt]||{})[k]),mot=(motivos[dt]||{})[k]||"",sig=[k,dt,marc,mot,spAberto].join("|");if(B.dataset.sig===sig&&B.childNodes.length)return;B.dataset.sig=sig;B.className="ed spb"+(marc?" ok":"");B.innerHTML="";
+  const t=document.createElement("b");B.appendChild(t);
+  if(marc){t.textContent="✓ Visitado sem pedido"+(mot?" · "+mot:"");const u=document.createElement("button");u.textContent="Desfazer";
+    u.onclick=()=>{if(visitas[dt])delete visitas[dt][k];if(motivos[dt])delete motivos[dt][k];salvaAg();spRender()};B.appendChild(u);return}
+  if(!spAberto){t.textContent="Visitou e não houve pedido?";const b=document.createElement("button");b.textContent="Sem pedido";b.onclick=()=>{spAberto=true;spRender()};B.appendChild(b);return}
+  t.textContent="Motivo:";MOTIVOS.forEach(m=>{const b=document.createElement("button");b.className="m";b.textContent=m;
+    b.onclick=()=>{(visitas[dt]=visitas[dt]||{})[k]=true;(motivos[dt]=motivos[dt]||{})[k]=m;spAberto=false;salvaAg();spRender()};B.appendChild(b)});
+  const x=document.createElement("button");x.className="m";x.textContent="Cancelar";x.onclick=()=>{spAberto=false;spRender()};B.appendChild(x)}
+function contar(){try{spRender()}catch(e){}
   if(mode==="entrega"){$("count").textContent="Entrega · "+(entFin?"finalizada":entRota?"em rota":"em aberto");return}
   if(mode==="visita"){$("count").textContent="Visita · "+(!visita.ini?"não iniciada":!visita.fim?"em andamento desde "+visita.ini:visita.ini+" às "+visita.fim);return}
   if(mode==="gondola"){const n=Object.keys(state.gondola).length;$("count").textContent="Gôndola · "+n+(n===1?" item contado":" itens contados");return}
@@ -2882,7 +2897,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="95";
+const VER="96";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
