@@ -152,7 +152,7 @@ header .vnd:empty{display:none}
 .gr select.sec{border:1.5px solid var(--brand);background:transparent;color:var(--brand);border-radius:9px;padding:9px 8px;font:800 14px Archivo,sans-serif}
 .gr .off{color:#b3261e;font-weight:700}
 .hst{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;border:1.5px solid currentColor}
-.hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterado,.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}
+.hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterado,.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#b26a00}
 .ov .box{background:var(--card);border-radius:14px;padding:12px;max-width:560px;margin:0 auto}
 .ov img{width:100%;display:block;border-radius:8px;border:1px solid var(--line)}
 .msg{font-size:13px;color:var(--mute);margin:8px 2px}
@@ -353,10 +353,10 @@ body.trv #edbar{border-color:#0b7a75}
 .fb .th{display:flex;flex-direction:column;align-items:center;gap:4px}.fb .th button{padding:3px 10px;border-radius:10px;font-size:12px;line-height:1.2}
 .pn{background:rgba(217,160,30,.13);color:inherit;border:1px solid rgba(217,160,30,.45);border-radius:10px;padding:8px 10px;font-weight:600;font-size:13px;margin:8px 0}
 .mk label.pd{border-color:#b3261e}
-#fs{z-index:40}
+#fs{z-index:65}
 #ocm{z-index:35}#ov{z-index:45}
 .ocl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
-.oci{border-left:3px solid var(--brand);padding:4px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}.oci small{display:block;color:var(--mute);font-size:12px;font-weight:700}
+.oci{border-left:3px solid var(--brand);padding:4px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}.oce{display:block;margin:4px 0 0;padding:3px 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--brand)}.oci small{display:block;color:var(--mute);font-size:12px;font-weight:700}
 .ocst{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:800;font-size:13px}.ocst.fin{background:#1a8a4a;color:#fff}.ocst.ab{background:var(--hit);border:1px solid var(--line)}
 #ent textarea,#occ textarea,.mc textarea.oct{width:100%;min-height:70px;box-sizing:border-box}
 #ent .acts button,#occ .acts button{padding:9px 12px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif}
@@ -756,6 +756,7 @@ function nomeCad(n){
 }
 function pedidoDoDia(n,d){const ks=[norm(n),norm(nomeCad(n))],dt=dataDoDia(d);return hist.find(e=>e.data===dt&&ks.includes(norm(e.cliente))&&(soma(e.pedido)>0||soma(e.troca)>0||!!(e.visita&&e.visita.ini)))}
 function marcaManual(n,d){const m=visitas[dataDoDia(d)];return m&&typeof m[norm(n)]==="boolean"?m[norm(n)]:null}
+function semPed(n,d){const dt=dataDoDia(d),k=norm(n);if((visitas[dt]||{})[k]!==true)return false;const ks=[k,norm(nomeCad(n))];return !hist.some(h=>h.data===dt&&ks.includes(norm(h.cliente))&&soma(h.pedido)>0)}
 function visitado(n,d){const m=marcaManual(n,d);return m!==null?m:!!pedidoDoDia(n,d)}
 function alternaVisita(n,d){const dt=dataDoDia(d),v=!visitado(n,d);(visitas[dt]=visitas[dt]||{})[norm(n)]=v;if(!v&&motivos[dt])delete motivos[dt][norm(n)];salvaAg();renderAg()}
 function motivoDe(n,d){return (motivos[dataDoDia(d)]||{})[norm(n)]||""}
@@ -836,7 +837,7 @@ function renderAg(){
     }else{
       t.onclick=()=>abrirDaAgenda(x,r,sm);
       const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",v);
-      st.textContent=v?"✓ Visitado":"Não visitado";st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
+      const sp0=v&&semPed(x.nome,agDia);st.textContent=sp0?"✓ Sem pedido":v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
       st.onclick=()=>alternaVisita(x.nome,agDia);r.appendChild(st);
     }
     L.appendChild(r);
@@ -964,7 +965,7 @@ function desenharRelatorio(logo){
     let st,cor;
     if(r.extra){st="✓ Fora da agenda";cor=AZ}
     else if(r.vis&&ped>0){st="✓ Visitado · com pedido";cor="#1a8f4c"}
-    else if(r.vis){st="✓ Visitado";cor="#1a8f4c"}
+    else if(r.vis){st="✓ Sem pedido"+(r.mot?" · "+r.mot:"");cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
     else{st="✗ Não visitado";cor="#b3261e"}
     if(r.e&&r.e.visita&&r.e.visita.ini&&!r.extra)st+=" · "+r.e.visita.ini+(r.e.visita.fim?"–"+r.e.visita.fim:"");
@@ -1377,10 +1378,10 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();f
   const ord=L.slice().sort((a,b)=>(b.data+(b.ini||hhDe(b.ts))).localeCompare(a.data+(a.ini||hhDe(a.ts))));
   if(!ord.length)T.innerHTML='<div class="vazio">Nenhuma visita ou pedido '+(dia?"neste dia":"nesta semana")+".</div>";
   ord.forEach(x=>{const r=document.createElement("button");r.className="tr"+(sup.novo===x.uid+"/"+x.id?" novo":"");
-    const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),en=(sup.ent||{})[x.uid+"_"+x.id]||{},noc=ocLista(en).filter(o=>!o.sis).length,st=rotSt(x.status,x.fat)+(en.fin?" · ✅ Entregue":en.rota?" · 🚚 Em rota":"")+(noc?" · 📝 "+noc:"")+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
+    const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),en=(sup.ent||{})[x.uid+"_"+x.id]||{},noc=ocLista(en).filter(o=>!o.sis).length,st=(x.ped?rotSt(x.status,x.fat):"Sem pedido")+(en.fin?" · ✅ Entregue":en.rota?" · 🚚 Em rota":"")+(noc?" · 📝 "+noc:"")+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
     const fiN=ehAdm()?fiPend(e=>fiDoCard(e,x)).length:0;
     r.innerHTML="<span class='tt'>"+esc(dia?(x.ini||hhDe(x.ts)):dBR(x.data).slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc(nomeV(x.uid))+" · "+esc(hora)+(fiN?" · <span class='fim'>⏳ fotos</span>":"")+"</small></span>"+
-      "<span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+clsSt(x.status,x.fat)+"'>"+esc(st)+"</span></span>";
+      "<span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+(x.ped?clsSt(x.status,x.fat):"sempedido")+"'>"+esc(st)+"</span></span>";
     r.onclick=()=>supDetalhe(x.uid+"/"+x.id);T.appendChild(r)});
   sup.novo=null;
   if(!dia){const lj={};L.forEach(x=>{const k=x.cliente||"(sem loja)";lj[k]=lj[k]||{p:0,t:0};lj[k].p+=x.ped||0;lj[k].t+=x.tro||0});
@@ -1991,21 +1992,27 @@ let hLim=30;
 const MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 function renderHist(){
   const L=$("hlist");L.innerHTML="";
-  $("htit").textContent="Histórico · "+hist.length+(hist.length===1?" pedido":" pedidos");
-  if(!hist.length){const p=document.createElement("p");p.className="msg";p.textContent="Nenhum pedido salvo ainda. Os pedidos entram aqui sozinhos quando você informa o cliente e adiciona itens.";L.appendChild(p);return}
-  const qn=norm($("hq").value),lista=(qn?hist.filter(e=>norm(e.cliente).includes(qn)):hist.slice()).sort((a,b)=>(b.data||"").localeCompare(a.data||"")||b.ts-a.ts);
+  const spx=[];Object.keys(visitas).forEach(dt=>Object.keys(visitas[dt]||{}).forEach(k=>{if(visitas[dt][k]!==true)return;
+    if(hist.some(h=>h.data===dt&&(norm(h.cliente)===k||norm(nomeCad(h.cliente))===k)))return;
+    const c=(clientes||[]).find(c=>norm(c.nome)===k);spx.push({sp:1,id:"sp_"+dt+"_"+k,cliente:c?c.nome:k.toUpperCase(),data:dt,pedido:{},troca:{},ts:Date.parse(dt+"T12:00:00")||0,k})}));
+  $("htit").textContent="Histórico · "+hist.length+(hist.length===1?" pedido":" pedidos")+(spx.length?" · "+spx.length+" sem pedido":"");
+  if(!hist.length&&!spx.length){const p=document.createElement("p");p.className="msg";p.textContent="Nenhum pedido salvo ainda. Os pedidos entram aqui sozinhos quando você informa o cliente e adiciona itens.";L.appendChild(p);return}
+  const qn=norm($("hq").value),lista=(qn?hist.concat(spx).filter(e=>norm(e.cliente).includes(qn)):hist.concat(spx)).sort((a,b)=>(b.data||"").localeCompare(a.data||"")||b.ts-a.ts);
   if(!lista.length){const p=document.createElement("p");p.className="msg";p.textContent="Nenhum pedido encontrado para essa busca.";L.appendChild(p);return}
   const n=o=>Object.values(o||{}).filter(v=>v>0).length;
   let mesAnt="";
   lista.slice(0,hLim).forEach(e=>{
     const mes=(e.data||"").slice(0,7);
     if(mes&&mes!==mesAnt){mesAnt=mes;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+mes.slice(5,7)-1]+" "+mes.slice(0,4);L.appendChild(h)}
+    if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst sempedido";b.textContent="Sem pedido";t.appendChild(b);
+      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),(motivos[e.data]||{})[e.k]||"Visitado, sem pedido"].join(" · ");it.append(t,sm);L.appendChild(it);return}
     const it=document.createElement("div");it.className="hit"+(e.id===curId?" cur":"");
     const t=document.createElement("b");t.textContent=e.cliente||"(sem nome)";
     const sm=document.createElement("small");
     const dt=e.data?e.data.split("-").reverse().join("/"):"";
     const ng=Object.keys(e.gondola||{}).length;
-    if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
+    if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true){const b=document.createElement("span");b.className="hst sempedido";b.textContent="Sem pedido"+(((motivos[e.data]||{})[norm(e.cliente)])?" · "+motivos[e.data][norm(e.cliente)]:"");t.appendChild(b)}
+    else if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
     sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
     const ed=document.createElement("button");ed.textContent="Editar";ed.onclick=()=>abrirPedido(e.id,ed);
@@ -2571,7 +2578,10 @@ function ocOuve(k,fn){let o=ocL[k];if(!o){o=ocL[k]={data:null,subs:new Set()};
   return()=>{o.subs.delete(fn);if(!o.subs.size){try{o.un()}catch(e){}delete ocL[k]}}}
 function ocLista(d){return Object.entries((d&&d.oc)||{}).map(([id,v])=>({id,...(v||{})})).filter(x=>x.t).sort((a,b)=>(a.ts||0)-(b.ts||0))}
 const hmTs=ts=>{const t=new Date(ts);return dBR(isoD(t)).slice(0,5)+" "+String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0")};
-function ocNovo(t,sis){return {[Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36)]:{t,por:(perfil&&perfil.nome)||"",papel:(perfil&&perfil.papel)||"",ts:Date.now(),...(sis?{sis:1}:{})}}}
+const ocUid=()=>(perfil&&perfil.espelho)||(fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid)||"";
+const ocMeu=x=>!x.sis&&((x.uid&&x.uid===ocUid())||(!x.uid&&perfil&&x.por===perfil.nome&&x.papel===perfil.papel));
+function ocNovo(t,sis){return {[Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36)]:{t,por:(perfil&&perfil.nome)||"",papel:(perfil&&perfil.papel)||"",uid:ocUid(),ts:Date.now(),...(sis?{sis:1}:{})}}}
+async function ocEdita(k,id,t){t=(t||"").trim();if(!t)return;await ocRef(k).set({oc:{[id]:{t,ed:Date.now()}}},{merge:true})}
 async function ocAdd(k,meta,t){t=(t||"").trim();if(!t)return;await ocRef(k).set({c:meta.c||"",d:meta.d||"",ts:Date.now(),oc:ocNovo(t)},{merge:true})}
 async function ocFin(k,meta,v){const n=(perfil&&perfil.nome)||"";
   await ocRef(k).set({c:meta.c||"",d:meta.d||"",ts:Date.now(),...(v?{fin:true,finEm:Date.now(),finPor:n}:{fin:false,reabEm:Date.now(),reabPor:n}),oc:ocNovo(v?"Entrega finalizada.":"Entrega reaberta pelo faturamento.",1)},{merge:true})}
@@ -2579,12 +2589,14 @@ function ocPainel(B,k,meta){B.innerHTML="";const st=document.createElement("div"
   const ta=document.createElement("textarea");ta.rows=3;ta.placeholder="Escreva a ocorrência: loja fechada, faltou caixa, avaria, recado para a entrega…";
   const acts=document.createElement("div");acts.className="acts";const ba=document.createElement("button");ba.textContent="Acrescentar";
   const bg=document.createElement("button");bg.textContent="Gerar ocorrência";const bf=document.createElement("button");bf.hidden=true;
-  const m=document.createElement("p");m.className="msg";m.style.margin="6px 0 0";acts.append(ba,bg,bf);B.append(st,L,ta,acts,m);let cur={};
+  const m=document.createElement("p");m.className="msg";m.style.margin="6px 0 0";const bc=document.createElement("button");bc.textContent="Cancelar edição";bc.hidden=true;acts.append(ba,bc,bg,bf);B.append(st,L,ta,acts,m);let cur={},edId=null;
+  const fimEd=()=>{edId=null;ta.value="";ba.textContent="Acrescentar";bc.hidden=true;m.textContent=""};bc.onclick=fimEd;
+  L.onclick=e=>{const b=e.target.closest("button[data-ed]");if(!b)return;const x=ocLista(cur).find(o=>o.id===b.dataset.ed);if(!x||!ocMeu(x))return;edId=x.id;ta.value=x.t;ba.textContent="Salvar edição";bc.hidden=false;m.textContent="Editando sua ocorrência das "+hmTs(x.ts)+".";ta.focus()};
   const pinta=d=>{cur=d||{};const fin=!!cur.fin;
     st.innerHTML="<span class='ocst "+(fin?"fin":"ab")+"'>"+(fin?"✅ Entrega finalizada"+(cur.finEm?" · "+esc(hmTs(cur.finEm)):"")+(cur.finPor?" · "+esc(cur.finPor.split(" ")[0]):""):cur.rota?"🚚 Em rota"+(cur.rotaEm?" · saiu "+esc(hmTs(cur.rotaEm)):"")+(cur.rotaPor?" · "+esc(cur.rotaPor.split(" ")[0]):""):"🚚 Entrega em aberto")+"</span>";
-    const it=ocLista(cur);L.innerHTML=it.length?it.map(x=>"<div class='oci'><small>"+esc(hmTs(x.ts))+" · "+esc(x.por||"")+(x.papel?" ("+esc(rotP(x.papel))+")":"")+"</small>"+esc(x.t)+"</div>").join(""):"<p class='msg' style='margin:0'>Nenhuma ocorrência registrada.</p>";
+    const it=ocLista(cur);L.innerHTML=it.length?it.map(x=>"<div class='oci'><small>"+esc(hmTs(x.ts))+" · "+esc(x.por||"")+(x.papel?" ("+esc(rotP(x.papel))+")":"")+(x.ed?" · editada "+esc(hmTs(x.ed)):"")+"</small>"+esc(x.t)+(ocMeu(x)?"<button data-ed='"+esc(x.id)+"' class='oce'>✎ Editar</button>":"")+"</div>").join(""):"<p class='msg' style='margin:0'>Nenhuma ocorrência registrada.</p>";
     bf.dataset.c="";if(!fin&&podeFin()){bf.hidden=false;bf.className="fin";bf.textContent="✅ Finalizar entrega"}else if(fin&&podeReab()){bf.hidden=false;bf.className="";bf.textContent="↺ Reabrir entrega"}else bf.hidden=true};
-  ba.onclick=async()=>{if(!ta.value.trim()){ta.focus();return}ba.disabled=true;try{await ocAdd(k,meta,ta.value);ta.value="";m.textContent=""}catch(e){m.textContent="Não foi possível salvar ("+(e.code||e.message)+")."}ba.disabled=false};
+  ba.onclick=async()=>{if(!ta.value.trim()){ta.focus();return}ba.disabled=true;try{if(edId){await ocEdita(k,edId,ta.value);fimEd()}else{await ocAdd(k,meta,ta.value);ta.value="";m.textContent=""}}catch(e){m.textContent="Não foi possível salvar ("+(e.code||e.message)+")."}ba.disabled=false};
   bf.onclick=async()=>{if(bf.dataset.c!=="1"){bf.dataset.c="1";bf.textContent=cur.fin?"Reabrir? Toque de novo":"Finalizar? Toque de novo";setTimeout(()=>{if(bf.dataset.c==="1")pinta(cur)},3000);return}
     bf.disabled=true;try{await ocFin(k,meta,!cur.fin)}catch(e){m.textContent="Sem permissão ou sem internet ("+(e.code||e.message)+")."}bf.disabled=false};
   bg.onclick=()=>ocGera(meta,cur,bg);pinta({});
@@ -2902,7 +2914,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="100";
+const VER="101";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
