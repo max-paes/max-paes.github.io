@@ -708,7 +708,7 @@ function calcSug(){
   });
   const linhas=["Pedido sugerido pela média dos últimos "+ult.length+(ult.length===1?" pedido":" pedidos")+" deste cliente."];
   if(aj.length)linhas.push("Ajustes:",...aj);else linhas.push("Nenhum ajuste: sem troca e sem contagem de gôndola lançadas.");
-  if(!soma(state.troca)&&!Object.keys(state.gondola).length)linhas.push("Dica: lance a Troca e conte a Gôndola antes de sugerir, para o app ajustar as quantidades.");
+  if(!soma(state.troca)&&!Object.keys(state.gondola).length)linhas.push("Dica: lance a Troca antes de sugerir, para o app ajustar as quantidades.");
   return {P,linhas};
 }
 $("sugb").onclick=()=>{const b=$("sugb"),r=calcSug();if(!r)return;
@@ -1235,7 +1235,7 @@ function aplicaTema(){let t="claro";try{t=localStorage.getItem("mpv:tema")||"cla
 $("tema").onclick=()=>{let t="claro";try{t=localStorage.getItem("mpv:tema")||"claro"}catch(e){}
   const n=t==="claro"?"escuro":t==="escuro"?"auto":"claro";try{localStorage.setItem("mpv:tema",n)}catch(e){}aplicaTema()};
 aplicaTema();
-function aplicaAcesso(){const dono=!!(perfil&&perfil.papel==="developer");$("t-gondola").style.display=dono?"":"none";
+function aplicaAcesso(){const dono=false;/* gôndola retirada de todos os usuários */$("t-gondola").style.display="none";
   const sp=!!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||""));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
@@ -1626,12 +1626,12 @@ $("rlj").onclick=async()=>{const R=rlCalc();if(!R||!(R.ped.length||R.tro.length)
 function entDe(k){const x=sup.docs[k];if(!x)return null;try{return normEnt(JSON.parse(x.j))}catch(e){return null}}
 function supDetalhe(k,silencioso){const e=entDe(k),x=sup.docs[k];if(!e)return;sup.det=k;
   $("sdtt").textContent=e.cliente+" · "+dBR(e.data);
-  const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0)||(e.gondola[n]!==undefined));
+  const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0));
   let h="<p class='msg' style='margin:0 0 8px'><b>"+esc(nomeV(x.uid))+"</b> · "+esc(STN[e.status]||"Rascunho")+(e.fechadoEm?" em "+new Date(e.fechadoEm).toLocaleString("pt-BR").slice(0,17):"")+
     (v.ini?"<br>Visita "+esc(v.ini)+(v.fim?"–"+esc(v.fim):" (em andamento)"):"")+(e.comprador?"<br>Comprador: "+esc(e.comprador):"")+(e.endereco?"<br>"+esc(e.endereco):"")+"</p>";
   if(v.ctt||v.exp||v.vp||v.opv)h+="<p class='msg' style='margin:0 0 8px'>"+(v.ctt?"Contato: "+esc(v.ctt).replace(/\n/g,", ")+"<br>":"")+(v.exp?"Exposição: "+esc(v.exp)+"<br>":"")+(v.vp?"Validade e precificação: "+esc(v.vp)+"<br>":"")+(v.opv?"Oportunidade: "+esc(v.opv):"")+"</p>";
-  h+=linhas.length?"<table class='tx'><tr><th>Item</th><th class='n'>Pedido</th><th class='n'>Troca</th><th class='n'>Gôndola</th></tr>"+linhas.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+(e.pedido[n]||"")+"</td><td class='n'>"+(e.troca[n]||"")+"</td><td class='n'>"+(e.gondola[n]!==undefined?e.gondola[n]:"")+"</td></tr>").join("")+
-    "<tr><td><b>Total</b></td><td class='n'><b>"+soma(e.pedido)+"</b></td><td class='n'><b>"+soma(e.troca)+"</b></td><td></td></tr></table>":"<p class='vazio'>Sem itens lançados.</p>";
+  h+=linhas.length?"<table class='tx'><tr><th>Item</th><th class='n'>Pedido</th><th class='n'>Troca</th></tr>"+linhas.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+(e.pedido[n]||"")+"</td><td class='n'>"+(e.troca[n]||"")+"</td></tr>").join("")+
+    "<tr><td><b>Total</b></td><td class='n'><b>"+soma(e.pedido)+"</b></td><td class='n'><b>"+soma(e.troca)+"</b></td></tr></table>":"<p class='vazio'>Sem itens lançados.</p>";
   if(v.oe&&v.oe.trim())h+="<p class='pn' style='font-size:14px'>📝 Observação anterior: "+esc(v.oe)+"</p>";
   if(v.fo&&v.fo.length)h+="<p class='msg' style='margin:8px 0 4px'><b>Fotos da visita ("+v.fo.length+")</b></p><div class='fb' id='sdfo'>"+v.fo.map(id=>"<a target='_blank' data-f='"+esc(id)+"'><div style='width:64px;height:64px;border-radius:8px;background:var(--line)'></div></a>").join("")+"</div>";
   $("sdc").innerHTML=h;
@@ -2006,7 +2006,7 @@ function renderHist(){
     const dt=e.data?e.data.split("-").reverse().join("/"):"";
     const ng=Object.keys(e.gondola||{}).length;
     if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
-    sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),ng?"Gôndola: "+ng+" contados":"",e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
+    sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
     const ed=document.createElement("button");ed.textContent="Editar";ed.onclick=()=>abrirPedido(e.id,ed);
     const ex=document.createElement("button");ex.textContent="Excluir";ex.onclick=()=>excluir(e.id,ex);
@@ -2902,7 +2902,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="98";
+const VER="99";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
