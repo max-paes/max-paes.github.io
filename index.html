@@ -301,7 +301,7 @@ body.trv #edbar{border-color:#0b7a75}
 
 #mot{padding:0;background:var(--bg);z-index:20}
 #fab{padding:0;background:var(--bg);z-index:4}
-#vcb{position:fixed;left:8px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;gap:6px;align-items:center;background:rgba(17,24,39,.88);color:#fff;border-radius:999px;padding:3px 4px 3px 9px;font:700 12px Archivo,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#vcb{position:fixed;left:8px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:95;display:flex;gap:6px;align-items:center;background:rgba(17,24,39,.88);color:#fff;border-radius:999px;padding:3px 4px 3px 9px;font:700 12px Archivo,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 #vcb[hidden]{display:none}
 #vcb select{font:700 12px Archivo,sans-serif;border-radius:999px;border:0;padding:4px 8px;background:#fff;color:#111}
 #vcb.on{background:#b26a00}
@@ -561,7 +561,7 @@ body.trv #edbar{border-color:#0b7a75}
     <div class="sgb"><button id="sgl">Limpar</button><button id="sgc">Cancelar</button><button id="sgs">Salvar</button></div></div>
 </div></div>
 <script>
-let pendEntrada=null,bloqueio=false,stPed="rascunho",eraFat=false,snapFat=null,fechEm=0,perfil=null,fbAuth=null,fbDb=null,nomePend="",lgModo="entrar",unsub=null;
+let ultSenha="",pendEntrada=null,bloqueio=false,stPed="rascunho",eraFat=false,snapFat=null,fechEm=0,perfil=null,fbAuth=null,fbDb=null,nomePend="",lgModo="entrar",unsub=null;
 (function(){var t="claro";try{t=localStorage.getItem("mpv:tema")||"claro"}catch(e){}if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-theme",t==="claro"?"light":"dark")})();
 const ITEM_REN={"BOLACHA ÁGUA E SAL 250g":"BOLACHA ÁGUA E SAL 300g"};
 const renI=o=>{if(o&&typeof o==="object")Object.entries(ITEM_REN).forEach(([a,b])=>{if(a in o){o[b]=(o[b]||0)+o[a];delete o[a]}});return o};
@@ -1231,10 +1231,11 @@ function aplicaSeeds(){try{
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
-  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);garanteClientes();aplicaSeeds();motPronto();fabPronto();vcPinta()}
+  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);
+  [garanteClientes,aplicaSeeds,motPronto,fabPronto].forEach(f=>{try{f()}catch(e){diag(e,"mostraVendedor:"+f.name)}});try{vcPinta()}catch(e){diag(e,"vcPinta")}}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
-  $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud);$("lgsll").textContent=mud?"Senha atual":"Senha";
+  $("lgnl").hidden=!loc;$("lgel").hidden=!ent;$("lgsl").hidden=!(ent||mud||(nova&&!ultSenha));$("lgsll").textContent=mud?"Senha atual":nova?"Senha que recebeu da empresa":"Senha";
   $("lgs2l").hidden=!(nova||mud);$("lgs3l").hidden=!(nova||mud);$("lgr").hidden=!ent;$("lgc").hidden=!(mud||nova);$("lgc").textContent=nova?"Sair e entrar de novo":"Cancelar";
   $("lgb").textContent=loc?"Começar":nova||mud?"Salvar nova senha":"Entrar";
   $("lgsub").textContent=loc?"Informe seu nome. Ele identifica os seus registros.":nova?"Primeiro acesso: crie a sua senha pessoal. A senha inicial deixa de valer.":mud?"Digite a senha atual e a nova senha.":"Entre com seu e-mail e senha.";
@@ -1245,7 +1246,7 @@ const ERR={"auth/invalid-credential":"E-mail ou senha incorretos.","auth/wrong-p
   "auth/network-request-failed":"Sem internet. Conecte e tente de novo.","auth/too-many-requests":"Muitas tentativas. Espere alguns minutos.","auth/missing-password":"Digite a senha."};
 const erroTxt=e=>ERR[e&&e.code]||"Não foi possível concluir. Tente de novo.";
 $("lgc").onclick=()=>{if(lgModo==="mudar"){$("lg").classList.remove("on");return}if(lgModo==="nova")sairDeNovo("")};
-function sairDeNovo(msg){pendEntrada=null;const f=fbAuth;try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
+function sairDeNovo(msg){pendEntrada=null;const f=fbAuth;try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}
   perfil=null;try{mostraVendedor()}catch(e){}const fim=()=>{mostraLogin("entrar");if(msg)lgMsg(msg)};if(f)f.signOut().then(()=>setTimeout(fim,200)).catch(fim);else fim()}
 $("msen").onclick=()=>{$("hs").classList.remove("on");mostraLogin("mudar")};
 $("lgr").onclick=async()=>{const em=$("lge").value.trim();if(!em){lgMsg("Digite seu e-mail acima e toque de novo em Esqueci a senha.");return}
@@ -1257,19 +1258,22 @@ $("lgb").onclick=async()=>{const b=$("lgb"),nome=U($("lgn").value).trim(),em=$("
     if(n1.length<6){lgMsg("A nova senha precisa ter pelo menos 6 caracteres.");return}if(n1!==n2){lgMsg("As duas senhas novas não são iguais.");return}
     if(lgModo==="mudar"&&n1===se){lgMsg("A nova senha precisa ser diferente da atual.");return}
     b.disabled=true;lgMsg("Salvando…",true);
-    try{if(lgModo==="mudar")await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,se));
+    const atual=lgModo==="mudar"?se:(ultSenha||se);
+    if(lgModo==="nova"&&!atual){lgMsg("Digite a senha que recebeu da empresa.");b.disabled=false;return}
+    try{if(!u)throw {code:"auth/requires-recent-login"};if(atual)await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,atual));
       await u.updatePassword(n1);lsS("mpv:senhaok",u.uid);
       try{await Promise.race([fbDb.collection("vendedores").doc(u.uid).set({trocarSenha:false,senhaTrocadaEm:Date.now()},{merge:true}),new Promise((_,r)=>setTimeout(()=>r(new Error("lento")),8000))])}catch(_){}
-      if(perfil)perfil.trocarSenha=false;const era=lgModo;lgMsg("Senha alterada.",true);setTimeout(()=>{$("lg").classList.remove("on");if(era==="nova"&&pendEntrada){const f=pendEntrada;pendEntrada=null;f()}},700)}
-    catch(e){if(lgModo==="nova"&&e&&e.code==="auth/requires-recent-login"){lgMsg("Por segurança, entre de novo com a senha que recebeu. Em seguida você cria a sua senha.");setTimeout(()=>sairDeNovo("Entre com a senha que recebeu da empresa. Em seguida o app pede para você criar a sua senha."),1800);return}
+      ultSenha="";if(perfil)perfil.trocarSenha=false;const era=lgModo;lgMsg("Senha alterada.",true);setTimeout(()=>{$("lg").classList.remove("on");if(era==="nova"&&pendEntrada){const f=pendEntrada;pendEntrada=null;f()}},700)}
+    catch(e){diag(e&&e.code?new Error("senha:"+e.code):e,"senha-"+lgModo);diagEnvia();if(lgModo==="nova"&&e&&/credential|wrong-password/.test(e.code||"")){ultSenha="";lgModoSet("nova");lgMsg("A senha que recebeu da empresa não confere. Digite de novo.");return}
+      if(lgModo==="nova"&&e&&e.code==="auth/requires-recent-login"){lgMsg("Por segurança, entre de novo com a senha que recebeu. Em seguida você cria a sua senha.");setTimeout(()=>sairDeNovo("Entre com a senha que recebeu da empresa. Em seguida o app pede para você criar a sua senha."),1800);return}
       lgMsg(lgModo==="mudar"&&e&&/credential|wrong-password/.test(e.code||"")?"Senha atual incorreta.":erroTxt(e))}finally{b.disabled=false}return}
   if(!em||!se){lgMsg("Preencha e-mail e senha.");return}
   b.disabled=true;lgMsg("Entrando…",true);
-  try{await fbAuth.signInWithEmailAndPassword(em,se)}
+  try{ultSenha=se;await fbAuth.signInWithEmailAndPassword(em,se)}
   catch(e){lgMsg(erroTxt(e))}finally{b.disabled=false}};
 ["lgn","lge","lgs","lgs2","lgs3"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")$("lgb").click()}));
 $("sair").onclick=async()=>{const b=$("sair");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair da conta"},3000);return}
-  if(tSalvar)salvar();await enviaNuvem();await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}if(unsub){unsub();unsub=null}supDesliga();nv.db=null;perfil=null;mostraVendedor();$("hs").classList.remove("on");try{await fbAuth.signOut()}catch(e){}};
+  if(tSalvar)salvar();await enviaNuvem();await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}if(unsub){unsub();unsub=null}supDesliga();nv.db=null;perfil=null;mostraVendedor();$("hs").classList.remove("on");try{await fbAuth.signOut()}catch(e){}};
 function carregaScript(src){return new Promise((ok,er)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=er;document.head.appendChild(s)})}
 const CHAVES_APP=()=>{const l=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^maxpaes:|^mpv:/.test(k))l.push(k)}}catch(e){}return l};
 // ===== Painel do supervisor =====
@@ -1630,8 +1634,10 @@ $("spav").onclick=async()=>{
   pintaAvisos()};
 setInterval(()=>{if($("sp").classList.contains("on"))supRender()},60000);
 function supDesliga(){if(sup.uv){sup.uv();sup.uv=null}Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.vend={};sup.ini="";$("sp").classList.remove("on");$("sbtn").hidden=true}
-const ehDev=()=>!!(perfil&&perfil.papelReal==="developer");
-function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;$("vcs").value=perfil.papel||"developer";b.classList.toggle("on",perfil.papel!=="developer")}
+const ehDev=()=>!!(perfil&&(perfil.papelReal==="developer"||(fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID)||(!perfil.papelReal&&lsG("mpv:papelReal")==="developer")));
+function vcPos(){try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&bar.offsetParent!==null&&getComputedStyle(bar).display!=="none")y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
+window.addEventListener("resize",vcPos);setInterval(vcPos,2000);
+function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTimeout(vcPos,0);$("vcs").value=perfil.papel||"developer";b.classList.toggle("on",perfil.papel!=="developer")}
 function verComo(p){if(!ehDev())return;perfil.papel=p;fabDesliga();try{localStorage.setItem("mpv:tela","")}catch(e){}
   $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
 function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
@@ -1640,7 +1646,7 @@ async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
     stNuvem("Modo sem nuvem: os dados ficam só neste celular. Faça backup com frequência.");return}
   try{for(const m of ["app","auth","firestore"])if(!(window.firebase&&firebase[m==="app"?"initializeApp":m]))await carregaScript("https://www.gstatic.com/firebasejs/"+FBV+"/firebase-"+m+"-compat.js")}
-  catch(e){stNuvem("☁ Sem internet para conectar. Abra o app de novo quando tiver sinal.");const n=lsG("mpv:nome");if(n){perfil={nome:n,papel:lsG("mpv:papel")||"vendedor"};mostraVendedor()}
+  catch(e){stNuvem("☁ Sem internet para conectar. Abra o app de novo quando tiver sinal.");const n=lsG("mpv:nome");if(n){perfil={nome:n,papel:lsG("mpv:papel")||"vendedor",papelReal:lsG("mpv:papelReal")||lsG("mpv:papel")||"vendedor"};mostraVendedor()}
     window.addEventListener("online",()=>location.reload(),{once:true});return}
   if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
   fbDb=firebase.firestore();try{await fbDb.enablePersistence({synchronizeTabs:true})}catch(e){}
@@ -1652,7 +1658,7 @@ async function entrou(u){
   if(dono&&dono!==u.uid){CHAVES_APP().forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});lsS("mpv:dono",u.uid);location.reload();return}
   lsS("mpv:dono",u.uid);
   const pref=fbDb.collection("vendedores").doc(u.uid);let ps=null;try{ps=await pref.get()}catch(e){}
-  const barra=t=>{perfil=null;try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}mostraVendedor();fbAuth.signOut().catch(()=>{});setTimeout(()=>{mostraLogin("entrar");lgMsg(t)},300)};
+  const barra=t=>{perfil=null;try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}mostraVendedor();fbAuth.signOut().catch(()=>{});setTimeout(()=>{mostraLogin("entrar");lgMsg(t)},300)};
   if(!ps){barra("Sem internet para conferir seu acesso. Conecte e tente de novo.");return}
   var errB="";
   if(!ps.exists&&u.uid===DONO_UID){try{await pref.set({nome:"WESLEY FALCÃO",email:u.email||"",papel:"developer",ativo:true,criadoEm:Date.now()});ps=await pref.get()}catch(e){errB=" ("+(e.code||e.message)+")"}}
@@ -1669,7 +1675,7 @@ async function entrou(u){
     if(!dp||troca){try{await pref.set({disp:meu,dispNome:dispNome(),dispEm:Date.now(),dispHost:location.host},{merge:true});perfil.disp=meu;perfil.dispHost=location.host}catch(e){barra("Não deu para registrar este aparelho. Tente de novo.");return}}
   }
   pref.set({ultimoAcesso:Date.now()},{merge:true}).catch(()=>{});
-  lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");try{mostraVendedor()}catch(e){diag(e,"mostraVendedor")}
+  lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");lsS("mpv:papelReal",perfil.papelReal||"vendedor");try{mostraVendedor()}catch(e){diag(e,"mostraVendedor")}try{vcPinta()}catch(e){}
   const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta();migra(true);setTimeout(diagEnvia,3000)};
   if(perfil.trocarSenha&&lsG("mpv:senhaok")===u.uid){perfil.trocarSenha=false;pref.set({trocarSenha:false,senhaTrocadaEm:Date.now()},{merge:true}).catch(()=>{})}
   if(perfil.trocarSenha){pendEntrada=seguir;mostraLogin("nova");return}
@@ -2671,7 +2677,7 @@ function fabRender(){if(!perfil)return;if(fab.modo==="producao"&&prEditando()){f
 $("fabr").onclick=()=>fabBusca();$("fabh").onclick=()=>{fab.dia=hojeISO();fabBusca()};
 $("faba").onclick=()=>{fab.dia=addD(fab.dia||hojeISO(),-1);fabBusca()};$("fabn").onclick=()=>{fab.dia=addD(fab.dia||hojeISO(),1);fabBusca()};
 $("fabs").onclick=async()=>{const b=$("fabs");if(fab.dosp){fabDesliga();supAbrir();return}if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
-  b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
+  b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}
   if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
 $("spfp").onclick=()=>{fab.dosp=true;$("sp").classList.remove("on");fabAbrir("producao")};$("spfe").onclick=()=>{fab.dosp=true;$("sp").classList.remove("on");fabAbrir("expedicao")};
 $("bkb").onclick=async()=>{const b=$("bkb"),m=$("bkm");b.disabled=true;m.textContent="Lendo o banco…";
@@ -2688,7 +2694,7 @@ $("bkb").onclick=async()=>{const b=$("bkb"),m=$("bkm");b.disabled=true;m.textCon
   b.disabled=false};
 $("vcs").onchange=()=>verComo($("vcs").value);
 $("mots").onclick=async()=>{const b=$("mots");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
-  b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel")}catch(e){}
+  b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}
   if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;motDesliga();fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
 
 // ===== Supervisor: montar a rota do motorista =====
@@ -2830,7 +2836,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="91";
+const VER="92";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -2839,7 +2845,7 @@ function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.datas
 if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))&&!/claude\.ai|claudeusercontent/.test(location.host)){
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(pediuAtt&&!recarregando){recarregando=true;location.reload()}});
   navigator.serviceWorker.register("sw.js").then(reg=>{
-    if(reg.waiting&&navigator.serviceWorker.controller)mostraAtt(reg.waiting);
+    if(reg.waiting&&navigator.serviceWorker.controller)swNovo(reg.waiting);
     reg.addEventListener("updatefound",()=>{const w=reg.installing;if(!w)return;
       w.addEventListener("statechange",()=>{if(w.state==="installed"&&navigator.serviceWorker.controller)swNovo(reg.waiting||w)})});
     swReg=reg;
