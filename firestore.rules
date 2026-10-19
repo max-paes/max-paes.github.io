@@ -29,6 +29,8 @@ service cloud.firestore {
       // Fotos das telas coletadas pelo motorista
       match /fotos/{f} {
         allow read, write: if logado() && request.auth.uid == uid && ativo();
+        // O developer pode agir na conta de um usuário (modo teste com a chave Gravando)
+        allow write: if dono();
         allow read: if supervisor();
         allow delete: if dono() || admin();
       }
@@ -36,6 +38,7 @@ service cloud.firestore {
       // Pedidos, trocas, visitas, agenda e cadastro do vendedor
       match /docs/{doc} {
         allow read, write: if logado() && request.auth.uid == uid && ativo();
+        allow write: if dono();
         allow read: if equipe();
         allow delete: if dono() || (admin() && naoDev(uid));
       }

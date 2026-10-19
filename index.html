@@ -303,7 +303,9 @@ body.trv #edbar{border-color:#0b7a75}
 #fab{padding:0;background:var(--bg);z-index:4}
 #vcb{position:fixed;left:8px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:95;display:flex;gap:6px;align-items:center;background:rgba(17,24,39,.88);color:#fff;border-radius:999px;padding:3px 4px 3px 9px;font:700 12px Archivo,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 #vcb[hidden]{display:none}
-#vcb select{font:700 12px Archivo,sans-serif;border-radius:999px;border:0;padding:4px 8px;background:#fff;color:#111}
+#vcb select{font:700 12px Archivo,sans-serif;border-radius:999px;border:0;padding:4px 8px;background:#fff;color:#111;max-width:52vw}
+#vcg{font:800 12px Archivo,sans-serif;border-radius:999px;border:0;padding:5px 10px;background:#374151;color:#fff;white-space:nowrap}
+#vcg.on{background:#c0392b}
 #vcb.on{background:#b26a00}
 #fab .sw{max-width:760px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 40px}
 #fab .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
@@ -457,7 +459,7 @@ body.trv #edbar{border-color:#0b7a75}
   <p class="msg" id="fabm" style="margin:0 2px 10px"></p>
   <div id="fabc"></div>
 </div></div>
-<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Diretor</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option></select></div>
+<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Diretor</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option></select><button id="vcg" hidden>🔒 Só ver</button></div>
 <div class="ov" id="ocm"><div class="box">
   <div class="hhead"><b id="ocmt">Ocorrência</b><button id="ocmx">Fechar</button></div>
   <div id="occ"></div>
@@ -1135,13 +1137,46 @@ const FIREBASE_CONFIG={apiKey:"AIzaSyARohr-gd-yUzcTM4ZrVOp345dKI0_2x_s",authDoma
 const FBV="10.12.2",DONO_UID="CDcwBbB7M1aLDRmGM74p45UDnLz1";
 const nv={db:null,uid:null,pend:new Set(),del:new Set(),cfg:false,t:null,msg:"",tomb:new Set(),tombSujo:false,tk:0};
 const lsG=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+// ===== Espelho: o developer entra na conta de um usuário real, ao vivo (só ver, ou gravando com a chave) =====
+let ESP=null;
+const espErr=()=>Promise.reject(Object.assign(new Error("Modo só ver: nada é gravado"),{code:"espelho"}));
+const espFn=(t,k)=>{const v=t[k];return typeof v==="function"?v.bind(t):v};
+function roDoc(d){return new Proxy(d,{get(t,k){if((k==="set"||k==="update"||k==="delete")&&!(ESP&&ESP.grava))return espErr;if(k==="collection")return p=>roCol(t.collection(p));return espFn(t,k)}})}
+function roCol(c){return new Proxy(c,{get(t,k){if(k==="add"&&!(ESP&&ESP.grava))return espErr;if(k==="doc")return (...a)=>roDoc(t.doc(...a));return espFn(t,k)}})}
+function roDb(db){return new Proxy(db,{get(t,k){if(k==="collection")return p=>roCol(t.collection(p));if(k==="doc")return p=>roDoc(t.doc(p));
+  if(k==="batch"&&!(ESP&&ESP.grava))return ()=>({delete(){},set(){},update(){},commit:espErr});return espFn(t,k)}})}
+async function espelhar(uid){if(!ehDev()||!fbDb)return;
+  const real=ESP?ESP.real:fbDb,realAuth=ESP?ESP.realAuth:fbAuth;
+  let v=null;try{const d=await real.collection("vendedores").doc(uid).get();v=d.exists?d.data():null}catch(e){}
+  if(!v){aviso("Não consegui abrir esse usuário. Confira a internet.");vcPinta();return}
+  if(!ESP){if(tSalvar)salvar();try{await enviaNuvem()}catch(e){}
+    Storage.prototype.setItem=function(){};Storage.prototype.removeItem=function(){}}
+  if(unsub){unsub();unsub=null}
+  try{motDesliga()}catch(e){}try{fabDesliga()}catch(e){}try{supDesliga()}catch(e){}
+  ESP={uid,nome:v.nome||"",papel:v.papel||"vendedor",grava:false,real,realAuth,cfgts:0};
+  fbDb=roDb(real);fbAuth={currentUser:{uid,email:v.email||""},signOut:()=>{location.reload();return Promise.resolve()},onAuthStateChanged(){}};
+  perfil={...v,papel:ESP.papel,papelReal:"developer",espelho:uid};
+  hist=[];clientes=[];rota=normAg({});visitas={};motivos={};nv.pend=new Set();nv.del=new Set();nv.cfg=false;
+  try{const sn=await real.collection("vendedores/"+uid+"/docs").get();
+    sn.docs.forEach(d=>{const x=d.data()||{};if(d.id==="cfg"){try{aplicaCfg(JSON.parse(x.j));ESP.cfgts=+x.ts||0}catch(_){}}
+      else if(d.id.startsWith("p_")){try{const e=normEnt(JSON.parse(x.j));if(e&&e.id)hist.push(e)}catch(_){}}});
+    hist.sort((a,b)=>b.ts-a.ts);hist.forEach(e=>lembraCli(e.cliente,"","",false))}catch(e){}
+  nv.pend=new Set();nv.cfg=false;nv.db=fbDb;nv.uid=uid;
+  limparTudo();$("sp").classList.remove("on");mostraVendedor();supPronto();escuta();
+  nv.pend=new Set();nv.cfg=false;vcPinta();
+  aviso("Você está na conta de "+ESP.nome+" ("+rotP(ESP.papel)+"), ao vivo e só vendo: nada é gravado. Para agir como ela, toque em 🔒 Só ver. Para sair, escolha Developer.")}
+function espGrava(){if(!ESP)return;const g=$("vcg");
+  if(ESP.grava){ESP.grava=false;nv.pend=new Set();nv.cfg=false;vcPinta();aviso("De volta ao modo só ver.");return}
+  if(g.dataset.c!=="1"){g.dataset.c="1";g.textContent="Gravar como "+(ESP.nome.split(" ")[0]||"ela")+"? Toque de novo";setTimeout(()=>{g.dataset.c="";vcPinta()},3000);return}
+  g.dataset.c="";nv.pend=new Set();nv.del=new Set();nv.cfg=false;ESP.grava=true;vcPinta();
+  aviso("Gravando como "+ESP.nome+": o que você fizer agora fica na conta dela.")}
 // ===== Diagnóstico: erros do aparelho ficam gravados para o suporte =====
 const DG={l:[],t:null};
 function diag(e,onde){try{const m=String((e&&(e.message||e.reason&&e.reason.message))||e||"").slice(0,240);if(!m||/ResizeObserver|Script error/.test(m))return;
   const st=String((e&&e.stack)||(e&&e.reason&&e.reason.stack)||"").split("\n").slice(0,3).join(" | ").slice(0,300);
   DG.l.push({m,onde:onde||"",st,ts:Date.now(),v:typeof VER!=="undefined"?VER:"",tela:typeof mode!=="undefined"?mode:""});if(DG.l.length>20)DG.l.shift();
   clearTimeout(DG.t);DG.t=setTimeout(diagEnvia,1500)}catch(_){}}
-function diagEnvia(){try{const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb||!DG.l.length)return;const L=DG.l.splice(0);
+function diagEnvia(){try{if(typeof ESP!=="undefined"&&ESP){DG.l=[];return}const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb||!DG.l.length)return;const L=DG.l.splice(0);
   const o={};L.forEach((x,i)=>{o[x.ts.toString(36)+i]=x});
   fbDb.collection("vendedores/"+u.uid+"/docs").doc("diag").set({tipo:"diag",ts:Date.now(),ua:navigator.userAgent.slice(0,160),papel:(perfil&&perfil.papel)||"",e:o},{merge:true}).catch(()=>{})}catch(_){}}
 window.addEventListener("error",ev=>diag(ev.error||ev.message,"tela"));
@@ -1158,7 +1193,7 @@ async function liberaDisp(){try{const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb|
   if((perfil.disp||"")!==dispId())return;
   await fbDb.collection("vendedores").doc(u.uid).set({disp:"",dispNome:"",dispEm:0},{merge:true})}catch(e){}}
 function stNuvem(t){nv.msg=t;const e=$("nvst");if(e)e.textContent=t}
-function cfgTs(){try{return +(localStorage.getItem("maxpaes:cfgts")||0)}catch(e){return 0}}
+function cfgTs(){if(typeof ESP!=="undefined"&&ESP)return ESP.cfgts||0;try{return +(localStorage.getItem("maxpaes:cfgts")||0)}catch(e){return 0}}
 function marcaCfg(){try{localStorage.setItem("maxpaes:cfgts",String(Date.now()))}catch(e){}nv.cfg=true;agendaNuvem()}
 function marcaPed(id){nv.pend.add(id);agendaNuvem()}
 function agendaNuvem(){if(!nv.db)return;clearTimeout(nv.t);nv.t=setTimeout(enviaNuvem,3000)}
@@ -1637,8 +1672,21 @@ function supDesliga(){if(sup.uv){sup.uv();sup.uv=null}Object.values(sup.lst).for
 const ehDev=()=>!!(perfil&&(perfil.papelReal==="developer"||(fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID)||(!perfil.papelReal&&lsG("mpv:papelReal")==="developer")));
 function vcPos(){try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&getComputedStyle(bar).display!=="none"&&bar.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden&&a.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
 window.addEventListener("resize",vcPos);setInterval(vcPos,2000);
-function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTimeout(vcPos,0);$("vcs").value=perfil.papel||"developer";b.classList.toggle("on",perfil.papel!=="developer")}
-function verComo(p){if(!ehDev())return;perfil.papel=p;fabDesliga();try{localStorage.setItem("mpv:tela","")}catch(e){}
+function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTimeout(vcPos,0);vcUsuarios();
+  $("vcs").value=ESP?"u:"+ESP.uid:(perfil.papel||"developer");b.classList.toggle("on",!!ESP||perfil.papel!=="developer");
+  const g=$("vcg");g.hidden=!ESP;if(ESP){g.className=ESP.grava?"on":"";g.textContent=ESP.grava?"✍ Gravando":"🔒 Só ver"}}
+let vcU=null;
+async function vcUsuarios(){if(vcU||!fbDb)return;vcU=1;const db=ESP?ESP.real:fbDb;
+  try{const sn=await db.collection("vendedores").get(),me=(ESP?ESP.realAuth:fbAuth).currentUser.uid,L=[];
+    sn.docs.forEach(d=>{const v=d.data()||{};if(d.id===me||v.ativo===false)return;L.push({uid:d.id,n:v.nome||v.email||"(sem nome)",p:v.papel||"vendedor"})});
+    L.sort((a,b)=>a.n.localeCompare(b.n,"pt-BR"));if(!L.length)return;
+    const og=document.createElement("optgroup");og.label="Usuários reais (ao vivo)";
+    L.forEach(u=>{const o=document.createElement("option");o.value="u:"+u.uid;o.textContent=u.n.split(" ").slice(0,2).join(" ")+" · "+rotP(u.p).toLowerCase();og.appendChild(o)});
+    $("vcs").appendChild(og);if(ESP)$("vcs").value="u:"+ESP.uid}catch(e){vcU=null}}
+function verComo(p){if(!ehDev())return;
+  if(p&&p.startsWith("u:")){espelhar(p.slice(2));return}
+  if(ESP){location.reload();return}
+  perfil.papel=p;fabDesliga();try{localStorage.setItem("mpv:tela","")}catch(e){}
   $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
 function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
   pintaAvisos();$("spfp").hidden=$("spfe").hidden=!ehAdm();if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir();if(ehAdm())setTimeout(fiCarrega,2500)}
@@ -1705,7 +1753,7 @@ async function sincroniza(){
   await enviaNuvem();render();
 }
 function escuta(){if(unsub)unsub();
-  unsub=colN().onSnapshot(snap=>{const rs=[];snap.docChanges().forEach(ch=>{if(ch.type==="removed"||ch.doc.metadata.hasPendingWrites)return;const r=aplicaDoc(ch.doc,false);if(r)rs.push(r)});aposRemoto(rs)},()=>{})}
+  unsub=colN().onSnapshot(snap=>{const rs=[];snap.docChanges().forEach(ch=>{if(ch.type==="removed"||(ch.doc.metadata&&ch.doc.metadata.hasPendingWrites))return;const r=aplicaDoc(ch.doc,false);if(r)rs.push(r)});aposRemoto(rs)},()=>{})}
 let tSalvar=null;
 function salvar(){
   clearTimeout(tSalvar);tSalvar=null;
@@ -2690,7 +2738,7 @@ $("bkb").onclick=async()=>{const b=$("bkb"),m=$("bkm");b.disabled=true;m.textCon
     m.textContent="Backup baixado (sem as fotos). Uso estimado do banco: "+mb(tot)+" de 1 GB grátis ("+pc+"%) · fotos: "+nf+" ("+mb(bf)+")."+(pc>=70?" Atenção: perto do limite grátis.":"")}
   catch(e){m.textContent="Não foi possível gerar o backup: "+(e.code||e.message)}
   b.disabled=false};
-$("vcs").onchange=()=>verComo($("vcs").value);
+$("vcs").onchange=()=>verComo($("vcs").value);$("vcg").onclick=espGrava;
 $("mots").onclick=async()=>{const b=$("mots");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
   b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}
   if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;motDesliga();fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
@@ -2834,7 +2882,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="94";
+const VER="95";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
