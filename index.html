@@ -730,7 +730,7 @@ const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","S
 const AG_PADRAO={1:[],2:[],3:[],4:[],5:[],6:[]};
 let rota=null,agDia=1,agEdit=false,agNota="";
 function normAg(a){const o={};for(let d=1;d<=6;d++)o[d]=(a&&Array.isArray(a[d])?a[d]:[]).filter(x=>x&&typeof x.nome==="string"&&x.nome.trim()).map(x=>({nome:U(x.nome).trim(),bairro:U(x.bairro).trim()}));return o}
-const MKEY="maxpaes:motivos:v1",MOTIVOS=["Produtos no estoque","Gôndolas cheias","Comprador ausente","Boleto em aberto","Outro"];let motivos={},agMot=null;
+const OUTRO_DIA="__pedido";const MKEY="maxpaes:motivos:v1",MOTIVOS=["Produtos no estoque","Gôndolas cheias","Comprador ausente","Boleto em aberto","Outro"];let motivos={},agMot=null;
 const VKEY="maxpaes:visitas:v1",MIGKEY="maxpaes:agenda:mig";let visitas={};
 function carregarAg(){try{const a=JSON.parse(localStorage.getItem(AGKEY)||"null");rota=a?normAg(a):normAg(AG_PADRAO)}catch(e){rota=normAg(AG_PADRAO)}
   let mig=0;try{mig=+(localStorage.getItem(MIGKEY)||0)}catch(e){}
@@ -756,7 +756,7 @@ function nomeCad(n){
 }
 function pedidoDoDia(n,d){const ks=[norm(n),norm(nomeCad(n))],dt=dataDoDia(d);return hist.find(e=>e.data===dt&&ks.includes(norm(e.cliente))&&(soma(e.pedido)>0||soma(e.troca)>0||!!(e.visita&&e.visita.ini)))}
 function marcaManual(n,d){const m=visitas[dataDoDia(d)];return m&&typeof m[norm(n)]==="boolean"?m[norm(n)]:null}
-function semPed(n,d){const dt=dataDoDia(d),k=norm(n);if((visitas[dt]||{})[k]!==true)return false;const ks=[k,norm(nomeCad(n))];return !hist.some(h=>h.data===dt&&ks.includes(norm(h.cliente))&&soma(h.pedido)>0)}
+function semPed(n,d){const dt=dataDoDia(d),k=norm(n);if((visitas[dt]||{})[k]!==true||(motivos[dt]||{})[k]===OUTRO_DIA)return false;const ks=[k,norm(nomeCad(n))];return !hist.some(h=>h.data===dt&&ks.includes(norm(h.cliente))&&soma(h.pedido)>0)}
 function visitado(n,d){const m=marcaManual(n,d);return m!==null?m:!!pedidoDoDia(n,d)}
 function alternaVisita(n,d){const dt=dataDoDia(d),v=!visitado(n,d);(visitas[dt]=visitas[dt]||{})[norm(n)]=v;if(!v&&motivos[dt])delete motivos[dt][norm(n)];salvaAg();renderAg()}
 function motivoDe(n,d){return (motivos[dataDoDia(d)]||{})[norm(n)]||""}
@@ -938,7 +938,7 @@ function desenharRelatorio(logo){
   const {sem,rows}=dadosSemana(),W=1400,M=45,tw=W-2*M,RH=46;
   const ag=rows.filter(r=>!r.extra),feitas=ag.filter(r=>r.vis).length,furos=ag.filter(r=>!r.vis&&!r.fut).length,pend=ag.filter(r=>!r.vis&&r.fut).length;
   const comP=rows.filter(r=>r.e&&soma(r.e.pedido)>0),un=comP.reduce((a,r)=>a+soma(r.e.pedido),0),tr=rows.reduce((a,r)=>a+(r.e?soma(r.e.troca):0),0);
-  const semP=rows.filter(r=>r.vis&&!(r.e&&soma(r.e.pedido)>0)),cm={};semP.forEach(r=>{const k=r.mot||"Sem motivo informado";cm[k]=(cm[k]||0)+1});
+  const semP=rows.filter(r=>r.vis&&r.mot!==OUTRO_DIA&&!(r.e&&soma(r.e.pedido)>0)),cm={};semP.forEach(r=>{const k=r.mot||"Sem motivo informado";cm[k]=(cm[k]||0)+1});
   const T0=M+150+30,K=150,TT=T0+K+40,H=TT+50+Math.max(1,rows.length)*RH+130;
   const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);
   x.strokeStyle=AZ;x.lineWidth=4;rr(x,M,M,tw,150,22);x.stroke();
@@ -965,6 +965,7 @@ function desenharRelatorio(logo){
     let st,cor;
     if(r.extra){st="✓ Fora da agenda";cor=AZ}
     else if(r.vis&&ped>0){st="✓ Visitado · com pedido";cor="#1a8f4c"}
+    else if(r.vis&&r.mot===OUTRO_DIA){st="✓ Visitado · pedido já feito";cor="#1a8f4c"}
     else if(r.vis){st="✓ Sem pedido"+(r.mot?" · "+r.mot:"");cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
     else{st="✗ Não visitado";cor="#b3261e"}
@@ -1997,7 +1998,7 @@ const MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agos
 function renderHist(){
   const L=$("hlist");L.innerHTML="";
   const spx=[];Object.keys(visitas).forEach(dt=>Object.keys(visitas[dt]||{}).forEach(k=>{if(visitas[dt][k]!==true)return;
-    if(hist.some(h=>h.data===dt&&(norm(h.cliente)===k||norm(nomeCad(h.cliente))===k)))return;
+    if((motivos[dt]||{})[k]===OUTRO_DIA||hist.some(h=>h.data===dt&&(norm(h.cliente)===k||norm(nomeCad(h.cliente))===k)))return;
     const c=(clientes||[]).find(c=>norm(c.nome)===k);spx.push({sp:1,id:"sp_"+dt+"_"+k,cliente:c?c.nome:k.toUpperCase(),data:dt,pedido:{},troca:{},ts:Date.parse(dt+"T12:00:00")||0,k})}));
   $("htit").textContent="Histórico · "+hist.length+(hist.length===1?" pedido":" pedidos")+(spx.length?" · "+spx.length+" sem pedido":"");
   if(!hist.length&&!spx.length){const p=document.createElement("p");p.className="msg";p.textContent="Nenhum pedido salvo ainda. Os pedidos entram aqui sozinhos quando você informa o cliente e adiciona itens.";L.appendChild(p);return}
@@ -2015,7 +2016,7 @@ function renderHist(){
     const sm=document.createElement("small");
     const dt=e.data?e.data.split("-").reverse().join("/"):"";
     const ng=Object.keys(e.gondola||{}).length;
-    if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true){const b=document.createElement("span");b.className="hst sempedido";b.textContent="Sem pedido"+(((motivos[e.data]||{})[norm(e.cliente)])?" · "+motivos[e.data][norm(e.cliente)]:"");t.appendChild(b)}
+    if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true&&(motivos[e.data]||{})[norm(e.cliente)]!==OUTRO_DIA){const b=document.createElement("span");b.className="hst sempedido";b.textContent="Sem pedido"+(((motivos[e.data]||{})[norm(e.cliente)])?" · "+motivos[e.data][norm(e.cliente)]:"");t.appendChild(b)}
     else if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
     sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
@@ -2918,7 +2919,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="103";
+const VER="104";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
