@@ -1389,9 +1389,20 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();f
     const rows=Object.entries(lj).filter(([,v])=>v.p||v.t).sort((a,b)=>(b[1].t/(b[1].p||1))-(a[1].t/(a[1].p||1)));
     $("spts").innerHTML="<tr><th>Loja</th><th class='n'>Pedido</th><th class='n'>Troca</th><th class='n'>%</th></tr>"+(rows.length?rows.map(([k,v])=>{const pc=v.p?Math.round(v.t/v.p*100):null;return "<tr class='"+(pc===null||pc>10?"alto":"")+"'><td>"+esc(k)+"</td><td class='n'>"+v.p+"</td><td class='n'>"+v.t+"</td><td class='n'>"+(pc===null?"—":pc+"%")+"</td></tr>"}).join(""):"<tr><td colspan='4' class='vazio'>Sem dados na semana.</td></tr>")}
 }
+// ===== Presença: quem está com o app aberto agora / último acesso =====
+let presT=null,presUlt=0;
+function presencaPing(forca){try{if(!fbDb||!fbAuth||!fbAuth.currentUser||!perfil||perfil.espelho||(typeof ESP!=="undefined"&&ESP))return;
+  const t=Date.now();if(!forca&&t-presUlt<60000)return;presUlt=t;
+  fbDb.collection("vendedores").doc(fbAuth.currentUser.uid).set({visto:t},{merge:true}).catch(()=>{})}catch(e){}}
+function presencaIni(){if(presT)return;presT=setInterval(()=>{if(document.visibilityState==="visible")presencaPing(true)},180000);
+  document.addEventListener("visibilitychange",()=>{presencaPing(true)});window.addEventListener("online",()=>presencaPing(true));window.addEventListener("pagehide",()=>presencaPing(true))}
+const PRES_ON=5*60*1000;setInterval(()=>{try{document.querySelectorAll("#sgacc .pr").forEach(e=>{const v=(sup.vend||{})[e.dataset.u];if(v)e.innerHTML=presTxt(v)})}catch(e){}},30000);
+function presTxt(v){const t=v.visto||v.ultimoAcesso||0;if(!t)return "<span class='off'>nunca acessou</span>";
+  if(Date.now()-t<PRES_ON&&v.visto)return "<span class='on' style='color:#1a8f4c;font-weight:800'>🟢 Online agora</span>";
+  const d=new Date(t),p=n=>String(n).padStart(2,"0");return "Último acesso "+p(d.getDate())+"/"+p(d.getMonth()+1)+" às "+p(d.getHours())+":"+p(d.getMinutes())}
 function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&perfil.papel==="developer",ger=dono;/* por enquanto só o developer gerencia acessos */$("sgv").hidden=!ger;$("bkw").hidden=!dono;if(!ger)return;
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
-    r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
+    r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotP(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+"<br><span class='pr' data-u='"+esc(uid)+"'>"+presTxt(v)+"</span>"+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
     [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Supervisor"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
@@ -1731,7 +1742,7 @@ async function entrou(u){
     if(dp&&dp!==meu&&!troca){barra("Esta conta já está aberta em outro aparelho"+(perfil.dispNome?" ("+perfil.dispNome+")":"")+". Saia da conta nele ou peça para liberar.");return}
     if(!dp||troca){try{await pref.set({disp:meu,dispNome:dispNome(),dispEm:Date.now(),dispHost:location.host},{merge:true});perfil.disp=meu;perfil.dispHost=location.host}catch(e){barra("Não deu para registrar este aparelho. Tente de novo.");return}}
   }
-  pref.set({ultimoAcesso:Date.now()},{merge:true}).catch(()=>{});
+  pref.set({ultimoAcesso:Date.now(),visto:Date.now()},{merge:true}).catch(()=>{});presencaIni();
   lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");lsS("mpv:papelReal",perfil.papelReal||"vendedor");try{mostraVendedor()}catch(e){diag(e,"mostraVendedor")}try{vcPinta()}catch(e){}
   const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta();migra(true);setTimeout(diagEnvia,3000)};
   if(perfil.trocarSenha&&lsG("mpv:senhaok")===u.uid){perfil.trocarSenha=false;pref.set({trocarSenha:false,senhaTrocadaEm:Date.now()},{merge:true}).catch(()=>{})}
@@ -2919,7 +2930,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="108";
+const VER="109";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
