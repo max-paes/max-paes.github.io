@@ -2010,7 +2010,7 @@ function renderHist(){
     const mes=(e.data||"").slice(0,7);
     if(mes&&mes!==mesAnt){mesAnt=mes;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+mes.slice(5,7)-1]+" "+mes.slice(0,4);L.appendChild(h)}
     if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst sempedido";b.textContent="Sem pedido";t.appendChild(b);
-      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),(motivos[e.data]||{})[e.k]||"Visitado, sem pedido"].join(" · ");it.append(t,sm);L.appendChild(it);return}
+      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),(motivos[e.data]||{})[e.k]||"Visitado, sem pedido"].join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
     const it=document.createElement("div");it.className="hit"+(e.id===curId?" cur":"");
     const t=document.createElement("b");t.textContent=e.cliente||"(sem nome)";
     const sm=document.createElement("small");
@@ -2919,7 +2919,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="104";
+const VER="105";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
