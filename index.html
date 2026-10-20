@@ -969,7 +969,7 @@ function desenharRelatorio(logo){
     else if(r.vis){st="✓ Sem pedido"+(r.mot?" · "+r.mot:"");cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
     else{st="✗ Não visitado";cor="#b3261e"}
-    if(r.e&&r.e.visita&&r.e.visita.ini&&!r.extra)st+=" · "+r.e.visita.ini+(r.e.visita.fim?"–"+r.e.visita.fim:"");
+    if(r.e&&r.e.visita&&r.e.visita.ini)st+=" · "+r.e.visita.ini+(r.e.visita.fim?"–"+r.e.visita.fim:"");
     x.fillStyle=cor;x.font="700 20px "+FT;x.fillText(fit(st,C[2][1]-24),X[2]+14,y+30);
     x.textAlign="center";x.fillStyle=TX;x.font="800 22px "+FT;
     x.fillText(r.e?String(ped):"—",X[3]+C[3][1]/2,y+30);x.fillText(r.e?String(tro):"—",X[4]+C[4][1]/2,y+30);
@@ -2919,7 +2919,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="105";
+const VER="106";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
