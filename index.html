@@ -152,7 +152,7 @@ header .vnd:empty{display:none}
 .gr select.sec{border:1.5px solid var(--brand);background:transparent;color:var(--brand);border-radius:9px;padding:9px 8px;font:800 14px Archivo,sans-serif}
 .gr .off{color:#b3261e;font-weight:700}
 .hst{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;border:1.5px solid currentColor}
-.hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#b26a00}
+.hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#b26a00}.ocb{background:#b26a00!important;color:#fff!important;border-color:#b26a00!important}
 .ov .box{background:var(--card);border-radius:14px;padding:12px;max-width:560px;margin:0 auto}
 .ov img{width:100%;display:block;border-radius:8px;border:1px solid var(--line)}
 .msg{font-size:13px;color:var(--mute);margin:8px 2px}
@@ -1638,7 +1638,7 @@ $("rlj").onclick=async()=>{const R=rlCalc();if(!R||!(R.ped.length||R.tro.length)
   b.textContent="Gerar imagem"};
 function entDe(k){const x=sup.docs[k];if(!x)return null;try{return normEnt(JSON.parse(x.j))}catch(e){return null}}
 function supDetalhe(k,silencioso){const e=entDe(k),x=sup.docs[k];if(!e)return;sup.det=k;
-  $("sdtt").textContent=e.cliente+" · "+dBR(e.data);
+  $("sdtt").textContent=e.cliente+" · "+dBR(e.data);ocMarca($("sdoc"),"Ocorrência",(sup.ent||{})[k.replace("/","_")]);
   const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0));
   let h="<p class='msg' style='margin:0 0 8px'><b>"+esc(nomeV(x.uid))+"</b> · "+esc(STN[e.status]||"Rascunho")+(e.fechadoEm?" em "+new Date(e.fechadoEm).toLocaleString("pt-BR").slice(0,17):"")+
     (v.ini?"<br>Visita "+esc(v.ini)+(v.fim?"–"+esc(v.fim):" (em andamento)"):"")+(e.comprador?"<br>Comprador: "+esc(e.comprador):"")+(e.endereco?"<br>"+esc(e.endereco):"")+"</p>";
@@ -2533,7 +2533,7 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
     if(s.ref){const k=s.ref.replace("/","_"),od=motOc(k),it=ocLista(od),meta={c:s.cliente,d:s.pd||mot.dia};
       it.filter(x=>!x.sis).slice(-3).forEach(o=>{const pn=document.createElement("div");pn.className="pn oe";pn.textContent="📝 "+(o.por||"").split(" ")[0]+" ("+rotP(o.papel||"")+"), "+hmTs(o.ts)+": "+o.t;c.appendChild(pn)});
       const ge=document.createElement("div");ge.className="mb";
-      const bo=document.createElement("button");bo.className="sec";bo.textContent="📝 Ocorrência"+(it.filter(x=>!x.sis).length?" ("+it.filter(x=>!x.sis).length+")":"");bo.onclick=()=>ocAbrir(k,meta,s.cliente);
+      const bo=document.createElement("button");bo.className="sec"+(it.filter(x=>!x.sis).length?" ocb":"");bo.textContent="📝 Ocorrência"+(it.filter(x=>!x.sis).length?" ("+it.filter(x=>!x.sis).length+")":"");bo.onclick=()=>ocAbrir(k,meta,s.cliente);
       const bfz=document.createElement("button");
       if(od.fin){bfz.className="on";bfz.textContent="✅ Entrega finalizada"+(od.finEm?" "+new Date(od.finEm).toTimeString().slice(0,5):"");bfz.onclick=()=>{bfz.textContent="Só o faturamento reabre";setTimeout(motRender,2000)}}
       else{bfz.className="big";bfz.textContent="✅ Finalizar entrega";bfz.onclick=async()=>{if(bfz.dataset.c!=="1"){bfz.dataset.c="1";bfz.textContent="Finalizar? Toque de novo";setTimeout(()=>{if(bfz.dataset.c==="1")motRender()},3000);return}
@@ -2639,9 +2639,11 @@ function ocAbrir(k,meta,tit){if(!fbDb){aviso("Entre na sua conta e conecte à in
 $("ocmx").onclick=()=>{if(ocmUn){ocmUn();ocmUn=null}$("ocm").classList.remove("on")};
 // aba Entrega do vendedor/promotor
 var entUn=null,entK=null,entFin=false,entRota=false,entUnCur=null,entKCur=null;
+function ocMarca(b,txt,d,pre){if(!b)return;const n=ocLista(d).filter(o=>!o.sis).length;b.textContent=(pre||"")+txt+(n?" ("+n+")":"");b.classList.toggle("ocb",n>0)}
 function entKey(){const u=fbAuth&&fbAuth.currentUser;return u&&fbDb&&curId?u.uid+"_p_"+curId:null}
 function entVigia(){const k=entKey();if(k===entKCur)return;if(entUnCur){entUnCur();entUnCur=null}entKCur=k;if(entFin||entRota){entFin=false;entRota=false;pintaFat()}
-  if(k)entUnCur=ocOuve(k,d=>{const f=!!(d&&d.fin),r=!!(d&&d.rota&&!d.fin);if(f!==entFin||r!==entRota){entFin=f;entRota=r;pintaFat();if(mode==="entrega")contar()}})}
+  ocMarca($("t-entrega"),"Entrega",null);
+  if(k)entUnCur=ocOuve(k,d=>{ocMarca($("t-entrega"),"Entrega",d);const f=!!(d&&d.fin),r=!!(d&&d.rota&&!d.fin);if(f!==entFin||r!==entRota){entFin=f;entRota=r;pintaFat();if(mode==="entrega")contar()}})}
 function renderEnt(){const B=$("ent"),k=entKey();if(entUn&&entK!==k){entUn();entUn=null;entK=null}
   if(!k){B.innerHTML="<div class='card'><b>🚚 Entrega e ocorrência</b><p class='msg' style='margin:6px 0 0'>"+(visUid()?"Lance o pedido (cliente e itens) para abrir a ocorrência desta entrega.":"Entre na sua conta e conecte à internet para usar a ocorrência.")+"</p></div>";return}
   if(entUn)return;entK=k;B.innerHTML="<div class='card'><b>🚚 Entrega e ocorrência</b><p class='msg' style='margin:4px 0 8px'>Vendedor, promotor, expedição, motorista e supervisão podem acrescentar informações. Cada uma fica assinada com nome e horário.</p><div id='entp'></div></div>";
@@ -2759,7 +2761,7 @@ function fabRender(){if(!perfil)return;if(fab.modo==="producao"&&prEditando()){f
       "<details><summary>Itens ("+ns.length+")</summary><table class='tx'><tr><th>Produto</th><th class='n'>Unid.</th><th class='n'>Caixas</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+e.pedido[n]+"</td><td class='n'>"+esc(cxTxt(n,e.pedido[n]))+"</td></tr>").join("")+"</table></details>"+
       "<div class='xa'>"+(fat?"":"<button class='"+(ok?"on":"")+"'>"+(ok?"✓ Separado"+(s.em?" "+new Date(s.em).toTimeString().slice(0,5):""):"Marcar separado")+"</button>")+"<button>Ocorrência</button><button>Abrir pedido</button></div>";
     const bb=[...d.querySelectorAll(".xa button")],bo=bb.pop(),boc=bb.pop(),bs=bb.pop()||document.createElement("button");
-    boc.onclick=()=>ocAbrir(fabK(e),{c:e.cliente,d:e.data},e.cliente);
+    ocMarca(boc,"Ocorrência",(fab.ent||{})[fabK(e)]);boc.onclick=()=>ocAbrir(fabK(e),{c:e.cliente,d:e.data},e.cliente);
     bs.onclick=async()=>{if(ok&&bs.dataset.c!=="1"){bs.dataset.c="1";bs.textContent="Desmarcar?";setTimeout(()=>{bs.dataset.c="";fabRender()},3000);return}
       bs.disabled=true;try{const v={on:!ok,em:Date.now(),por:(perfil&&perfil.nome)||""};await fbDb.collection("expedicao").doc(e.data||fab.dia).set({s:{[fabK(e)]:v}},{merge:true});if(e.data!==fab.dia){fab.sepAnt[fabK(e)]=v;fabRender()}}
       catch(_){bs.disabled=false;$("fabm").textContent="Não foi possível salvar. Confira a internet ou as regras do banco."}};
@@ -2930,7 +2932,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="109";
+const VER="110";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
