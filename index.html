@@ -152,7 +152,7 @@ header .vnd:empty{display:none}
 .gr select.sec{border:1.5px solid var(--brand);background:transparent;color:var(--brand);border-radius:9px;padding:9px 8px;font:800 14px Archivo,sans-serif}
 .gr .off{color:#b3261e;font-weight:700}
 .hst{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;border:1.5px solid currentColor}
-.hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#b26a00}.ocb{background:#b26a00!important;color:#fff!important;border-color:#b26a00!important}
+.hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#b26a00}.hst.vd{color:#0e7c3a}.ocb{background:#b26a00!important;color:#fff!important;border-color:#b26a00!important}
 .ov .box{background:var(--card);border-radius:14px;padding:12px;max-width:560px;margin:0 auto}
 .ov img{width:100%;display:block;border-radius:8px;border:1px solid var(--line)}
 .msg{font-size:13px;color:var(--mute);margin:8px 2px}
@@ -210,7 +210,7 @@ textarea{min-height:80px;resize:vertical}
 .ag small{display:block;color:var(--mute);font-size:12px}
 .ag .st{font:800 13px Archivo,sans-serif;color:var(--brand);white-space:nowrap;border:2px solid var(--brand);background:transparent;border-radius:999px;padding:8px 12px}
 .ag.ok{border-color:#1faa59}
-.ag.ok .st{color:#fff;background:#1faa59;border-color:#1faa59}
+.ag.ok .st{color:#fff;background:#1faa59;border-color:#1faa59}.ag.vd{border-color:#0e7c3a}.ag.vd .st{color:#fff;background:#0e7c3a;border-color:#0e7c3a}.ag .vdb{font:800 12px Archivo,sans-serif;color:#0e7c3a;border:2px solid #0e7c3a;background:transparent;border-radius:999px;padding:8px 10px;white-space:nowrap}
 .ag .mv{display:flex;gap:4px}
 .ag .mv button{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:800 15px Archivo,sans-serif}
 .ag .mvd{width:auto;max-width:112px;padding:7px 6px;font:700 13px Archivo,sans-serif;border:1.5px solid var(--brand);color:var(--brand);background:var(--card);border-radius:8px}
@@ -816,7 +816,7 @@ function renderAg(){
   const L=$("agl");L.innerHTML="";
   lista.forEach((x,i)=>{
     const v=visitado(x.nome,agDia);
-    const r=document.createElement("div");r.className="ag"+(v?" ok":"");
+    const r=document.createElement("div");r.className="ag"+(v?" ok":"")+(v&&motivoDe(x.nome,agDia)===VD?" vd":"");
     const h=document.createElement("span");h.className="hd";h.textContent="⠿";h.setAttribute("aria-label","Arrastar para mudar a ordem");h.setAttribute("role","button");
     h.addEventListener("pointerdown",e=>iniciaArraste(e,r,i));
     const t=document.createElement("button");t.type="button";t.className="t";
@@ -837,8 +837,10 @@ function renderAg(){
     }else{
       t.onclick=()=>abrirDaAgenda(x,r,sm);
       const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",v);
-      const sp0=v&&semPed(x.nome,agDia);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":"✓ Sem pedido"):v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
-      st.onclick=()=>alternaVisita(x.nome,agDia);r.appendChild(st);
+      const sp0=v&&(semPed(x.nome,agDia)||motivoDe(x.nome,agDia)===VD);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":"✓ Sem pedido"):v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
+      st.onclick=()=>alternaVisita(x.nome,agDia);
+      if(!v&&ehDev()&&!ESP){const vb=document.createElement("button");vb.type="button";vb.className="vdb";vb.textContent="Dilson";vb.title="Visitado por Dilson";vb.onclick=()=>marcaComMotivo(x.nome,agDia,VD);r.appendChild(vb)}
+      r.appendChild(st);
     }
     L.appendChild(r);
   });
@@ -965,7 +967,7 @@ function desenharRelatorio(logo){
     let st,cor;
     if(r.extra){st="✓ Fora da agenda";cor=AZ}
     else if(r.vis&&ped>0){st="✓ Visitado · com pedido";cor="#1a8f4c"}
-    else if(r.vis&&r.mot===VD){st="✓ "+VD;cor="#1a8f4c"}
+    else if(r.vis&&r.mot===VD){st="✓ "+VD;cor="#0e7c3a"}
     else if(r.vis&&r.mot===OUTRO_DIA){st="✓ Visitado · pedido já feito";cor="#1a8f4c"}
     else if(r.vis){st="✓ "+rotSP(r.mot);cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
@@ -2021,14 +2023,14 @@ function renderHist(){
   lista.slice(0,hLim).forEach(e=>{
     const mes=(e.data||"").slice(0,7);
     if(mes&&mes!==mesAnt){mesAnt=mes;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+mes.slice(5,7)-1]+" "+mes.slice(0,4);L.appendChild(h)}
-    if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[e.k])===VD?"fechado":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[e.k]);t.appendChild(b);
+    if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[e.k])===VD?"vd":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[e.k]);t.appendChild(b);
       const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),((motivos[e.data]||{})[e.k]===VD?"Visita feita pelo Dilson":motL((motivos[e.data]||{})[e.k])||"Visitado, sem pedido")].join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
     const it=document.createElement("div");it.className="hit"+(e.id===curId?" cur":"");
     const t=document.createElement("b");t.textContent=e.cliente||"(sem nome)";
     const sm=document.createElement("small");
     const dt=e.data?e.data.split("-").reverse().join("/"):"";
     const ng=Object.keys(e.gondola||{}).length;
-    if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true&&(motivos[e.data]||{})[norm(e.cliente)]!==OUTRO_DIA){const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[norm(e.cliente)])===VD?"fechado":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[norm(e.cliente)]);t.appendChild(b)}
+    if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true&&(motivos[e.data]||{})[norm(e.cliente)]!==OUTRO_DIA){const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[norm(e.cliente)])===VD?"vd":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[norm(e.cliente)]);t.appendChild(b)}
     else if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
     sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
@@ -2933,7 +2935,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="111";
+const VER="112";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
