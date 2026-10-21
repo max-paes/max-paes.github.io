@@ -820,7 +820,7 @@ function renderAg(){
     const h=document.createElement("span");h.className="hd";h.textContent="⠿";h.setAttribute("aria-label","Arrastar para mudar a ordem");h.setAttribute("role","button");
     h.addEventListener("pointerdown",e=>iniciaArraste(e,r,i));
     const t=document.createElement("button");t.type="button";t.className="t";
-    const b=document.createElement("b");b.textContent=(i+1)+". "+x.nome;const sm=document.createElement("small");sm.textContent=(x.bairro||"")+(agEdit?"":" · toque para abrir");t.append(b,sm);
+    const b=document.createElement("b");b.textContent=(i+1)+". "+x.nome;const sm=document.createElement("small");{const mo0=v?motivoDe(x.nome,agDia):"";sm.textContent=(x.bairro||"")+(mo0&&mo0!==OUTRO_DIA&&mo0!==VD?" · "+motL(mo0):"")+(agEdit?"":" · toque para abrir")}t.append(b,sm);
     r.append(h,t);
     if(agEdit){
       t.disabled=true;
@@ -837,7 +837,7 @@ function renderAg(){
     }else{
       t.onclick=()=>abrirDaAgenda(x,r,sm);
       const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",v);
-      const sp0=v&&(semPed(x.nome,agDia)||motivoDe(x.nome,agDia)===VD);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":"✓ Sem pedido"):v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
+      const sp0=v&&(semPed(x.nome,agDia)||motivoDe(x.nome,agDia)===VD);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":motL(motivoDe(x.nome,agDia))==="Abastecido com estoque"?"✓ Abastecido c/ estoque":"✓ Sem pedido"):v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
       st.onclick=()=>alternaVisita(x.nome,agDia);
       r.appendChild(st);
     }
@@ -2934,7 +2934,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="113";
+const VER="114";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
