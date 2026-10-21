@@ -839,7 +839,6 @@ function renderAg(){
       const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",v);
       const sp0=v&&(semPed(x.nome,agDia)||motivoDe(x.nome,agDia)===VD);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":"✓ Sem pedido"):v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
       st.onclick=()=>alternaVisita(x.nome,agDia);
-      if(!v&&ehDev()&&!ESP){const vb=document.createElement("button");vb.type="button";vb.className="vdb";vb.textContent="Dilson";vb.title="Visitado por Dilson";vb.onclick=()=>marcaComMotivo(x.nome,agDia,VD);r.appendChild(vb)}
       r.appendChild(st);
     }
     L.appendChild(r);
@@ -2935,7 +2934,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="112";
+const VER="113";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
