@@ -304,7 +304,7 @@ body.trv #edbar{border-color:#0b7a75}
 #mot{padding:0;background:var(--bg);z-index:20}
 #fab{padding:0;background:var(--bg);z-index:4}
 #vcb{position:fixed;left:8px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:95;display:flex;gap:6px;align-items:center;background:rgba(17,24,39,.88);color:#fff;border-radius:999px;padding:3px 4px 3px 9px;font:700 12px Archivo,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.35)}
-#vcb[hidden]{display:none}
+#vcb[hidden],#vcb.ovh{display:none}
 #vcb select{font:700 12px Archivo,sans-serif;border-radius:999px;border:0;padding:4px 8px;background:#fff;color:#111;max-width:52vw}
 #vcg{font:800 12px Archivo,sans-serif;border-radius:999px;border:0;padding:5px 10px;background:#374151;color:#fff;white-space:nowrap}
 #vcg.on{background:#c0392b}
@@ -407,7 +407,7 @@ body.trv #edbar{border-color:#0b7a75}
       <div class="lt"><span class="n">Trocas<small id="vauto_tr" class="gi"></small></span><div class="sn" data-k="tr"><button>Sim</button><button class="nao">Não</button></div></div>
       <div class="lt"><span class="n">Pedido<small id="vauto_pd" class="gi"></small></span><div class="sn" data-k="pd"><button>Sim</button><button class="nao">Não</button></div></div>
     </div>
-    <div class="card"><b>📷 Fotos da visita</b><div id="vfotos" class="fb"></div><input id="vfi" type="file" accept="image/*" multiple hidden>
+    <div class="card"><b>📷 Fotos da visita</b><div id="vfotos" class="fb"></div><input id="vfi" type="file" accept="image/*" capture="environment" hidden>
       <p class="msg" style="margin:0">Até 5 fotos. A supervisão e a direção veem no painel.</p></div>
     <div class="card"><b>Mensagem para o WhatsApp</b><pre id="vtxt" class="vtxt"></pre><button id="vwpp" class="agj">Enviar no WhatsApp</button><button id="vcopy" class="agj">Copiar texto</button>
       <p class="msg" style="margin:0">Copie e cole na conversa do WhatsApp.</p></div>
@@ -730,7 +730,7 @@ const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","S
 const AG_PADRAO={1:[],2:[],3:[],4:[],5:[],6:[]};
 let rota=null,agDia=1,agEdit=false,agNota="";
 function normAg(a){const o={};for(let d=1;d<=6;d++)o[d]=(a&&Array.isArray(a[d])?a[d]:[]).filter(x=>x&&typeof x.nome==="string"&&x.nome.trim()).map(x=>({nome:U(x.nome).trim(),bairro:U(x.bairro).trim()}));return o}
-const OUTRO_DIA="__pedido";const motL=m=>m==="Gôndolas cheias"?"Abastecido":m==="Produtos no estoque"?"Abastecido com estoque":(m||"");const VD="Visitado por Dilson";const rotSP=m=>m===VD?VD:motL(m)==="Abastecido"?"Abastecido":"Sem pedido"+(m?" · "+motL(m):"");const MKEY="maxpaes:motivos:v1",MOTIVOS=["Comprador ausente","Abastecido","Abastecido com estoque","Boleto em aberto","Outro"];let motivos={},agMot=null;
+const OUTRO_DIA="__pedido";const motL=m=>m==="Gôndolas cheias"?"Abastecido":m==="Produtos no estoque"?"Abastecido com estoque":(m||"");const VD="Visitado por Dilson";const rotSP=m=>m===VD?VD:motL(m)==="Abastecido"?"Abastecido":"Sem pedido"+(m?" · "+motL(m):"");const MKEY="maxpaes:motivos:v1",MOTIVOS=["Comprador ausente","Abastecido","Abastecido com estoque","Boleto em aberto","Outro"];let motivos={},horas={},agMot=null;const HRKEY="maxpaes:horas:v1";
 const VKEY="maxpaes:visitas:v1",MIGKEY="maxpaes:agenda:mig";let visitas={};
 function carregarAg(){try{const a=JSON.parse(localStorage.getItem(AGKEY)||"null");rota=a?normAg(a):normAg(AG_PADRAO)}catch(e){rota=normAg(AG_PADRAO)}
   let mig=0;try{mig=+(localStorage.getItem(MIGKEY)||0)}catch(e){}
@@ -740,12 +740,17 @@ function carregarAg(){try{const a=JSON.parse(localStorage.getItem(AGKEY)||"null"
   if(mig<4){try{localStorage.setItem(MIGKEY,"4")}catch(e){}}
   try{const v=JSON.parse(localStorage.getItem(VKEY)||"{}");if(v&&typeof v==="object")visitas=v}catch(e){}
   try{const m=JSON.parse(localStorage.getItem(MKEY)||"{}");if(m&&typeof m==="object")motivos=m}catch(e){}
-  Object.keys(visitas).forEach(k=>{if(k<isoAntes(60))delete visitas[k]});canonChaves(visitas);canonChaves(motivos);Object.keys(motivos).forEach(k=>{if(k<isoAntes(60))delete motivos[k]});
+  try{const m=JSON.parse(localStorage.getItem(HRKEY)||"{}");if(m&&typeof m==="object")horas=m}catch(e){}
+  Object.keys(visitas).forEach(k=>{if(k<isoAntes(60))delete visitas[k]});canonChaves(visitas);canonChaves(motivos);canonChaves(horas);Object.keys(horas).forEach(k=>{if(k<isoAntes(60))delete horas[k]});Object.keys(motivos).forEach(k=>{if(k<isoAntes(60))delete motivos[k]});
   for(let d=1;d<=6;d++){const vs=new Set();rota[d]=rota[d].map(x=>({...x,nome:canon(x.nome)})).filter(x=>{const k=chave2(x.nome);if(vs.has(k))return false;vs.add(k);return true})}
   salvaAgRaw();
   for(let d=1;d<=6;d++)rota[d].forEach(x=>{if(!clientes.some(c=>norm(c.nome).includes(norm(x.nome))))lembraCli(x.nome,"","",false)});salvaCli();}
-function salvaAg(){salvaAgRaw();marcaCfg()}
-function salvaAgRaw(){try{localStorage.setItem(AGKEY,JSON.stringify(rota));localStorage.setItem(VKEY,JSON.stringify(visitas));localStorage.setItem(MKEY,JSON.stringify(motivos))}catch(e){}}
+function salvaAg(){Object.keys(horas).forEach(dt=>{Object.keys(horas[dt]||{}).forEach(k=>{if(!(visitas[dt]&&visitas[dt][k]===true))delete horas[dt][k]})});salvaAgRaw();marcaCfg()}
+function marcaHora(dt,k){const h=(horas[dt]=horas[dt]||{});if(!h[k])h[k]=hhmm()}
+function horaVis(dt,nome,e){const k=norm(nome);if(e&&e.visita&&e.visita.ini)return e.visita.ini+(e.visita.fim?"–"+e.visita.fim:"");const h=(horas[dt]||{})[k];if(h)return h;
+  if((motivos[dt]||{})[k]===OUTRO_DIA){const ks=[k,norm(nomeCad(nome))],mn=new Date(dt+"T12:00:00");mn.setDate(mn.getDate()-6);const lo=isoD(mn);const o=hist.filter(x=>ks.includes(norm(x.cliente))&&x.data<=dt&&x.data>=lo&&x.visita&&x.visita.ini).sort((a,b)=>b.data.localeCompare(a.data))[0];if(o)return o.visita.ini+(o.visita.fim?"–"+o.visita.fim:"")}
+  return ""}
+function salvaAgRaw(){try{localStorage.setItem(AGKEY,JSON.stringify(rota));localStorage.setItem(VKEY,JSON.stringify(visitas));localStorage.setItem(MKEY,JSON.stringify(motivos));localStorage.setItem(HRKEY,JSON.stringify(horas))}catch(e){}}
 const isoAntes=n=>{const t=new Date();t.setDate(t.getDate()-n);return isoD(t)};
 const isoD=t=>t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
 function dataDoDia(d){const t=new Date();t.setHours(12,0,0,0);const w=t.getDay();const seg=new Date(t);seg.setDate(t.getDate()+(w===0?1:1-w));const r=new Date(seg);r.setDate(seg.getDate()+d-1);return isoD(r)}
@@ -758,9 +763,9 @@ function pedidoDoDia(n,d){const ks=[norm(n),norm(nomeCad(n))],dt=dataDoDia(d);re
 function marcaManual(n,d){const m=visitas[dataDoDia(d)];return m&&typeof m[norm(n)]==="boolean"?m[norm(n)]:null}
 function semPed(n,d){const dt=dataDoDia(d),k=norm(n);if((visitas[dt]||{})[k]!==true||(motivos[dt]||{})[k]===OUTRO_DIA)return false;const ks=[k,norm(nomeCad(n))];return !hist.some(h=>h.data===dt&&ks.includes(norm(h.cliente))&&soma(h.pedido)>0)}
 function visitado(n,d){const m=marcaManual(n,d);return m!==null?m:!!pedidoDoDia(n,d)}
-function alternaVisita(n,d){const dt=dataDoDia(d),v=!visitado(n,d);(visitas[dt]=visitas[dt]||{})[norm(n)]=v;if(!v&&motivos[dt])delete motivos[dt][norm(n)];salvaAg();renderAg()}
+function alternaVisita(n,d){const dt=dataDoDia(d),v=!visitado(n,d);(visitas[dt]=visitas[dt]||{})[norm(n)]=v;if(v)marcaHora(dt,norm(n));if(!v&&motivos[dt])delete motivos[dt][norm(n)];salvaAg();renderAg()}
 function motivoDe(n,d){return (motivos[dataDoDia(d)]||{})[norm(n)]||""}
-function marcaComMotivo(n,d,m){const dt=dataDoDia(d);(visitas[dt]=visitas[dt]||{})[norm(n)]=true;if(m)(motivos[dt]=motivos[dt]||{})[norm(n)]=m;agMot=null;salvaAg();renderAg()}
+function marcaComMotivo(n,d,m){const dt=dataDoDia(d);(visitas[dt]=visitas[dt]||{})[norm(n)]=true;marcaHora(dt,norm(n));if(m)(motivos[dt]=motivos[dt]||{})[norm(n)]=m;agMot=null;salvaAg();renderAg()}
 let arr=null;
 function iniciaArraste(e,row,i){
   e.preventDefault();const L=$("agl");
@@ -820,7 +825,7 @@ function renderAg(){
     const h=document.createElement("span");h.className="hd";h.textContent="⠿";h.setAttribute("aria-label","Arrastar para mudar a ordem");h.setAttribute("role","button");
     h.addEventListener("pointerdown",e=>iniciaArraste(e,r,i));
     const t=document.createElement("button");t.type="button";t.className="t";
-    const b=document.createElement("b");b.textContent=(i+1)+". "+x.nome;const sm=document.createElement("small");{const mo0=v?motivoDe(x.nome,agDia):"";sm.textContent=(x.bairro||"")+(mo0&&mo0!==OUTRO_DIA&&mo0!==VD?" · "+motL(mo0):"")+(agEdit?"":" · toque para abrir")}t.append(b,sm);
+    const b=document.createElement("b");b.textContent=(i+1)+". "+x.nome;const sm=document.createElement("small");{const mo0=v?motivoDe(x.nome,agDia):"";sm.textContent=(x.bairro||"")+(mo0&&mo0!==OUTRO_DIA&&mo0!==VD?" · "+motL(mo0):"")+(v?" · "+(horaVis(dt,x.nome,pedidoDoDia(x.nome,agDia))||"s/ horário"):"")+(agEdit?"":" · toque para abrir")}t.append(b,sm);
     r.append(h,t);
     if(agEdit){
       t.disabled=true;
@@ -971,7 +976,7 @@ function desenharRelatorio(logo){
     else if(r.vis){st="✓ "+rotSP(r.mot);cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
     else{st="✗ Não visitado";cor="#b3261e"}
-    if(r.e&&r.e.visita&&r.e.visita.ini)st+=" · "+r.e.visita.ini+(r.e.visita.fim?"–"+r.e.visita.fim:"");
+    if(r.vis||r.extra)st+=" · "+(horaVis(r.dt,r.nome,r.e)||"s/ horário");
     x.fillStyle=cor;x.font="700 20px "+FT;x.fillText(fit(st,C[2][1]-24),X[2]+14,y+30);
     x.textAlign="center";x.fillStyle=TX;x.font="800 22px "+FT;
     x.fillText(r.e?String(ped):"—",X[3]+C[3][1]/2,y+30);x.fillText(r.e?String(tro):"—",X[4]+C[4][1]/2,y+30);
@@ -1113,7 +1118,8 @@ function visFoto(file){const uid=visUid();if(!uid)return Promise.resolve();
       fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:d,ts:Date.now(),data:$("data").value,cli:U($("cliente").value.trim()),tipo:"visita"}).catch(e=>aviso("Não consegui enviar a foto ("+(e.code||e.message)+")."));
       salvar();fiReg(uid,"v_"+id,{t:"v",d:$("data").value,c:U($("cliente").value.trim()),p:curId?"p_"+curId:""});ok()};
     im.onerror=()=>{URL.revokeObjectURL(u);ok()};im.src=u})}
-$("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,5-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
+function salvaNoCel(f,base){try{const t=new Date(),nm=("MaxPaes_"+(base||"foto")+"_"+isoD(t)+"_"+String(t.getHours()).padStart(2,"0")+"-"+String(t.getMinutes()).padStart(2,"0")+"-"+String(t.getSeconds()).padStart(2,"0")).replace(/[^\w\-]+/g,"_")+".jpg",u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=nm;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}catch(e){}}
+$("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,5-(visita.fo||[]).length);$("vfi").value="";L.forEach(f=>salvaNoCel(f,U($("cliente").value.trim())));for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 function enviaOe(){const uid=visUid(),cli=U($("cliente").value.trim()),dt=$("data").value;if(!uid||!cli||!dt)return;
   const k=uid+"_"+pkey(cli);fbDb.collection("obsent").doc(dt).set({ts:Date.now(),l:{[k]:{c:cli,t:(visita.oe||"").trim(),por:(perfil&&perfil.nome)||"",ts:Date.now(),d:dt}}},{merge:true}).catch(()=>{})}
 async function copiaTexto(t){
@@ -1163,7 +1169,7 @@ async function espelhar(uid){if(!ehDev()||!fbDb)return;
   ESP={uid,nome:v.nome||"",papel:v.papel||"vendedor",grava:false,real,realAuth,cfgts:0};
   fbDb=roDb(real);fbAuth={currentUser:{uid,email:v.email||""},signOut:()=>{location.reload();return Promise.resolve()},onAuthStateChanged(){}};
   perfil={...v,papel:ESP.papel,papelReal:"developer",espelho:uid};
-  hist=[];clientes=[];rota=normAg({});visitas={};motivos={};nv.pend=new Set();nv.del=new Set();nv.cfg=false;
+  hist=[];clientes=[];rota=normAg({});visitas={};motivos={};horas={};nv.pend=new Set();nv.del=new Set();nv.cfg=false;
   try{const sn=await real.collection("vendedores/"+uid+"/docs").get();
     sn.docs.forEach(d=>{const x=d.data()||{};if(d.id==="cfg"){try{aplicaCfg(JSON.parse(x.j));ESP.cfgts=+x.ts||0}catch(_){}}
       else if(d.id.startsWith("p_")){try{const e=normEnt(JSON.parse(x.j));if(e&&e.id)hist.push(e)}catch(_){}}});
@@ -1214,7 +1220,7 @@ async function enviaNuvem(){
     if(nv.tombSujo){nv.tombSujo=false;ps.push(colN().doc("del").set({ts:Date.now(),ids:[...nv.tomb].slice(-3000)}))}
     for(const id of [...nv.del]){ps.push(colN().doc("p_"+id).delete());nv.del.delete(id);nv.pend.delete(id)}
     for(const id of [...nv.pend]){nv.pend.delete(id);const e=hist.find(h=>h.id===id);if(e)ps.push(envia(id,e))}
-    if(nv.cfg){nv.cfg=false;if(!cfgTs())lsS("maxpaes:cfgts",String(Date.now()));ps.push(colN().doc("cfg").set({ts:cfgTs(),j:JSON.stringify({clientes,agenda:rota,visitas,motivos,precos})}))}
+    if(nv.cfg){nv.cfg=false;if(!cfgTs())lsS("maxpaes:cfgts",String(Date.now()));ps.push(colN().doc("cfg").set({ts:cfgTs(),j:JSON.stringify({clientes,agenda:rota,visitas,motivos,horas,precos})}))}
   }catch(e){}
   if(!ps.length)return;
   const tk=++nv.tk;
@@ -1227,6 +1233,7 @@ function aplicaCfg(c){
   if(c.agenda&&typeof c.agenda==="object"){rota=normAg(c.agenda);for(let d=1;d<=6;d++){const vs=new Set();rota[d]=rota[d].map(x=>({...x,nome:canon(x.nome)})).filter(x=>{const k=chave2(x.nome);if(vs.has(k))return false;vs.add(k);return true})}}
   if(c.visitas&&typeof c.visitas==="object"){visitas=c.visitas;canonChaves(visitas)}
   if(c.motivos&&typeof c.motivos==="object"){motivos=c.motivos;canonChaves(motivos)}
+  if(c.horas&&typeof c.horas==="object"){horas=c.horas;canonChaves(horas)}
   if(Array.isArray(c.clientes)){limpaDuplicados();salvaCli()}
   if(c.precos&&typeof c.precos==="object"){precos=c.precos;salvaPrecos(false)}
   salvaAgRaw();
@@ -1688,7 +1695,9 @@ $("spav").onclick=async()=>{
 setInterval(()=>{if($("sp").classList.contains("on"))supRender()},60000);
 function supDesliga(){if(sup.uv){sup.uv();sup.uv=null}Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.vend={};sup.ini="";$("sp").classList.remove("on");$("sbtn").hidden=true}
 const ehDev=()=>!!(perfil&&(perfil.papelReal==="developer"||(fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID)||(!perfil.papelReal&&lsG("mpv:papelReal")==="developer")));
-function vcPos(){try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&getComputedStyle(bar).display!=="none"&&bar.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden&&a.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
+function vcOv(){try{$("vcb").classList.toggle("ovh",!!document.querySelector(".ov.on"))}catch(e){}}
+try{new MutationObserver(vcOv).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]})}catch(e){}
+function vcPos(){vcOv();try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&getComputedStyle(bar).display!=="none"&&bar.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden&&a.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
 window.addEventListener("resize",vcPos);setInterval(()=>{vcPos();try{if(!$("vcb").hidden!==ehDev()&&typeof ESP!=="undefined"&&!ESP)vcPinta()}catch(e){}},2000);
 function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTimeout(vcPos,0);vcUsuarios();
   $("vcs").value=ESP?"u:"+ESP.uid:(perfil.papel||"developer");b.classList.toggle("on",!!ESP||perfil.papel!=="developer");
@@ -1814,7 +1823,7 @@ function spRender(){const B=$("spbar");if(!B)return;const cli=($("cliente").valu
     u.onclick=()=>{if(visitas[dt])delete visitas[dt][k];if(motivos[dt])delete motivos[dt][k];salvaAg();spRender()};B.appendChild(u);return}
   if(!spAberto){t.textContent=tem?"Não houve pedido nesta visita?":"Visitou e não houve pedido?";const b=document.createElement("button");b.textContent=tem?"Sem pedido (zera o pedido)":"Sem pedido";b.onclick=()=>{spAberto=true;spRender()};B.appendChild(b);return}
   t.textContent="Motivo:";((ehDev()&&!ESP)?[VD,...MOTIVOS]:MOTIVOS).forEach(m=>{const b=document.createElement("button");b.className="m";b.textContent=m;
-    b.onclick=()=>{if(soma(state.pedido)>0){state.pedido={};render();salvar()}(visitas[dt]=visitas[dt]||{})[k]=true;(motivos[dt]=motivos[dt]||{})[k]=m;spAberto=false;salvaAg();spRender()};B.appendChild(b)});
+    b.onclick=()=>{if(soma(state.pedido)>0){state.pedido={};render();salvar()}(visitas[dt]=visitas[dt]||{})[k]=true;marcaHora(dt,k);(motivos[dt]=motivos[dt]||{})[k]=m;spAberto=false;salvaAg();spRender()};B.appendChild(b)});
   const x=document.createElement("button");x.className="m";x.textContent="Cancelar";x.onclick=()=>{spAberto=false;spRender()};B.appendChild(x)}
 function contar(){try{spRender()}catch(e){}
   if(mode==="entrega"){$("count").textContent="Entrega · "+(entFin?"finalizada":entRota?"em rota":"em aberto");return}
@@ -2023,7 +2032,7 @@ function renderHist(){
     const mes=(e.data||"").slice(0,7);
     if(mes&&mes!==mesAnt){mesAnt=mes;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+mes.slice(5,7)-1]+" "+mes.slice(0,4);L.appendChild(h)}
     if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[e.k])===VD?"vd":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[e.k]);t.appendChild(b);
-      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),((motivos[e.data]||{})[e.k]===VD?"Visita feita pelo Dilson":motL((motivos[e.data]||{})[e.k])||"Visitado, sem pedido")].join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
+      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),((motivos[e.data]||{})[e.k]===VD?"Visita feita pelo Dilson":motL((motivos[e.data]||{})[e.k])||"Visitado, sem pedido"),"Visita "+(horaVis(e.data,e.cliente,null)||"s/ horário")].join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
     const it=document.createElement("div");it.className="hit"+(e.id===curId?" cur":"");
     const t=document.createElement("b");t.textContent=e.cliente||"(sem nome)";
     const sm=document.createElement("small");
@@ -2031,7 +2040,7 @@ function renderHist(){
     const ng=Object.keys(e.gondola||{}).length;
     if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true&&(motivos[e.data]||{})[norm(e.cliente)]!==OUTRO_DIA){const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[norm(e.cliente)])===VD?"vd":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[norm(e.cliente)]);t.appendChild(b)}
     else if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
-    sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
+    sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):(soma(e.pedido)>0||soma(e.troca)>0)?"Visita "+(horaVis(e.data,e.cliente,e)||"s/ horário"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
     const ed=document.createElement("button");ed.textContent="Editar";ed.onclick=()=>abrirPedido(e.id,ed);
     const ex=document.createElement("button");ex.textContent="Excluir";ex.onclick=()=>excluir(e.id,ex);
@@ -2505,8 +2514,8 @@ function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.cre
     const x=document.createElement("button");x.textContent="🗑 Excluir";x.setAttribute("aria-label","Excluir foto");
     x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}motFotoTira(sid,cat,id)};w.appendChild(x);b.appendChild(w)});
   if(ids.length<MAXF){const fb=document.createElement("button"),fi=document.createElement("input");fb.textContent="📷 "+(rot||"Fotos")+" ("+ids.length+"/"+MAXF+")";
-    fi.type="file";fi.accept="image/*";fi.multiple=true;fi.hidden=true;fb.onclick=()=>fi.click();
-    fi.onchange=async()=>{const L=[...fi.files].slice(0,MAXF-ids.length);if(!L.length)return;fb.textContent="Enviando…";for(const f of L)await motFoto(sid,cat,f)};
+    fi.type="file";fi.accept="image/*";fi.setAttribute("capture","environment");fi.hidden=true;fb.onclick=()=>fi.click();
+    fi.onchange=async()=>{const L=[...fi.files].slice(0,MAXF-ids.length);if(!L.length)return;L.forEach(f=>salvaNoCel(f,(rot||"entrega")+"_"+cat));fb.textContent="Enviando…";for(const f of L)await motFoto(sid,cat,f)};
     b.append(fb,fi)}
   return b}
 function motRota(LST,v){if(!fbDb)return;const n=(perfil&&perfil.nome)||"";
@@ -2934,7 +2943,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="114";
+const VER="115";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
