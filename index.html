@@ -730,7 +730,7 @@ const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","S
 const AG_PADRAO={1:[],2:[],3:[],4:[],5:[],6:[]};
 let rota=null,agDia=1,agEdit=false,agNota="";
 function normAg(a){const o={};for(let d=1;d<=6;d++)o[d]=(a&&Array.isArray(a[d])?a[d]:[]).filter(x=>x&&typeof x.nome==="string"&&x.nome.trim()).map(x=>({nome:U(x.nome).trim(),bairro:U(x.bairro).trim()}));return o}
-const OUTRO_DIA="__pedido";const motL=m=>m==="Gôndolas cheias"?"Abastecido":m==="Produtos no estoque"?"Abastecido com estoque":(m||"");const rotSP=m=>motL(m)==="Abastecido"?"Abastecido":"Sem pedido"+(m?" · "+motL(m):"");const MKEY="maxpaes:motivos:v1",MOTIVOS=["Comprador ausente","Abastecido","Abastecido com estoque","Boleto em aberto","Outro"];let motivos={},agMot=null;
+const OUTRO_DIA="__pedido";const motL=m=>m==="Gôndolas cheias"?"Abastecido":m==="Produtos no estoque"?"Abastecido com estoque":(m||"");const VD="Visitado por Dilson";const rotSP=m=>m===VD?VD:motL(m)==="Abastecido"?"Abastecido":"Sem pedido"+(m?" · "+motL(m):"");const MKEY="maxpaes:motivos:v1",MOTIVOS=["Comprador ausente","Abastecido","Abastecido com estoque","Boleto em aberto","Outro"];let motivos={},agMot=null;
 const VKEY="maxpaes:visitas:v1",MIGKEY="maxpaes:agenda:mig";let visitas={};
 function carregarAg(){try{const a=JSON.parse(localStorage.getItem(AGKEY)||"null");rota=a?normAg(a):normAg(AG_PADRAO)}catch(e){rota=normAg(AG_PADRAO)}
   let mig=0;try{mig=+(localStorage.getItem(MIGKEY)||0)}catch(e){}
@@ -837,7 +837,7 @@ function renderAg(){
     }else{
       t.onclick=()=>abrirDaAgenda(x,r,sm);
       const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",v);
-      const sp0=v&&semPed(x.nome,agDia);st.textContent=sp0?(motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":"✓ Sem pedido"):v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
+      const sp0=v&&semPed(x.nome,agDia);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":"✓ Sem pedido"):v?"✓ Visitado":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
       st.onclick=()=>alternaVisita(x.nome,agDia);r.appendChild(st);
     }
     L.appendChild(r);
@@ -938,7 +938,7 @@ function desenharRelatorio(logo){
   const {sem,rows}=dadosSemana(),W=1400,M=45,tw=W-2*M,RH=46;
   const ag=rows.filter(r=>!r.extra),feitas=ag.filter(r=>r.vis).length,furos=ag.filter(r=>!r.vis&&!r.fut).length,pend=ag.filter(r=>!r.vis&&r.fut).length;
   const comP=rows.filter(r=>r.e&&soma(r.e.pedido)>0),un=comP.reduce((a,r)=>a+soma(r.e.pedido),0),tr=rows.reduce((a,r)=>a+(r.e?soma(r.e.troca):0),0);
-  const semP=rows.filter(r=>r.vis&&r.mot!==OUTRO_DIA&&!(r.e&&soma(r.e.pedido)>0)),cm={};semP.forEach(r=>{const k=motL(r.mot)||"Sem motivo informado";cm[k]=(cm[k]||0)+1});
+  const semP=rows.filter(r=>r.vis&&r.mot!==OUTRO_DIA&&r.mot!==VD&&!(r.e&&soma(r.e.pedido)>0)),cm={};semP.forEach(r=>{const k=motL(r.mot)||"Sem motivo informado";cm[k]=(cm[k]||0)+1});
   const T0=M+150+30,K=150,TT=T0+K+40,H=TT+50+Math.max(1,rows.length)*RH+130;
   const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);
   x.strokeStyle=AZ;x.lineWidth=4;rr(x,M,M,tw,150,22);x.stroke();
@@ -965,6 +965,7 @@ function desenharRelatorio(logo){
     let st,cor;
     if(r.extra){st="✓ Fora da agenda";cor=AZ}
     else if(r.vis&&ped>0){st="✓ Visitado · com pedido";cor="#1a8f4c"}
+    else if(r.vis&&r.mot===VD){st="✓ "+VD;cor="#1a8f4c"}
     else if(r.vis&&r.mot===OUTRO_DIA){st="✓ Visitado · pedido já feito";cor="#1a8f4c"}
     else if(r.vis){st="✓ "+rotSP(r.mot);cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
@@ -1808,10 +1809,10 @@ function spRender(){const B=$("spbar");if(!B)return;const cli=($("cliente").valu
   if(tem&&(visitas[dt]||{})[k0]===true&&(motivos[dt]||{})[k0]){delete visitas[dt][k0];delete motivos[dt][k0];salvaAg()}
   B.hidden=false;const k=k0,marc=!!((visitas[dt]||{})[k]),mot=(motivos[dt]||{})[k]||"",sig=[k,dt,marc,mot,spAberto,tem].join("|");if(B.dataset.sig===sig&&B.childNodes.length)return;B.dataset.sig=sig;B.className="ed spb"+(marc?" ok":"");B.innerHTML="";
   const t=document.createElement("b");B.appendChild(t);
-  if(marc){t.textContent=motL(mot)==="Abastecido"?"✓ Abastecido":"✓ Visitado sem pedido"+(mot?" · "+motL(mot):"");const u=document.createElement("button");u.textContent="Desfazer";
+  if(marc){t.textContent=mot===VD?"✓ "+VD:motL(mot)==="Abastecido"?"✓ Abastecido":"✓ Visitado sem pedido"+(mot?" · "+motL(mot):"");const u=document.createElement("button");u.textContent="Desfazer";
     u.onclick=()=>{if(visitas[dt])delete visitas[dt][k];if(motivos[dt])delete motivos[dt][k];salvaAg();spRender()};B.appendChild(u);return}
   if(!spAberto){t.textContent=tem?"Não houve pedido nesta visita?":"Visitou e não houve pedido?";const b=document.createElement("button");b.textContent=tem?"Sem pedido (zera o pedido)":"Sem pedido";b.onclick=()=>{spAberto=true;spRender()};B.appendChild(b);return}
-  t.textContent="Motivo:";MOTIVOS.forEach(m=>{const b=document.createElement("button");b.className="m";b.textContent=m;
+  t.textContent="Motivo:";((ehDev()&&!ESP)?[VD,...MOTIVOS]:MOTIVOS).forEach(m=>{const b=document.createElement("button");b.className="m";b.textContent=m;
     b.onclick=()=>{if(soma(state.pedido)>0){state.pedido={};render();salvar()}(visitas[dt]=visitas[dt]||{})[k]=true;(motivos[dt]=motivos[dt]||{})[k]=m;spAberto=false;salvaAg();spRender()};B.appendChild(b)});
   const x=document.createElement("button");x.className="m";x.textContent="Cancelar";x.onclick=()=>{spAberto=false;spRender()};B.appendChild(x)}
 function contar(){try{spRender()}catch(e){}
@@ -2020,14 +2021,14 @@ function renderHist(){
   lista.slice(0,hLim).forEach(e=>{
     const mes=(e.data||"").slice(0,7);
     if(mes&&mes!==mesAnt){mesAnt=mes;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+mes.slice(5,7)-1]+" "+mes.slice(0,4);L.appendChild(h)}
-    if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst sempedido";b.textContent=rotSP((motivos[e.data]||{})[e.k]);t.appendChild(b);
-      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),motL((motivos[e.data]||{})[e.k])||"Visitado, sem pedido"].join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
+    if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[e.k])===VD?"fechado":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[e.k]);t.appendChild(b);
+      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),((motivos[e.data]||{})[e.k]===VD?"Visita feita pelo Dilson":motL((motivos[e.data]||{})[e.k])||"Visitado, sem pedido")].join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
     const it=document.createElement("div");it.className="hit"+(e.id===curId?" cur":"");
     const t=document.createElement("b");t.textContent=e.cliente||"(sem nome)";
     const sm=document.createElement("small");
     const dt=e.data?e.data.split("-").reverse().join("/"):"";
     const ng=Object.keys(e.gondola||{}).length;
-    if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true&&(motivos[e.data]||{})[norm(e.cliente)]!==OUTRO_DIA){const b=document.createElement("span");b.className="hst sempedido";b.textContent=rotSP((motivos[e.data]||{})[norm(e.cliente)]);t.appendChild(b)}
+    if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true&&(motivos[e.data]||{})[norm(e.cliente)]!==OUTRO_DIA){const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[norm(e.cliente)])===VD?"fechado":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[norm(e.cliente)]);t.appendChild(b)}
     else if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
     sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
@@ -2932,7 +2933,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="110";
+const VER="111";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
