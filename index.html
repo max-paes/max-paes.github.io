@@ -2493,7 +2493,7 @@ function motAbrir(){if(!ehMot())return;const uid=fbAuth.currentUser.uid,hj=hojeI
     mot.uR=fbDb.collection("rotas").doc(hj+"_"+uid).onSnapshot(sn=>{mot.rota=sn.exists?sn.data():null;motRender()},()=>{$("motm").textContent="Sem permissão para ler a rota. Peça para atualizar as regras do banco."});
     mot.uM=fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+hj).onSnapshot(sn=>{mot.reg=sn.exists?(sn.data()||{}):{};motRender()},()=>{});
     mot.uP=fbDb.collection("vendedores/"+uid+"/docs").doc("m_pend").onSnapshot(sn=>{mot.pend=sn.exists?((sn.data()||{}).l||{}):{};motRender()},()=>{});
-    mot.ent={};mot.uE=fbDb.collection("entrega").where("d",">=",addD(hj,-3)).onSnapshot(sn=>{const o={};sn.docs.forEach(d=>{o[d.id]=d.data()||{}});mot.ent=o;motRender()},()=>{});
+    mot.ent={};mot.uE=fbDb.collection("entrega").where("d",">=",addD(hj,-7)).onSnapshot(sn=>{const o={};sn.docs.forEach(d=>{o[d.id]=d.data()||{}});mot.ent=o;motRender()},()=>{});
     mot.oe={};mot.uO=[0,1,2].map(n=>{const d=addD(hj,-n);return fbDb.collection("obsent").doc(d).onSnapshot(sn=>{mot.oe[d]=sn.exists?((sn.data()||{}).l||{}):{};motRender()},()=>{})})}
   $("mot").classList.add("on");motRender()}
 function motDesliga(manter){Object.values(mot.ocU||{}).forEach(f=>{try{f()}catch(e){}});mot.ocU={};mot.ocd={};["uR","uM","uP","uE"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});mot.ent={};(mot.uO||[]).forEach(f=>{try{f()}catch(e){}});mot.uO=null;mot.oe={};mot.rota=null;mot.reg={};mot.pend={};if(!manter)$("mot").classList.remove("on")}
@@ -2606,31 +2606,30 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
         motGrava({x:(reg.x||[]).filter(e=>e.id!==s.id)})};c.appendChild(rx)}
     if(c._ge)c.appendChild(c._ge);
     C.appendChild(c)});
-  // pedidos fechados para puxar para a rota
+  // montar a rota: pesquisa de loja + pedidos fechados para entregar
   const naRota=new Set(LST.map(x=>x.ref).filter(Boolean));
-  const motAdd=it=>{if(reg.ini)return;const novo={id:"x"+Date.now().toString(36)+Math.floor(Math.random()*99),...it};motGrava({x:(reg.x||[]).concat([novo])})};
+  const motAdd=it=>{if(reg.ini)return;try{document.activeElement&&document.activeElement.blur()}catch(_){}const novo={id:"x"+Date.now().toString(36)+Math.floor(Math.random()*99),...it};motGrava({x:(reg.x||[]).concat([novo])})};
   if(reg.ini){const cb=card(),h=document.createElement("h3");h.textContent="Rota iniciada";const sp=document.createElement("span");sp.className="ms";sp.textContent="Depois da saída da empresa não dá para acrescentar lojas. Monte a rota antes de sair.";cb.append(h,sp);C.appendChild(cb)}
-  if(!reg.ini){const ab=Object.entries(mot.ent||{}).map(([id,d])=>({id,...d})).filter(d=>d.ref&&(d.ped||0)>0&&!d.fin&&!naRota.has(d.ref)).sort((a,b)=>(a.d||"").localeCompare(b.d||"")||(a.c||"").localeCompare(b.c||"","pt-BR"));
-   const cp=card(),h=document.createElement("h3");h.textContent="Pedidos para entregar ("+ab.length+")";cp.appendChild(h);
-   const sp=document.createElement("span");sp.className="ms";sp.textContent=ab.length?"Toque em + para puxar o pedido para a sua rota. Ele vem com as informações, a ocorrência e o status da entrega.":"Nenhum pedido fechado aguardando entrega.";cp.appendChild(sp);
-   ab.forEach(d=>{const r=document.createElement("div");r.className="rr";const t=document.createElement("span");t.className="t";
-     t.textContent=(d.c||"(sem loja)")+" · "+(d.ped||0)+" un."+(d.d!==mot.dia?" · de "+dBR(d.d).slice(0,5):"");
-     const b=document.createElement("button");b.textContent="+ Puxar";b.onclick=()=>{b.disabled=true;motAdd({cliente:d.c||"",ped:d.ped||0,ref:d.ref,pd:d.d||""})};r.append(t,b);cp.appendChild(r)});
-   C.appendChild(cp)}
-  // acrescentar loja pela pesquisa
-  if(!reg.ini){const ca=card(),h=document.createElement("h3");h.textContent="Acrescentar loja";ca.appendChild(h);
-   const sp=document.createElement("span");sp.className="ms";sp.textContent="Pesquise pelo nome ou digite uma loja nova.";ca.appendChild(sp);
+  if(!reg.ini){const ab=Object.entries(mot.ent||{}).map(([id,d])=>({id,...d})).filter(d=>d.ref&&(d.ped||0)>0&&!d.fin&&!naRota.has(d.ref)).sort((a,b)=>(a.c||"").localeCompare(b.c||"","pt-BR")||(b.d||"").localeCompare(a.d||""));
+   const cp=card(),h=document.createElement("h3");h.textContent="Acrescentar loja";cp.appendChild(h);
+   const sp=document.createElement("span");sp.className="ms";sp.textContent="Pesquise a loja. Se ela tiver pedido fechado para entregar, ela entra na rota com o pedido, a ocorrência e o status da entrega.";cp.appendChild(sp);
    const row=document.createElement("div");row.className="mt";
-   const inp=document.createElement("input");inp.type="text";inp.placeholder="Nome da loja";inp.setAttribute("list","motl");inp.setAttribute("aria-label","Pesquisar loja");inp.autocomplete="off";inp.style.cssText="flex:1;min-width:160px;width:auto";
-   const dl=document.createElement("datalist");dl.id="motl";
-   const nomes=new Set();((R&&R.lista)||[]).forEach(n=>nomes.add(n));(clientes||[]).forEach(c=>nomes.add(c.nome));
-   [...nomes].sort((a,b)=>String(a).localeCompare(String(b),"pt-BR")).forEach(n=>{const o=document.createElement("option");o.value=n;dl.appendChild(o)});
-   const bt=document.createElement("button");bt.textContent="+ Adicionar";
-   const add=()=>{const n=U(inp.value.trim());if(!n)return;
-     const pd=Object.values(mot.ent||{}).filter(d=>d.ref&&(d.ped||0)>0&&!d.fin&&!naRota.has(d.ref)&&pkey(d.c||"")===pkey(n)).sort((a,b)=>(b.d||"").localeCompare(a.d||""))[0];
-     motAdd(pd?{cliente:pd.c||n,ped:pd.ped||0,ref:pd.ref,pd:pd.d||""}:{cliente:n});inp.value=""};
-   bt.onclick=add;inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();add()}};
-   row.append(inp,bt,dl);ca.appendChild(row);C.appendChild(ca)}
+   const inp=document.createElement("input");inp.type="search";inp.placeholder="🔍 Pesquisar loja";inp.setAttribute("aria-label","Pesquisar loja");inp.autocomplete="off";inp.style.cssText="flex:1;min-width:160px;width:auto";inp.value=mot.q||"";
+   row.appendChild(inp);cp.appendChild(row);
+   const L=document.createElement("div");cp.appendChild(L);
+   const nomes=new Map();((R&&R.lista)||[]).forEach(n=>nomes.set(pkey(n),n));(clientes||[]).forEach(c=>nomes.set(pkey(c.nome),c.nome));
+   const pinta=()=>{const q=pkey(inp.value||"");mot.q=inp.value;L.innerHTML="";
+     const vis=ab.filter(d=>!q||pkey(d.c||"").includes(q));
+     const tt=document.createElement("small");tt.className="ms";tt.style.display="block";tt.style.marginTop="8px";tt.textContent=q?(vis.length?vis.length+(vis.length===1?" pedido encontrado":" pedidos encontrados"):"Nenhum pedido fechado para essa loja."):"Pedidos para entregar ("+ab.length+")";L.appendChild(tt);
+     vis.forEach(d=>{const r=document.createElement("div");r.className="rr";const t=document.createElement("span");t.className="t";
+       t.textContent=(d.c||"(sem loja)")+" · "+(d.ped||0)+" un."+(d.d!==mot.dia?" · de "+dBR(d.d).slice(0,5):"");
+       const bb=document.createElement("button");bb.textContent="+ Puxar";bb.onclick=()=>{bb.disabled=true;mot.q="";motAdd({cliente:d.c||"",ped:d.ped||0,ref:d.ref,pd:d.d||""})};r.append(t,bb);L.appendChild(r)});
+     if(q){const ex=[...nomes.values()].filter(n=>pkey(n).includes(q)&&!vis.some(d=>pkey(d.c||"")===pkey(n))).slice(0,6);const nv0=U(inp.value.trim());
+       if(nv0&&!vis.length&&!ex.some(n=>pkey(n)===q))ex.push(nv0);
+       ex.forEach(n=>{const r=document.createElement("div");r.className="rr";const t=document.createElement("span");t.className="t";t.textContent=n+" · sem pedido para entregar";
+         const bb=document.createElement("button");bb.className="sec";bb.textContent="+ Adicionar";bb.onclick=()=>{bb.disabled=true;mot.q="";motAdd({cliente:U(n)})};r.append(t,bb);L.appendChild(r)})}};
+   inp.oninput=pinta;inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const f=L.querySelector("button");if(f)f.click()}};pinta();
+   C.appendChild(cp)}
   // chegada na empresa = último check-out + observações do dia
   const c9=card(reg.fim?"ok":"");c9.innerHTML="<h3>Chegada na empresa</h3><span class='ms'>"+(reg.ini&&reg.fim?"Rota de "+fmtMin(minEnt(reg.ini,reg.fim)):"Último check-out: toque ao chegar na fábrica")+"</span>";
   const g9=document.createElement("div");g9.className="mb";g9.appendChild(motBtn("🏁 Cheguei na empresa (fim da rota)",reg.fim,()=>motGrava({fim:Date.now()}),()=>motGrava({fim:0}),"big"));c9.appendChild(g9);
@@ -2988,7 +2987,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="123";
+const VER="124";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
