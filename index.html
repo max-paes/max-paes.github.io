@@ -747,7 +747,7 @@ function carregarAg(){try{const a=JSON.parse(localStorage.getItem(AGKEY)||"null"
   for(let d=1;d<=6;d++)rota[d].forEach(x=>{if(!clientes.some(c=>norm(c.nome).includes(norm(x.nome))))lembraCli(x.nome,"","",false)});salvaCli();}
 function salvaAg(){Object.keys(horas).forEach(dt=>{Object.keys(horas[dt]||{}).forEach(k=>{if(!(visitas[dt]&&visitas[dt][k]===true))delete horas[dt][k]})});salvaAgRaw();marcaCfg()}
 function marcaHora(dt,k){const h=(horas[dt]=horas[dt]||{});if(!h[k])h[k]=hhmm()}
-function horaVis(dt,nome,e){const k=norm(nome);if(e&&e.visita&&e.visita.ini)return e.visita.ini+(e.visita.fim?"–"+e.visita.fim:"");const h=(horas[dt]||{})[k];if(h)return h;
+function horaVis(dt,nome,e){const k=norm(nome);if((motivos[dt]||{})[k]===VD)return "";if(e&&e.visita&&e.visita.ini)return e.visita.ini+(e.visita.fim?"–"+e.visita.fim:"");const h=(horas[dt]||{})[k];if(h)return h;
   if((motivos[dt]||{})[k]===OUTRO_DIA){const ks=[k,norm(nomeCad(nome))],mn=new Date(dt+"T12:00:00");mn.setDate(mn.getDate()-6);const lo=isoD(mn);const o=hist.filter(x=>ks.includes(norm(x.cliente))&&x.data<=dt&&x.data>=lo&&x.visita&&x.visita.ini).sort((a,b)=>b.data.localeCompare(a.data))[0];if(o)return o.visita.ini+(o.visita.fim?"–"+o.visita.fim:"")}
   return ""}
 function salvaAgRaw(){try{localStorage.setItem(AGKEY,JSON.stringify(rota));localStorage.setItem(VKEY,JSON.stringify(visitas));localStorage.setItem(MKEY,JSON.stringify(motivos));localStorage.setItem(HRKEY,JSON.stringify(horas))}catch(e){}}
@@ -952,6 +952,8 @@ function dadosSemana(){
       rows.push({d,dt,nome:x.nome,e,vis,mot:vis?((motivos[dt]||{})[norm(x.nome)]||""):"",fut:dt>hoje,ant:e?ant(e.cliente,dt):null})});
     extrasDia(d).forEach(x=>{if(x.e)usados.add(x.e.id);rows.push({d,dt,nome:x.nome,e:x.e,vis:true,mot:(motivos[dt]||{})[norm(x.nome)]||"",fut:false,extra:true,ant:ant(x.nome,dt)})});
   });
+  rows.forEach((r,i)=>{r.i=i;const h=r.vis?horaVis(r.dt,r.nome,r.e):"";r.hk=r.vis?(h?"0"+h.slice(0,5):"1"):"2"});
+  rows.sort((a,b)=>a.d-b.d||a.hk.localeCompare(b.hk)||a.i-b.i);
   return {sem,rows};
 }
 function desenharRelatorio(logo){
@@ -2956,7 +2958,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="118";
+const VER="119";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
