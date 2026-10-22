@@ -351,6 +351,8 @@ body.trv #edbar{border-color:#0b7a75}
 #rm,#md{z-index:30}
 .fb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.fb img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
 .fb .th{display:flex;flex-direction:column;align-items:center;gap:4px}.fb .th button{padding:3px 10px;border-radius:10px;font-size:12px;line-height:1.2}
+.pi{background:rgba(31,111,235,.08);border:1px solid rgba(31,111,235,.3);border-radius:10px;padding:8px 10px;font-size:13px;margin:8px 0;line-height:1.45}
+.pit{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;font-size:13px}.pit b{display:block;margin:6px 0 2px}.pit div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:2px 0}
 .pn{background:rgba(217,160,30,.13);color:inherit;border:1px solid rgba(217,160,30,.45);border-radius:10px;padding:8px 10px;font-weight:600;font-size:13px;margin:8px 0}
 .mk label.pd{border-color:#b3261e}
 #fs{z-index:65}
@@ -1227,6 +1229,8 @@ function marcaPed(id){nv.pend.add(id);agendaNuvem()}
 function agendaNuvem(){if(!nv.db)return;clearTimeout(nv.t);nv.t=setTimeout(enviaNuvem,3000)}
 const colN=()=>nv.db.collection("vendedores/"+nv.uid+"/docs");
 function envia(id,e){let j=JSON.stringify(e);if(j.length>700000)j=JSON.stringify({...e,assin:{pedido:"",troca:""}});
+  try{if(e.status&&e.status!=="rascunho"&&soma(e.pedido)>0&&e.data){const f=o=>Object.fromEntries(Object.entries(o||{}).filter(([,q])=>q>0));
+    nv.db.collection("entrega").doc(nv.uid+"_p_"+id).set({c:e.cliente||"",d:e.data,ped:soma(e.pedido),tro:soma(e.troca),vend:perfil?perfil.nome:"",st:e.status,fat:!!e.fat,en:e.endereco||"",cp:e.comprador||"",it:{p:f(e.pedido),t:f(e.troca)},ref:nv.uid+"/p_"+id,ix:Date.now()},{merge:true}).catch(()=>{})}}catch(_){}
   const v=e.visita||{};return colN().doc("p_"+id).set({ts:e.ts,j,status:e.status||"rascunho",fat:!!e.fat,cliente:e.cliente||"",data:e.data||"",vendedor:perfil?perfil.nome:"",ini:v.ini||"",fim:v.fim||"",ped:soma(e.pedido),tro:soma(e.troca),fechadoEm:e.fechadoEm||0})}
 async function enviaNuvem(){
   if(!nv.db)return;
@@ -2489,9 +2493,10 @@ function motAbrir(){if(!ehMot())return;const uid=fbAuth.currentUser.uid,hj=hojeI
     mot.uR=fbDb.collection("rotas").doc(hj+"_"+uid).onSnapshot(sn=>{mot.rota=sn.exists?sn.data():null;motRender()},()=>{$("motm").textContent="Sem permissão para ler a rota. Peça para atualizar as regras do banco."});
     mot.uM=fbDb.collection("vendedores/"+uid+"/docs").doc("m_"+hj).onSnapshot(sn=>{mot.reg=sn.exists?(sn.data()||{}):{};motRender()},()=>{});
     mot.uP=fbDb.collection("vendedores/"+uid+"/docs").doc("m_pend").onSnapshot(sn=>{mot.pend=sn.exists?((sn.data()||{}).l||{}):{};motRender()},()=>{});
+    mot.ent={};mot.uE=fbDb.collection("entrega").where("d",">=",addD(hj,-3)).onSnapshot(sn=>{const o={};sn.docs.forEach(d=>{o[d.id]=d.data()||{}});mot.ent=o;motRender()},()=>{});
     mot.oe={};mot.uO=[0,1,2].map(n=>{const d=addD(hj,-n);return fbDb.collection("obsent").doc(d).onSnapshot(sn=>{mot.oe[d]=sn.exists?((sn.data()||{}).l||{}):{};motRender()},()=>{})})}
   $("mot").classList.add("on");motRender()}
-function motDesliga(manter){Object.values(mot.ocU||{}).forEach(f=>{try{f()}catch(e){}});mot.ocU={};mot.ocd={};["uR","uM","uP"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});(mot.uO||[]).forEach(f=>{try{f()}catch(e){}});mot.uO=null;mot.oe={};mot.rota=null;mot.reg={};mot.pend={};if(!manter)$("mot").classList.remove("on")}
+function motDesliga(manter){Object.values(mot.ocU||{}).forEach(f=>{try{f()}catch(e){}});mot.ocU={};mot.ocd={};["uR","uM","uP","uE"].forEach(k=>{if(mot[k]){mot[k]();mot[k]=null}});mot.ent={};(mot.uO||[]).forEach(f=>{try{f()}catch(e){}});mot.uO=null;mot.oe={};mot.rota=null;mot.reg={};mot.pend={};if(!manter)$("mot").classList.remove("on")}
 setInterval(()=>{if($("mot").classList.contains("on")&&mot.dia&&mot.dia!==hojeISO())motAbrir()},300000);
 function motGrava(patch){if(!ehMot())return;const uid=fbAuth.currentUser.uid;
   $("motm").textContent="";
@@ -2543,7 +2548,7 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   mot.adiado=false;
   $("mott").textContent="Motorista: "+U(perfil&&perfil.nome||"");
   const C=$("motc"),R=mot.rota,reg=mot.reg||{},PP=reg.p||{};C.innerHTML="";
-  const LST=((R&&R.paradas)||[]).concat((reg.x||[]).map(e=>({id:e.id,cliente:e.cliente,ped:0,ob:"",extra:1})));
+  const LST=((R&&R.paradas)||[]).concat((reg.x||[]).map(e=>({id:e.id,cliente:e.cliente,ped:e.ped||0,ob:"",extra:1,ref:e.ref||"",pd:e.pd||""})));
   const card=(cls)=>{const d=document.createElement("div");d.className="mc"+(cls?" "+cls:"");return d};
   // início da rota
   const c0=card(reg.ini?"ok":"");c0.innerHTML="<h3>Rota de hoje · "+esc(dBR(mot.dia))+"</h3><span class='ms'>"+(LST.length?LST.length+(LST.length===1?" parada":" paradas"):"Nenhuma parada montada ainda")+"</span>";
@@ -2552,12 +2557,19 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   c0.appendChild(g0);C.appendChild(c0);
   if(!LST.length){const v=document.createElement("div");v.className="vazio";v.textContent="O supervisor ainda não montou a sua rota de hoje. Toque em Atualizar daqui a pouco ou acrescente uma loja abaixo.";C.appendChild(v)}
   LST.forEach((s,i)=>{const r=PP[s.id]||{},c=card(r.s?"ok":"");
-    c.innerHTML="<h3>"+(i+1)+". "+esc(s.cliente||"Loja")+"</h3><span class='ms'>"+esc([s.extra?"Loja extra":"",s.ped?s.ped+" un.":"",s.ob||""].filter(Boolean).join(" · "))+(r.c&&r.s?(" · "+fmtMin(minEnt(r.c,r.s))+" na loja"):"")+"</span>";
+    c.innerHTML="<h3>"+(i+1)+". "+esc(s.cliente||"Loja")+"</h3><span class='ms'>"+esc([s.extra&&!s.ref?"Loja extra":"",s.ped&&!s.ref?s.ped+" un.":"",s.ob||""].filter(Boolean).join(" · "))+(r.c&&r.s?(" · "+fmtMin(minEnt(r.c,r.s))+" na loja"):"")+"</span>";
     {const pd=(mot.pend||{})[pkey(s.cliente)];if(pd&&(pd.e||pd.x)&&!r.tl&&pd.d!==mot.dia){const pn=document.createElement("div");pn.className="pn";
       pn.textContent="🔔 Lembrete: na visita de "+dBR(pd.d)+" havia telas "+[pd.e?"no estoque":"",pd.x?"no ponto extra":""].filter(Boolean).join(" e ")+" para coletar.";c.appendChild(pn)}}
     oesDe(s.cliente).forEach(o=>{const pn=document.createElement("div");pn.className="pn oe";pn.textContent="📝 Promotor"+(o.por?" ("+o.por.split(" ")[0]+")":"")+", "+dBR(o.d).slice(0,5)+": "+o.t;c.appendChild(pn)});
     if(s.ref){const k=s.ref.replace("/","_"),od=motOc(k),it=ocLista(od),meta={c:s.cliente,d:s.pd||mot.dia};
       it.filter(x=>!x.sis).slice(-3).forEach(o=>{const pn=document.createElement("div");pn.className="pn oe";pn.textContent="📝 "+(o.por||"").split(" ")[0]+" ("+rotP(o.papel||"")+"), "+hmTs(o.ts)+": "+o.t;c.appendChild(pn)});
+      {const pi=document.createElement("div");pi.className="pi";const P=(od.it&&od.it.p)||{},Tr=(od.it&&od.it.t)||{};
+        pi.innerHTML="<b>"+(od.fin?"✅ Entregue":od.rota?"🚚 Em rota":"📦 Aguardando entrega")+"</b> · Pedido de "+esc(dBR(od.d||s.pd||mot.dia).slice(0,5))+(od.vend?" · "+esc(od.vend.split(" ")[0]):"")+" · "+(od.ped||s.ped||0)+" un."+(od.tro?" · troca "+od.tro+" un.":"")+(od.cp?"<br>Comprador: "+esc(od.cp):"")+(od.en?"<br>"+esc(od.en):"");
+        c.appendChild(pi);
+        if(Object.keys(P).length||Object.keys(Tr).length){const bv=document.createElement("button");bv.className="sec";const box=document.createElement("div");box.className="pit";box.hidden=!mot.abre||!mot.abre[k];
+          const lin=(t,o)=>Object.keys(o).length?"<b>"+t+"</b>"+Object.entries(o).map(([n,q])=>"<div><span>"+esc(n)+"</span><span>"+q+"</span></div>").join(""):"";
+          box.innerHTML=lin("Pedido",P)+lin("Troca",Tr);bv.textContent=box.hidden?"📄 Ver pedido":"📄 Ocultar pedido";
+          bv.onclick=()=>{mot.abre=mot.abre||{};mot.abre[k]=box.hidden;box.hidden=!box.hidden;bv.textContent=box.hidden?"📄 Ver pedido":"📄 Ocultar pedido"};c.append(bv,box)}}
       const ge=document.createElement("div");ge.className="mb";
       const bo=document.createElement("button");bo.className="sec"+(it.filter(x=>!x.sis).length?" ocb":"");bo.textContent="📝 Ocorrência"+(it.filter(x=>!x.sis).length?" ("+it.filter(x=>!x.sis).length+")":"");bo.onclick=()=>ocAbrir(k,meta,s.cliente);
       const bfz=document.createElement("button");
@@ -2588,6 +2600,16 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
       rx.onclick=()=>{if(rx.dataset.c!=="1"){rx.dataset.c="1";rx.textContent="Confirmar remoção?";setTimeout(()=>{rx.dataset.c="";rx.textContent="Remover esta loja"},3000);return}
         motGrava({x:(reg.x||[]).filter(e=>e.id!==s.id)})};c.appendChild(rx)}
     C.appendChild(c)});
+  // pedidos fechados para puxar para a rota
+  const naRota=new Set(LST.map(x=>x.ref).filter(Boolean));
+  const motAdd=it=>{const novo={id:"x"+Date.now().toString(36)+Math.floor(Math.random()*99),...it};motGrava({x:(reg.x||[]).concat([novo])});if(reg.ini&&novo.ref)motRota([novo],true)};
+  {const ab=Object.entries(mot.ent||{}).map(([id,d])=>({id,...d})).filter(d=>d.ref&&(d.ped||0)>0&&!d.fin&&!naRota.has(d.ref)).sort((a,b)=>(a.d||"").localeCompare(b.d||"")||(a.c||"").localeCompare(b.c||"","pt-BR"));
+   const cp=card(),h=document.createElement("h3");h.textContent="Pedidos para entregar ("+ab.length+")";cp.appendChild(h);
+   const sp=document.createElement("span");sp.className="ms";sp.textContent=ab.length?"Toque em + para puxar o pedido para a sua rota. Ele vem com as informações, a ocorrência e o status da entrega.":"Nenhum pedido fechado aguardando entrega.";cp.appendChild(sp);
+   ab.forEach(d=>{const r=document.createElement("div");r.className="rr";const t=document.createElement("span");t.className="t";
+     t.textContent=(d.c||"(sem loja)")+" · "+(d.ped||0)+" un."+(d.vend?" · "+d.vend.split(" ")[0]:"")+(d.d!==mot.dia?" · de "+dBR(d.d).slice(0,5):"");
+     const b=document.createElement("button");b.textContent="+ Puxar";b.onclick=()=>{b.disabled=true;motAdd({cliente:d.c||"",ped:d.ped||0,ref:d.ref,pd:d.d||""})};r.append(t,b);cp.appendChild(r)});
+   C.appendChild(cp)}
   // acrescentar loja pela pesquisa
   {const ca=card(),h=document.createElement("h3");h.textContent="Acrescentar loja";ca.appendChild(h);
    const sp=document.createElement("span");sp.className="ms";sp.textContent="Pesquise pelo nome ou digite uma loja nova.";ca.appendChild(sp);
@@ -2598,7 +2620,8 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
    [...nomes].sort((a,b)=>String(a).localeCompare(String(b),"pt-BR")).forEach(n=>{const o=document.createElement("option");o.value=n;dl.appendChild(o)});
    const bt=document.createElement("button");bt.textContent="+ Adicionar";
    const add=()=>{const n=U(inp.value.trim());if(!n)return;
-     motGrava({x:(reg.x||[]).concat([{id:"x"+Date.now().toString(36),cliente:n}])});inp.value=""};
+     const pd=Object.values(mot.ent||{}).filter(d=>d.ref&&(d.ped||0)>0&&!d.fin&&!naRota.has(d.ref)&&pkey(d.c||"")===pkey(n)).sort((a,b)=>(b.d||"").localeCompare(a.d||""))[0];
+     motAdd(pd?{cliente:pd.c||n,ped:pd.ped||0,ref:pd.ref,pd:pd.d||""}:{cliente:n});inp.value=""};
    bt.onclick=add;inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();add()}};
    row.append(inp,bt,dl);ca.appendChild(row);C.appendChild(ca)}
   // chegada na empresa = último check-out + observações do dia
@@ -2958,7 +2981,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="120";
+const VER="121";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
