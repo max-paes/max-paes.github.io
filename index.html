@@ -1722,13 +1722,13 @@ function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTime
   $("vcs").value=ESP?"u:"+ESP.uid:(perfil.papel||"developer");b.classList.toggle("on",!!ESP||perfil.papel!=="developer");
   const g=$("vcg");g.hidden=!ESP;if(ESP){g.className=ESP.grava?"on":"";g.textContent=ESP.grava?"✍ Gravando":"🔒 Só ver"}}
 let vcU=null;
-async function vcUsuarios(){if(vcU||!fbDb)return;vcU=1;const db=ESP?ESP.real:fbDb;
+async function vcUsuarios(f){if(!fbDb)return;if(vcU&&!(f&&Date.now()-vcU>15000))return;vcU=Date.now();const db=ESP?ESP.real:fbDb;
   try{const sn=await db.collection("vendedores").get(),me=(ESP?ESP.realAuth:fbAuth).currentUser.uid,L=[];
     sn.docs.forEach(d=>{const v=d.data()||{};if(d.id===me||v.ativo===false)return;L.push({uid:d.id,n:v.nome||v.email||"(sem nome)",p:v.papel||"vendedor"})});
     L.sort((a,b)=>a.n.localeCompare(b.n,"pt-BR"));if(!L.length)return;
     const og=document.createElement("optgroup");og.label="Usuários reais (ao vivo)";
     L.forEach(u=>{const o=document.createElement("option");o.value="u:"+u.uid;o.textContent=u.n.split(" ").slice(0,2).join(" ")+" · "+rotP(u.p).toLowerCase();og.appendChild(o)});
-    $("vcs").appendChild(og);if(ESP)$("vcs").value="u:"+ESP.uid}catch(e){vcU=null}}
+    const sv=$("vcs").value;$("vcs").querySelectorAll("optgroup").forEach(x=>x.remove());$("vcs").appendChild(og);$("vcs").value=ESP?"u:"+ESP.uid:sv}catch(e){vcU=null}}
 function verComo(p){if(!ehDev())return;
   if(p&&p.startsWith("u:")){espelhar(p.slice(2));return}
   if(ESP){location.reload();return}
@@ -2619,8 +2619,8 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
    const L=document.createElement("div");cp.appendChild(L);
    const nomes=new Map();((R&&R.lista)||[]).forEach(n=>nomes.set(pkey(n),n));(clientes||[]).forEach(c=>nomes.set(pkey(c.nome),c.nome));
    const pinta=()=>{const q=pkey(inp.value||"");mot.q=inp.value;L.innerHTML="";
-     const vis=ab.filter(d=>!q||pkey(d.c||"").includes(q));
-     const tt=document.createElement("small");tt.className="ms";tt.style.display="block";tt.style.marginTop="8px";tt.textContent=q?(vis.length?vis.length+(vis.length===1?" pedido encontrado":" pedidos encontrados"):"Nenhum pedido fechado para essa loja."):"Pedidos para entregar ("+ab.length+")";L.appendChild(tt);
+     if(!q)return;const vis=ab.filter(d=>pkey(d.c||"").includes(q));
+     const tt=document.createElement("small");tt.className="ms";tt.style.display="block";tt.style.marginTop="8px";tt.textContent=vis.length?vis.length+(vis.length===1?" pedido encontrado":" pedidos encontrados"):"Nenhum pedido fechado para essa loja.";L.appendChild(tt);
      vis.forEach(d=>{const r=document.createElement("div");r.className="rr";const t=document.createElement("span");t.className="t";
        t.textContent=(d.c||"(sem loja)")+" · "+(d.ped||0)+" un."+(d.d!==mot.dia?" · de "+dBR(d.d).slice(0,5):"");
        const bb=document.createElement("button");bb.textContent="+ Puxar";bb.onclick=()=>{bb.disabled=true;mot.q="";motAdd({cliente:d.c||"",ped:d.ped||0,ref:d.ref,pd:d.d||""})};r.append(t,bb);L.appendChild(r)});
@@ -2843,7 +2843,7 @@ $("bkb").onclick=async()=>{const b=$("bkb"),m=$("bkm");b.disabled=true;m.textCon
     m.textContent="Backup baixado (sem as fotos). Uso estimado do banco: "+mb(tot)+" de 1 GB grátis ("+pc+"%) · fotos: "+nf+" ("+mb(bf)+")."+(pc>=70?" Atenção: perto do limite grátis.":"")}
   catch(e){m.textContent="Não foi possível gerar o backup: "+(e.code||e.message)}
   b.disabled=false};
-$("vcs").onchange=()=>verComo($("vcs").value);$("vcg").onclick=espGrava;
+$("vcs").onchange=()=>verComo($("vcs").value);["pointerdown","focus"].forEach(ev=>$("vcs").addEventListener(ev,()=>vcUsuarios(true)));$("vcg").onclick=espGrava;
 $("mots").onclick=async()=>{const b=$("mots");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair"},3000);return}
   b.dataset.c="";b.textContent="Sair";await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}
   if(unsub){unsub();unsub=null}supDesliga();nv.db=null;const f=fbAuth;perfil=null;motDesliga();fabDesliga();mostraVendedor();try{await f.signOut()}catch(e){}};
@@ -2987,7 +2987,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="125";
+const VER="126";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
