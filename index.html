@@ -829,7 +829,7 @@ function renderAg(){
     const h=document.createElement("span");h.className="hd";h.textContent="⠿";h.setAttribute("aria-label","Arrastar para mudar a ordem");h.setAttribute("role","button");
     h.addEventListener("pointerdown",e=>iniciaArraste(e,r,i));
     const t=document.createElement("button");t.type="button";t.className="t";
-    const b=document.createElement("b");b.textContent=(i+1)+". "+x.nome;const sm=document.createElement("small");{const mo0=v?motivoDe(x.nome,agDia):"";sm.textContent=(x.bairro||"")+(mo0&&mo0!==OUTRO_DIA&&mo0!==VD?" · "+motL(mo0):"")+(v?" · "+(horaVis(dt,x.nome,pedidoDoDia(x.nome,agDia))||"s/ horário"):"")+(agEdit?"":" · toque para abrir")}t.append(b,sm);
+    const b=document.createElement("b");b.textContent=(i+1)+". "+x.nome;const sm=document.createElement("small");{const mo0=v?motivoDe(x.nome,agDia):"";sm.textContent=(x.bairro||"")+(mo0&&mo0!==OUTRO_DIA&&mo0!==VD?" · "+motL(mo0):"")+(v&&horaVis(dt,x.nome,pedidoDoDia(x.nome,agDia))?" · "+horaVis(dt,x.nome,pedidoDoDia(x.nome,agDia)):"")+(agEdit?"":" · toque para abrir")}t.append(b,sm);
     r.append(h,t);
     if(agEdit){
       t.disabled=true;
@@ -855,7 +855,7 @@ function renderAg(){
   ext.forEach((x,j)=>{const mo=motivoDe(x.nome,agDia),ped=x.e?soma(x.e.pedido):0;
     const r=document.createElement("div");r.className="ag ok"+(mo===VD?" vd":"");const h=document.createElement("span");h.className="hd";h.textContent="✓";
     const t=document.createElement("button");t.type="button";t.className="t";const b=document.createElement("b");b.textContent=(lista.length+j+1)+". "+x.nome;
-    const sm=document.createElement("small");sm.textContent=[mo&&mo!==OUTRO_DIA&&mo!==VD&&!ped?motL(mo):"",horaVis(dt,x.nome,x.e)||"s/ horário","toque para abrir"].filter(Boolean).join(" · ");t.append(b,sm);r.append(h,t);
+    const sm=document.createElement("small");sm.textContent=[mo&&mo!==OUTRO_DIA&&mo!==VD&&!ped?motL(mo):"",horaVis(dt,x.nome,x.e),"toque para abrir"].filter(Boolean).join(" · ");t.append(b,sm);r.append(h,t);
     t.onclick=()=>{if(x.e){$("ag").classList.remove("on");abrirPedido(x.e.id,{dataset:{c:"1",v:"1"},textContent:""})}else abrirDaAgenda(x,r,sm)};
     const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",true);
     st.textContent=ped>0?"✓ Visitado":mo===VD?"✓ "+VD:motL(mo)==="Abastecido"?"✓ Abastecido":motL(mo)==="Abastecido com estoque"?"✓ Abastecido c/ estoque":"✓ Sem pedido";
@@ -953,7 +953,7 @@ function dadosSemana(){
   return {sem,rows};
 }
 function desenharRelatorio(logo){
-  const {sem,rows}=dadosSemana(),W=1400,M=45,tw=W-2*M,RH=46;
+  const {sem,rows:rows0}=dadosSemana(),rows=rows0.filter(r=>!r.fut),W=1400,M=45,tw=W-2*M,RH=46;
   const ag=rows,feitas=ag.filter(r=>r.vis).length,furos=ag.filter(r=>!r.vis&&!r.fut).length,pend=ag.filter(r=>!r.vis&&r.fut).length;
   const comP=rows.filter(r=>r.e&&soma(r.e.pedido)>0),un=comP.reduce((a,r)=>a+soma(r.e.pedido),0),tr=rows.reduce((a,r)=>a+(r.e?soma(r.e.troca):0),0);
   const semP=rows.filter(r=>r.vis&&r.mot!==OUTRO_DIA&&r.mot!==VD&&!(r.e&&soma(r.e.pedido)>0)),cm={};semP.forEach(r=>{const k=motL(r.mot)||"Sem motivo informado";cm[k]=(cm[k]||0)+1});
@@ -987,7 +987,7 @@ function desenharRelatorio(logo){
     else if(r.vis){st="✓ "+rotSP(r.mot);cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
     else{st="✗ Não visitado";cor="#b3261e"}
-    if(r.vis)st+=" · "+(horaVis(r.dt,r.nome,r.e)||"s/ horário");
+    {const hv=r.vis?horaVis(r.dt,r.nome,r.e):"";if(hv)st+=" · "+hv}
     x.fillStyle=cor;x.font="700 20px "+FT;x.fillText(fit(st,C[2][1]-24),X[2]+14,y+30);
     x.textAlign="center";x.fillStyle=TX;x.font="800 22px "+FT;
     x.fillText(r.e?String(ped):"—",X[3]+C[3][1]/2,y+30);x.fillText(r.e?String(tro):"—",X[4]+C[4][1]/2,y+30);
@@ -2043,7 +2043,7 @@ function renderHist(){
     const mes=(e.data||"").slice(0,7);
     if(mes&&mes!==mesAnt){mesAnt=mes;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+mes.slice(5,7)-1]+" "+mes.slice(0,4);L.appendChild(h)}
     if(e.sp){const it=document.createElement("div");it.className="hit";const t=document.createElement("b");t.textContent=e.cliente;const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[e.k])===VD?"vd":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[e.k]);t.appendChild(b);
-      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),((motivos[e.data]||{})[e.k]===VD?"Visita feita pelo Dilson":motL((motivos[e.data]||{})[e.k])||"Visitado, sem pedido"),"Visita "+(horaVis(e.data,e.cliente,null)||"s/ horário")].join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
+      const sm=document.createElement("small");sm.textContent=[e.data.split("-").reverse().join("/"),((motivos[e.data]||{})[e.k]===VD?"Visita feita pelo Dilson":motL((motivos[e.data]||{})[e.k])||"Visitado, sem pedido"),horaVis(e.data,e.cliente,null)?"Visita "+horaVis(e.data,e.cliente,null):""].filter(Boolean).join(" · ");it.append(t,sm);const ac=document.createElement("div");ac.className="acts";const rm=document.createElement("button");rm.textContent="Remover marca";rm.onclick=()=>{if(rm.dataset.c!=="1"){rm.dataset.c="1";rm.textContent="Remover? Toque de novo";setTimeout(()=>{rm.dataset.c="";rm.textContent="Remover marca"},3000);return}if(visitas[e.data])delete visitas[e.data][e.k];if(motivos[e.data])delete motivos[e.data][e.k];salvaAg();renderHist();try{renderAg()}catch(x){}};ac.appendChild(rm);it.appendChild(ac);L.appendChild(it);return}
     const it=document.createElement("div");it.className="hit"+(e.id===curId?" cur":"");
     const t=document.createElement("b");t.textContent=e.cliente||"(sem nome)";
     const sm=document.createElement("small");
@@ -2051,7 +2051,7 @@ function renderHist(){
     const ng=Object.keys(e.gondola||{}).length;
     if(soma(e.pedido)===0&&e.data&&(visitas[e.data]||{})[norm(e.cliente)]===true&&(motivos[e.data]||{})[norm(e.cliente)]!==OUTRO_DIA){const b=document.createElement("span");b.className="hst "+(((motivos[e.data]||{})[norm(e.cliente)])===VD?"vd":"sempedido");b.textContent=rotSP((motivos[e.data]||{})[norm(e.cliente)]);t.appendChild(b)}
     else if(e.status&&e.status!=="rascunho"){const b=document.createElement("span");b.className="hst "+clsSt(e.status,e.fat);b.textContent=rotSt(e.status,e.fat);t.appendChild(b)}
-    sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):(soma(e.pedido)>0||soma(e.troca)>0)?"Visita "+(horaVis(e.data,e.cliente,e)||"s/ horário"):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
+    sm.textContent=[dt,e.comprador?"Comprador: "+e.comprador:"","Pedido: "+n(e.pedido)+(n(e.pedido)===1?" item":" itens"),"Troca: "+n(e.troca)+(n(e.troca)===1?" item":" itens"),e.visita&&e.visita.ini?"Visita "+e.visita.ini+(e.visita.fim?"–"+e.visita.fim:" (em andamento)"):(soma(e.pedido)>0||soma(e.troca)>0)?(horaVis(e.data,e.cliente,e)?"Visita "+horaVis(e.data,e.cliente,e):""):"",e.id===curId?"aberto agora":""].filter(Boolean).join(" · ");
     const ac=document.createElement("div");ac.className="acts";
     const ed=document.createElement("button");ed.textContent="Editar";ed.onclick=()=>abrirPedido(e.id,ed);
     const ex=document.createElement("button");ex.textContent="Excluir";ex.onclick=()=>excluir(e.id,ex);
@@ -2954,7 +2954,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="116";
+const VER="117";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
