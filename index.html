@@ -949,7 +949,7 @@ function dadosSemana(){
     rota[d].forEach(x=>{if(visOntem(x.nome,d))return;const ks=[norm(x.nome),norm(nomeCad(x.nome))];
       const e=hist.find(h=>h.data===dt&&ks.includes(norm(h.cliente)));if(e)usados.add(e.id);
       const man=(visitas[dt]||{})[norm(x.nome)],vis=typeof man==="boolean"?man:!!(e&&(soma(e.pedido)>0||soma(e.troca)>0||!!(e.visita&&e.visita.ini)));
-      rows.push({d,dt,nome:x.nome,e,vis,mot:vis?((motivos[dt]||{})[norm(x.nome)]||""):"",fut:dt>hoje,ant:e?ant(e.cliente,dt):null})});
+      rows.push({d,dt,nome:x.nome,e,vis,mot:vis?((motivos[dt]||{})[norm(x.nome)]||""):"",fut:dt>=hoje,ant:e?ant(e.cliente,dt):null})});
     extrasDia(d).forEach(x=>{if(x.e)usados.add(x.e.id);rows.push({d,dt,nome:x.nome,e:x.e,vis:true,mot:(motivos[dt]||{})[norm(x.nome)]||"",fut:false,extra:true,ant:ant(x.nome,dt)})});
   });
   rows.forEach((r,i)=>{r.i=i;const h=r.vis?horaVis(r.dt,r.nome,r.e):"";r.hk=r.vis?(h?"0"+h.slice(0,5):"1"):"2"});
@@ -957,7 +957,7 @@ function dadosSemana(){
   return {sem,rows};
 }
 function desenharRelatorio(logo){
-  const {sem,rows:rows0}=dadosSemana(),rows=rows0.filter(r=>!r.fut),W=1400,M=45,tw=W-2*M,RH=46;
+  const {sem,rows}=dadosSemana(),W=1400,M=45,tw=W-2*M,RH=46;
   const ag=rows,feitas=ag.filter(r=>r.vis).length,furos=ag.filter(r=>!r.vis&&!r.fut).length,pend=ag.filter(r=>!r.vis&&r.fut).length;
   const comP=rows.filter(r=>r.e&&soma(r.e.pedido)>0),un=comP.reduce((a,r)=>a+soma(r.e.pedido),0),tr=rows.reduce((a,r)=>a+(r.e?soma(r.e.troca):0),0);
   const semP=rows.filter(r=>r.vis&&r.mot!==OUTRO_DIA&&r.mot!==VD&&!(r.e&&soma(r.e.pedido)>0)),cm={};semP.forEach(r=>{const k=motL(r.mot)||"Sem motivo informado";cm[k]=(cm[k]||0)+1});
@@ -2958,7 +2958,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="119";
+const VER="120";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
