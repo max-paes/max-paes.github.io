@@ -2564,7 +2564,7 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
     if(s.ref){const k=s.ref.replace("/","_"),od=motOc(k),it=ocLista(od),meta={c:s.cliente,d:s.pd||mot.dia};
       it.filter(x=>!x.sis).slice(-3).forEach(o=>{const pn=document.createElement("div");pn.className="pn oe";pn.textContent="📝 "+(o.por||"").split(" ")[0]+" ("+rotP(o.papel||"")+"), "+hmTs(o.ts)+": "+o.t;c.appendChild(pn)});
       {const pi=document.createElement("div");pi.className="pi";const P=(od.it&&od.it.p)||{},Tr=(od.it&&od.it.t)||{};
-        pi.innerHTML="<b>"+(od.fin?"✅ Entregue":od.rota?"🚚 Em rota":"📦 Aguardando entrega")+"</b> · Pedido de "+esc(dBR(od.d||s.pd||mot.dia).slice(0,5))+(od.vend?" · "+esc(od.vend.split(" ")[0]):"")+" · "+(od.ped||s.ped||0)+" un."+(od.tro?" · troca "+od.tro+" un.":"")+(od.cp?"<br>Comprador: "+esc(od.cp):"")+(od.en?"<br>"+esc(od.en):"");
+        pi.innerHTML="<b>"+(od.fin?"✅ Entregue":od.rota?"🚚 Em rota":"📦 Aguardando entrega")+"</b> · Pedido de "+esc(dBR(od.d||s.pd||mot.dia).slice(0,5))+" · "+(od.ped||s.ped||0)+" un."+(od.tro?" · troca "+od.tro+" un.":"")+(od.cp?"<br>Comprador: "+esc(od.cp):"")+(od.en?"<br>"+esc(od.en):"");
         c.appendChild(pi);
         if(Object.keys(P).length||Object.keys(Tr).length){const bv=document.createElement("button");bv.className="sec";const box=document.createElement("div");box.className="pit";box.hidden=!mot.abre||!mot.abre[k];
           const lin=(t,o)=>Object.keys(o).length?"<b>"+t+"</b>"+Object.entries(o).map(([n,q])=>"<div><span>"+esc(n)+"</span><span>"+q+"</span></div>").join(""):"";
@@ -2596,22 +2596,23 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
     if(r.ex)c.appendChild(fotoBloco(s.id,"ex",r,"Fotos do ponto extra"));
     if(r.gd)c.appendChild(fotoBloco(s.id,"gd",r,"Fotos da gôndola"));
     const ob=document.createElement("textarea");ob.placeholder="Observações desta parada";ob.value=r.ob||"";ob.onchange=()=>motP(s.id,{ob:ob.value.trim()});c.appendChild(ob);
-    if(s.extra&&!(r.c||r.n||r.s)){const rx=document.createElement("button");rx.className="sec";rx.textContent="Remover esta loja";rx.style.marginTop="8px";
+    if(s.extra&&!reg.ini&&!(r.c||r.n||r.s)){const rx=document.createElement("button");rx.className="sec";rx.textContent="Remover esta loja";rx.style.marginTop="8px";
       rx.onclick=()=>{if(rx.dataset.c!=="1"){rx.dataset.c="1";rx.textContent="Confirmar remoção?";setTimeout(()=>{rx.dataset.c="";rx.textContent="Remover esta loja"},3000);return}
         motGrava({x:(reg.x||[]).filter(e=>e.id!==s.id)})};c.appendChild(rx)}
     C.appendChild(c)});
   // pedidos fechados para puxar para a rota
   const naRota=new Set(LST.map(x=>x.ref).filter(Boolean));
-  const motAdd=it=>{const novo={id:"x"+Date.now().toString(36)+Math.floor(Math.random()*99),...it};motGrava({x:(reg.x||[]).concat([novo])});if(reg.ini&&novo.ref)motRota([novo],true)};
-  {const ab=Object.entries(mot.ent||{}).map(([id,d])=>({id,...d})).filter(d=>d.ref&&(d.ped||0)>0&&!d.fin&&!naRota.has(d.ref)).sort((a,b)=>(a.d||"").localeCompare(b.d||"")||(a.c||"").localeCompare(b.c||"","pt-BR"));
+  const motAdd=it=>{if(reg.ini)return;const novo={id:"x"+Date.now().toString(36)+Math.floor(Math.random()*99),...it};motGrava({x:(reg.x||[]).concat([novo])})};
+  if(reg.ini){const cb=card(),h=document.createElement("h3");h.textContent="Rota iniciada";const sp=document.createElement("span");sp.className="ms";sp.textContent="Depois da saída da empresa não dá para acrescentar lojas. Monte a rota antes de sair.";cb.append(h,sp);C.appendChild(cb)}
+  if(!reg.ini){const ab=Object.entries(mot.ent||{}).map(([id,d])=>({id,...d})).filter(d=>d.ref&&(d.ped||0)>0&&!d.fin&&!naRota.has(d.ref)).sort((a,b)=>(a.d||"").localeCompare(b.d||"")||(a.c||"").localeCompare(b.c||"","pt-BR"));
    const cp=card(),h=document.createElement("h3");h.textContent="Pedidos para entregar ("+ab.length+")";cp.appendChild(h);
    const sp=document.createElement("span");sp.className="ms";sp.textContent=ab.length?"Toque em + para puxar o pedido para a sua rota. Ele vem com as informações, a ocorrência e o status da entrega.":"Nenhum pedido fechado aguardando entrega.";cp.appendChild(sp);
    ab.forEach(d=>{const r=document.createElement("div");r.className="rr";const t=document.createElement("span");t.className="t";
-     t.textContent=(d.c||"(sem loja)")+" · "+(d.ped||0)+" un."+(d.vend?" · "+d.vend.split(" ")[0]:"")+(d.d!==mot.dia?" · de "+dBR(d.d).slice(0,5):"");
+     t.textContent=(d.c||"(sem loja)")+" · "+(d.ped||0)+" un."+(d.d!==mot.dia?" · de "+dBR(d.d).slice(0,5):"");
      const b=document.createElement("button");b.textContent="+ Puxar";b.onclick=()=>{b.disabled=true;motAdd({cliente:d.c||"",ped:d.ped||0,ref:d.ref,pd:d.d||""})};r.append(t,b);cp.appendChild(r)});
    C.appendChild(cp)}
   // acrescentar loja pela pesquisa
-  {const ca=card(),h=document.createElement("h3");h.textContent="Acrescentar loja";ca.appendChild(h);
+  if(!reg.ini){const ca=card(),h=document.createElement("h3");h.textContent="Acrescentar loja";ca.appendChild(h);
    const sp=document.createElement("span");sp.className="ms";sp.textContent="Pesquise pelo nome ou digite uma loja nova.";ca.appendChild(sp);
    const row=document.createElement("div");row.className="mt";
    const inp=document.createElement("input");inp.type="text";inp.placeholder="Nome da loja";inp.setAttribute("list","motl");inp.setAttribute("aria-label","Pesquisar loja");inp.autocomplete="off";inp.style.cssText="flex:1;min-width:160px;width:auto";
@@ -2981,7 +2982,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="121";
+const VER="122";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
