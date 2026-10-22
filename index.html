@@ -764,6 +764,10 @@ function marcaManual(n,d){const m=visitas[dataDoDia(d)];return m&&typeof m[norm(
 function semPed(n,d){const dt=dataDoDia(d),k=norm(n);if((visitas[dt]||{})[k]!==true||(motivos[dt]||{})[k]===OUTRO_DIA)return false;const ks=[k,norm(nomeCad(n))];return !hist.some(h=>h.data===dt&&ks.includes(norm(h.cliente))&&soma(h.pedido)>0)}
 function visitado(n,d){const m=marcaManual(n,d);return m!==null?m:!!pedidoDoDia(n,d)}
 function alternaVisita(n,d){const dt=dataDoDia(d),v=!visitado(n,d);(visitas[dt]=visitas[dt]||{})[norm(n)]=v;if(v)marcaHora(dt,norm(n));if(!v&&motivos[dt])delete motivos[dt][norm(n)];salvaAg();renderAg()}
+function extrasDia(d){const dt=dataDoDia(d),noAg=new Set();rota[d].forEach(x=>{noAg.add(norm(x.nome));noAg.add(norm(nomeCad(x.nome)))});const out=[],vis=new Set();
+  hist.filter(h=>h.data===dt&&!noAg.has(norm(h.cliente))&&!noAg.has(norm(nomeCad(h.cliente)))&&(soma(h.pedido)>0||soma(h.troca)>0||!!(h.visita&&h.visita.ini))).forEach(h=>{const k=norm(h.cliente);if(vis.has(k))return;vis.add(k);out.push({nome:h.cliente,bairro:"",e:h,extra:1})});
+  Object.keys(visitas[dt]||{}).forEach(k=>{if(visitas[dt][k]!==true||noAg.has(k)||vis.has(k))return;vis.add(k);const c=(clientes||[]).find(c=>norm(c.nome)===k);out.push({nome:c?c.nome:k.toUpperCase(),bairro:"",e:null,extra:1})});
+  return out}
 function motivoDe(n,d){return (motivos[dataDoDia(d)]||{})[norm(n)]||""}
 function marcaComMotivo(n,d,m){const dt=dataDoDia(d);(visitas[dt]=visitas[dt]||{})[norm(n)]=true;marcaHora(dt,norm(n));if(m)(motivos[dt]=motivos[dt]||{})[norm(n)]=m;agMot=null;salvaAg();renderAg()}
 let arr=null;
@@ -812,10 +816,10 @@ function renderAlertas(){
 function renderAg(){
   const D=$("agd");D.innerHTML="";
   for(let d=1;d<=6;d++){const b=document.createElement("button");b.textContent=DCURTO[d];b.setAttribute("aria-pressed",d===agDia);b.onclick=()=>{agDia=d;agMot=null;renderAg()};D.appendChild(b)}
-  const lista=rota[agDia],dt=dataDoDia(agDia),hoje=agDia===diaHoje();
-  const feitos=lista.filter(x=>visitado(x.nome,agDia)).length;
+  const lista=rota[agDia],dt=dataDoDia(agDia),hoje=agDia===diaHoje(),ext=agEdit?[]:extrasDia(agDia);
+  const feitos=lista.filter(x=>visitado(x.nome,agDia)).length+ext.length;
   $("agtit").textContent="Agenda · "+DIAS[agDia];
-  $("agmsg").textContent=(hoje?"Hoje · ":"")+dBR(dt)+" · "+(lista.length?feitos+" de "+lista.length+" visitados · arraste ⠿ para mudar a ordem":"dia livre")+(agEdit?" · modo edição":"")+(agNota?" · "+agNota:"");agNota="";
+  $("agmsg").textContent=(hoje?"Hoje · ":"")+dBR(dt)+" · "+(lista.length+ext.length?feitos+" de "+(lista.length+ext.length)+" visitados · arraste ⠿ para mudar a ordem":"dia livre")+(agEdit?" · modo edição":"")+(agNota?" · "+agNota:"");agNota="";
   $("age").textContent=agEdit?"Concluir":"Editar";$("agadd").hidden=!agEdit;$("agj").hidden=agEdit;$("agr").hidden=agEdit;
   renderAlertas();
   const L=$("agl");L.innerHTML="";
@@ -848,7 +852,15 @@ function renderAg(){
     }
     L.appendChild(r);
   });
-  if(!lista.length){const p=document.createElement("p");p.className="msg";p.textContent=agEdit?"Nenhum cliente neste dia. Adicione abaixo.":"Nenhum cliente neste dia.";L.appendChild(p)}
+  ext.forEach((x,j)=>{const mo=motivoDe(x.nome,agDia),ped=x.e?soma(x.e.pedido):0;
+    const r=document.createElement("div");r.className="ag ok"+(mo===VD?" vd":"");const h=document.createElement("span");h.className="hd";h.textContent="✓";
+    const t=document.createElement("button");t.type="button";t.className="t";const b=document.createElement("b");b.textContent=(lista.length+j+1)+". "+x.nome;
+    const sm=document.createElement("small");sm.textContent=[mo&&mo!==OUTRO_DIA&&mo!==VD&&!ped?motL(mo):"",horaVis(dt,x.nome,x.e)||"s/ horário","toque para abrir"].filter(Boolean).join(" · ");t.append(b,sm);r.append(h,t);
+    t.onclick=()=>{if(x.e){$("ag").classList.remove("on");abrirPedido(x.e.id,{dataset:{c:"1",v:"1"},textContent:""})}else abrirDaAgenda(x,r,sm)};
+    const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",true);
+    st.textContent=ped>0?"✓ Visitado":mo===VD?"✓ "+VD:motL(mo)==="Abastecido"?"✓ Abastecido":motL(mo)==="Abastecido com estoque"?"✓ Abastecido c/ estoque":"✓ Sem pedido";
+    if(!x.e)st.onclick=()=>alternaVisita(x.nome,agDia);r.appendChild(st);L.appendChild(r)});
+  if(!lista.length&&!ext.length){const p=document.createElement("p");p.className="msg";p.textContent=agEdit?"Nenhum cliente neste dia. Adicione abaixo.":"Nenhum cliente neste dia.";L.appendChild(p)}
 }
 function abrirDaAgenda(x,r,st){
   const v=pedidoDoDia(x.nome,agDia);
@@ -936,13 +948,13 @@ function dadosSemana(){
       const e=hist.find(h=>h.data===dt&&ks.includes(norm(h.cliente)));if(e)usados.add(e.id);
       const man=(visitas[dt]||{})[norm(x.nome)],vis=typeof man==="boolean"?man:!!(e&&(soma(e.pedido)>0||soma(e.troca)>0||!!(e.visita&&e.visita.ini)));
       rows.push({d,dt,nome:x.nome,e,vis,mot:vis?((motivos[dt]||{})[norm(x.nome)]||""):"",fut:dt>hoje,ant:e?ant(e.cliente,dt):null})});
-    hist.filter(h=>!usados.has(h.id)&&h.data===dt&&(soma(h.pedido)>0||soma(h.troca)>0||!!(h.visita&&h.visita.ini))).forEach(h=>{usados.add(h.id);rows.push({d,dt,nome:h.cliente,e:h,vis:true,mot:"",fut:false,extra:true,ant:ant(h.cliente,dt)})});
+    extrasDia(d).forEach(x=>{if(x.e)usados.add(x.e.id);rows.push({d,dt,nome:x.nome,e:x.e,vis:true,mot:(motivos[dt]||{})[norm(x.nome)]||"",fut:false,extra:true,ant:ant(x.nome,dt)})});
   });
   return {sem,rows};
 }
 function desenharRelatorio(logo){
   const {sem,rows}=dadosSemana(),W=1400,M=45,tw=W-2*M,RH=46;
-  const ag=rows.filter(r=>!r.extra),feitas=ag.filter(r=>r.vis).length,furos=ag.filter(r=>!r.vis&&!r.fut).length,pend=ag.filter(r=>!r.vis&&r.fut).length;
+  const ag=rows,feitas=ag.filter(r=>r.vis).length,furos=ag.filter(r=>!r.vis&&!r.fut).length,pend=ag.filter(r=>!r.vis&&r.fut).length;
   const comP=rows.filter(r=>r.e&&soma(r.e.pedido)>0),un=comP.reduce((a,r)=>a+soma(r.e.pedido),0),tr=rows.reduce((a,r)=>a+(r.e?soma(r.e.troca):0),0);
   const semP=rows.filter(r=>r.vis&&r.mot!==OUTRO_DIA&&r.mot!==VD&&!(r.e&&soma(r.e.pedido)>0)),cm={};semP.forEach(r=>{const k=motL(r.mot)||"Sem motivo informado";cm[k]=(cm[k]||0)+1});
   const T0=M+150+30,K=150,TT=T0+K+40,H=TT+50+Math.max(1,rows.length)*RH+130;
@@ -969,14 +981,13 @@ function desenharRelatorio(logo){
     x.fillStyle=TX;x.font="700 21px "+FT;x.textAlign="left";x.fillText(fit(r.nome,C[1][1]-24),X[1]+14,y+30);
     const ped=r.e?soma(r.e.pedido):0,tro=r.e?soma(r.e.troca):0;
     let st,cor;
-    if(r.extra){st="✓ Fora da agenda";cor=AZ}
-    else if(r.vis&&ped>0){st="✓ Visitado · com pedido";cor="#1a8f4c"}
+    if(r.vis&&ped>0){st="✓ Visitado · com pedido";cor="#1a8f4c"}
     else if(r.vis&&r.mot===VD){st="✓ "+VD;cor="#0e7c3a"}
     else if(r.vis&&r.mot===OUTRO_DIA){st="✓ Visitado · pedido já feito";cor="#1a8f4c"}
     else if(r.vis){st="✓ "+rotSP(r.mot);cor="#b26a00"}
     else if(r.fut){st="A visitar";cor="#8a96ad"}
     else{st="✗ Não visitado";cor="#b3261e"}
-    if(r.vis||r.extra)st+=" · "+(horaVis(r.dt,r.nome,r.e)||"s/ horário");
+    if(r.vis)st+=" · "+(horaVis(r.dt,r.nome,r.e)||"s/ horário");
     x.fillStyle=cor;x.font="700 20px "+FT;x.fillText(fit(st,C[2][1]-24),X[2]+14,y+30);
     x.textAlign="center";x.fillStyle=TX;x.font="800 22px "+FT;
     x.fillText(r.e?String(ped):"—",X[3]+C[3][1]/2,y+30);x.fillText(r.e?String(tro):"—",X[4]+C[4][1]/2,y+30);
@@ -2943,7 +2954,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="115";
+const VER="116";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
