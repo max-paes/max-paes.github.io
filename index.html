@@ -772,6 +772,7 @@ function extrasDia(d){const dt=dataDoDia(d),noAg=new Set();rota[d].forEach(x=>{n
   return out}
 function visOntem(n,d){if(visitado(n,d))return false;const ks=[norm(n),norm(nomeCad(n))],t=new Date(dataDoDia(d)+"T12:00:00");t.setDate(t.getDate()-1);const on=isoD(t);
   return hist.some(x=>x.data===on&&ks.includes(norm(x.cliente))&&(soma(x.pedido)>0||soma(x.troca)>0||!!(x.visita&&x.visita.ini)))}
+function stPedAg(e){if(!e||!(soma(e.pedido)>0))return "✓ Visitado";return !e.status||e.status==="rascunho"?"✓ Pedido em aberto":"✓ "+rotSt(e.status,e.fat)}
 function motivoDe(n,d){return (motivos[dataDoDia(d)]||{})[norm(n)]||""}
 function marcaComMotivo(n,d,m){const dt=dataDoDia(d);(visitas[dt]=visitas[dt]||{})[norm(n)]=true;marcaHora(dt,norm(n));if(m)(motivos[dt]=motivos[dt]||{})[norm(n)]=m;agMot=null;salvaAg();renderAg()}
 let arr=null;
@@ -850,7 +851,7 @@ function renderAg(){
     }else{
       t.onclick=()=>abrirDaAgenda(x,r,sm);
       const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",v);
-      const sp0=v&&(semPed(x.nome,agDia)||motivoDe(x.nome,agDia)===VD);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":motL(motivoDe(x.nome,agDia))==="Abastecido com estoque"?"✓ Abastecido c/ estoque":"✓ Sem pedido"):v?"✓ Visitado":visOntem(x.nome,agDia)?"✓ Visitado no dia anterior":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
+      const sp0=v&&(semPed(x.nome,agDia)||motivoDe(x.nome,agDia)===VD);st.textContent=sp0?(motivoDe(x.nome,agDia)===VD?"✓ "+VD:motL(motivoDe(x.nome,agDia))==="Abastecido"?"✓ Abastecido":motL(motivoDe(x.nome,agDia))==="Abastecido com estoque"?"✓ Abastecido c/ estoque":"✓ Sem pedido"):v?stPedAg(pedidoDoDia(x.nome,agDia)):visOntem(x.nome,agDia)?"✓ Visitado no dia anterior":"Não visitado";if(sp0){st.title=motivoDe(x.nome,agDia)||"Sem pedido"}st.setAttribute("aria-label",(v?"Desmarcar visita de ":"Marcar visita de ")+x.nome);
       st.onclick=()=>alternaVisita(x.nome,agDia);
       r.appendChild(st);
     }
@@ -862,7 +863,7 @@ function renderAg(){
     const sm=document.createElement("small");sm.textContent=[mo&&mo!==OUTRO_DIA&&mo!==VD&&!ped?motL(mo):"",horaVis(dt,x.nome,x.e),"toque para abrir"].filter(Boolean).join(" · ");t.append(b,sm);r.append(h,t);
     t.onclick=()=>{if(x.e){$("ag").classList.remove("on");abrirPedido(x.e.id,{dataset:{c:"1",v:"1"},textContent:""})}else abrirDaAgenda(x,r,sm)};
     const st=document.createElement("button");st.type="button";st.className="st";st.setAttribute("aria-pressed",true);
-    st.textContent=ped>0?"✓ Visitado":mo===VD?"✓ "+VD:motL(mo)==="Abastecido"?"✓ Abastecido":motL(mo)==="Abastecido com estoque"?"✓ Abastecido c/ estoque":"✓ Sem pedido";
+    st.textContent=ped>0?stPedAg(x.e):mo===VD?"✓ "+VD:motL(mo)==="Abastecido"?"✓ Abastecido":motL(mo)==="Abastecido com estoque"?"✓ Abastecido c/ estoque":"✓ Sem pedido";
     if(!x.e)st.onclick=()=>alternaVisita(x.nome,agDia);r.appendChild(st);L.appendChild(r)});
   if(!lista.length&&!ext.length){const p=document.createElement("p");p.className="msg";p.textContent=agEdit?"Nenhum cliente neste dia. Adicione abaixo.":"Nenhum cliente neste dia.";L.appendChild(p)}
 }
@@ -1987,7 +1988,7 @@ $("clr").onclick=()=>{
 };
 
 const lim=o=>Object.fromEntries(Object.entries(o).filter(([,v])=>v>0));
-const semSt=o=>{const {status,fat,snap,fechadoEm,alteradoEm,vendedor,...r}=o;return JSON.stringify(r)};
+const semSt=o=>{const n=q=>Object.keys(q||{}).filter(k=>q[k]>0).sort().map(k=>k+"="+q[k]).join("|");return n(o.pedido)+"#"+n(o.troca)};
 function hashTxt(t){let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return (h>>>0).toString(36)}
 const assinaCt=()=>hashTxt(semSt(conteudo()));
 function conteudo(){
@@ -2987,7 +2988,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="126";
+const VER="127";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
