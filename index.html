@@ -2543,6 +2543,14 @@ function motRota(LST,v){if(!fbDb)return;const n=(perfil&&perfil.nome)||"";
     ocRef(k).set({c:s.cliente||"",d:s.pd||mot.dia,ts:Date.now(),...(v?{rota:true,rotaEm:Date.now(),rotaPor:n}:{rota:false}),...(v?{oc:ocNovo("Saiu para entrega com "+(n||"o motorista")+".",1)}:{})},{merge:true}).catch(()=>{})})}
 function motOc(k){mot.ocU=mot.ocU||{};mot.ocd=mot.ocd||{};if(!mot.ocU[k])mot.ocU[k]=ocOuve(k,d=>{mot.ocd[k]=d;clearTimeout(mot.ocT);mot.ocT=setTimeout(motRender,60)});return mot.ocd[k]||{}}
 function oesDe(cli){const k=pkey(cli),out=[];Object.keys(mot.oe||{}).sort().reverse().forEach(d=>{const L=mot.oe[d]||{};Object.keys(L).forEach(x=>{const o=L[x];if(o&&o.t&&pkey(o.c||"")===k)out.push(o)})});return out.slice(0,3)}
+async function motDoc(ref,m,b){if(!ref)return;const r=b.textContent;b.textContent="Abrindo…";$("motm").textContent="";
+  try{const [uid,id]=ref.split("/");const sn=await fbDb.collection("vendedores/"+uid+"/docs").doc(id).get();if(!sn.exists)throw new Error("pedido não encontrado");
+    const x=sn.data()||{},e=normEnt(JSON.parse(x.j));try{await document.fonts.load("800 28px Archivo")}catch(_){}
+    await comEntrada({...e,vendedor:x.vendedor||e.vendedor||"",uid},async()=>{const sig=sigOk(m)?await carregaImg(assin[m]):null,logo=await carregaImg(LOGO);const c=desenhar(sig,logo,m);
+      const blob=await new Promise(z=>c.toBlob(z,"image/jpeg",0.92));ultimo={blob,nome:nomeArq(m),url:c.toDataURL("image/jpeg",0.92)}});
+    abrirPrev((m==="troca"?"Troca":"Pedido")+" de "+e.cliente+".")}
+  catch(e){$("motm").textContent="Não consegui abrir o "+(m==="troca"?"documento da troca":"pedido")+" ("+(e.code||e.message)+")."}
+  finally{b.textContent=r}}
 function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   const a=document.activeElement;if(a&&$("motc").contains(a)&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.type!=="checkbox"&&a.type!=="file"){mot.adiado=true;return}
   mot.adiado=false;
@@ -2566,17 +2574,14 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
       {const pi=document.createElement("div");pi.className="pi";const P=(od.it&&od.it.p)||{},Tr=(od.it&&od.it.t)||{};
         pi.innerHTML="<b>"+(od.fin?"✅ Entregue":od.rota?"🚚 Em rota":"📦 Aguardando entrega")+"</b> · Pedido de "+esc(dBR(od.d||s.pd||mot.dia).slice(0,5))+" · "+(od.ped||s.ped||0)+" un."+(od.tro?" · troca "+od.tro+" un.":"")+(od.cp?"<br>Comprador: "+esc(od.cp):"")+(od.en?"<br>"+esc(od.en):"");
         c.appendChild(pi);
-        if(Object.keys(P).length||Object.keys(Tr).length){const bv=document.createElement("button");bv.className="sec";const box=document.createElement("div");box.className="pit";box.hidden=!mot.abre||!mot.abre[k];
-          const lin=(t,o)=>Object.keys(o).length?"<b>"+t+"</b>"+Object.entries(o).map(([n,q])=>"<div><span>"+esc(n)+"</span><span>"+q+"</span></div>").join(""):"";
-          box.innerHTML=lin("Pedido",P)+lin("Troca",Tr);bv.textContent=box.hidden?"📄 Ver pedido":"📄 Ocultar pedido";
-          bv.onclick=()=>{mot.abre=mot.abre||{};mot.abre[k]=box.hidden;box.hidden=!box.hidden;bv.textContent=box.hidden?"📄 Ver pedido":"📄 Ocultar pedido"};c.append(bv,box)}}
+        {const gd=document.createElement("div");gd.className="mb";[["pedido","📄 Ver pedido",od.ped||s.ped],["troca","📄 Ver troca",od.tro]].forEach(([m,t,q])=>{if(!(q>0))return;const bv=document.createElement("button");bv.className="sec";bv.textContent=t;bv.onclick=()=>motDoc(s.ref,m,bv);gd.appendChild(bv)});if(gd.childNodes.length)c.appendChild(gd)}}
       const ge=document.createElement("div");ge.className="mb";
       const bo=document.createElement("button");bo.className="sec"+(it.filter(x=>!x.sis).length?" ocb":"");bo.textContent="📝 Ocorrência"+(it.filter(x=>!x.sis).length?" ("+it.filter(x=>!x.sis).length+")":"");bo.onclick=()=>ocAbrir(k,meta,s.cliente);
       const bfz=document.createElement("button");
       if(od.fin){bfz.className="on";bfz.textContent="✅ Entrega finalizada"+(od.finEm?" "+new Date(od.finEm).toTimeString().slice(0,5):"");bfz.onclick=()=>{bfz.textContent="Só o faturamento reabre";setTimeout(motRender,2000)}}
       else{bfz.className="big";bfz.textContent="✅ Finalizar entrega";bfz.onclick=async()=>{if(bfz.dataset.c!=="1"){bfz.dataset.c="1";bfz.textContent="Finalizar? Toque de novo";setTimeout(()=>{if(bfz.dataset.c==="1")motRender()},3000);return}
         bfz.disabled=true;try{await ocFin(k,meta,true)}catch(e){$("motm").textContent="Não foi possível finalizar ("+(e.code||e.message)+")."}}}
-      ge.append(bfz,bo);c.appendChild(ge)}
+      ge.append(bo,bfz);c._ge=ge}
     const g=document.createElement("div");g.className="mb";
     g.append(motBtn("Chegada na loja",r.c,()=>motP(s.id,{c:Date.now()}),()=>motP(s.id,{c:0})),
              motBtn("Passagem da nota",r.n,()=>motP(s.id,{n:Date.now()}),()=>motP(s.id,{n:0})),
@@ -2599,6 +2604,7 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
     if(s.extra&&!reg.ini&&!(r.c||r.n||r.s)){const rx=document.createElement("button");rx.className="sec";rx.textContent="Remover esta loja";rx.style.marginTop="8px";
       rx.onclick=()=>{if(rx.dataset.c!=="1"){rx.dataset.c="1";rx.textContent="Confirmar remoção?";setTimeout(()=>{rx.dataset.c="";rx.textContent="Remover esta loja"},3000);return}
         motGrava({x:(reg.x||[]).filter(e=>e.id!==s.id)})};c.appendChild(rx)}
+    if(c._ge)c.appendChild(c._ge);
     C.appendChild(c)});
   // pedidos fechados para puxar para a rota
   const naRota=new Set(LST.map(x=>x.ref).filter(Boolean));
@@ -2982,7 +2988,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="122";
+const VER="123";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;

@@ -40,6 +40,8 @@ service cloud.firestore {
         allow read, write: if logado() && request.auth.uid == uid && ativo();
         allow write: if dono();
         allow read: if equipe();
+        // O motorista abre o documento do pedido/troca que vai entregar (só pedidos, um por vez)
+        allow get: if ativo() && perfil(request.auth.uid).papel == 'motorista' && doc.matches('p_.*');
         allow delete: if dono() || (admin() && naoDev(uid));
       }
     }
