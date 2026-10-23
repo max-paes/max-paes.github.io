@@ -405,7 +405,7 @@ body.trv #edbar{border-color:#0b7a75}
     <div class="card"><b>Loja</b>
       <label class="vl">Exposição dos produtos<input id="vexp" autocomplete="off"></label><div class="chips"><button data-f="exp">OK</button></div>
       <label class="vl">Validade e precificação<input id="vvp" autocomplete="off"></label><div class="chips"><button data-f="vp">OK</button></div>
-      <label class="vl">Oportunidade de vendas<input id="vopv" autocomplete="off"></label>
+      <label class="vl" hidden style="display:none">Oportunidade de vendas<input id="vopv" autocomplete="off"></label>
       <div class="lt"><span class="n">Trocas<small id="vauto_tr" class="gi"></small></span><div class="sn" data-k="tr"><button>Sim</button><button class="nao">Não</button></div></div>
       <div class="lt"><span class="n">Pedido<small id="vauto_pd" class="gi"></small></span><div class="sn" data-k="pd"><button>Sim</button><button class="nao">Não</button></div></div>
     </div>
@@ -1052,7 +1052,7 @@ function textoChecklist(){
   return ["CHECKLIST DE VISITA - MAX PÃES","(PROMOTOR)","","Data: "+(d?dBR(d):""),"Loja: "+U($("cliente").value.trim()),"Bairro/Cidade: "+U($("endereco").value.trim()),
     "Horário de Chegada: "+(v.ini||""),"Horário de Saída: "+(v.fim||""),"","✍🏼CONTATO COM A LOJA: ",...ctt,"",
     "EXPOSIÇÃO DOS PRODUTOS: "+U(v.exp).trim(),"VALIDADE E PRECIFICAÇÃO: "+U(v.vp).trim(),"",
-    "TROCAS: "+sn("tr","troca"),"PEDIDO: "+sn("pd","pedido"),"","OPORTUNIDADE DE VENDAS: "+U(v.opv).trim(),...(v.oe&&v.oe.trim()?["","OBSERVAÇÃO PARA A ENTREGA: "+U(v.oe).trim()]:[]),...(v.fo&&v.fo.length?["FOTOS DA VISITA: "+v.fo.length]:[])].join("\n");
+    "TROCAS: "+sn("tr","troca"),"PEDIDO: "+sn("pd","pedido"),...(v.oe&&v.oe.trim()?["","OBSERVAÇÃO PARA A ENTREGA: "+U(v.oe).trim()]:[]),...(v.fo&&v.fo.length?["FOTOS DA VISITA: "+v.fo.length]:[])].join("\n");
 }
 function atualizaTxt(){$("vtxt").textContent=textoChecklist()}
 function renderVis(){
@@ -1671,7 +1671,7 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=sup.docs[k];if(!e)return;su
   const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0));
   let h="<p class='msg' style='margin:0 0 8px'><b>"+esc(nomeV(x.uid))+"</b> · "+esc(STN[e.status]||"Rascunho")+(e.fechadoEm?" em "+new Date(e.fechadoEm).toLocaleString("pt-BR").slice(0,17):"")+
     (v.ini?"<br>Visita "+esc(v.ini)+(v.fim?"–"+esc(v.fim):" (em andamento)"):"")+(e.comprador?"<br>Comprador: "+esc(e.comprador):"")+(e.endereco?"<br>"+esc(e.endereco):"")+"</p>";
-  if(v.ctt||v.exp||v.vp||v.opv)h+="<p class='msg' style='margin:0 0 8px'>"+(v.ctt?"Contato: "+esc(v.ctt).replace(/\n/g,", ")+"<br>":"")+(v.exp?"Exposição: "+esc(v.exp)+"<br>":"")+(v.vp?"Validade e precificação: "+esc(v.vp)+"<br>":"")+(v.opv?"Oportunidade: "+esc(v.opv):"")+"</p>";
+  if(v.ctt||v.exp||v.vp)h+="<p class='msg' style='margin:0 0 8px'>"+(v.ctt?"Contato: "+esc(v.ctt).replace(/\n/g,", ")+"<br>":"")+(v.exp?"Exposição: "+esc(v.exp)+"<br>":"")+(v.vp?"Validade e precificação: "+esc(v.vp)+"<br>":"")+"</p>";
   h+=linhas.length?"<table class='tx'><tr><th>Item</th><th class='n'>Pedido</th><th class='n'>Troca</th></tr>"+linhas.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+(e.pedido[n]||"")+"</td><td class='n'>"+(e.troca[n]||"")+"</td></tr>").join("")+
     "<tr><td><b>Total</b></td><td class='n'><b>"+soma(e.pedido)+"</b></td><td class='n'><b>"+soma(e.troca)+"</b></td></tr></table>":"<p class='vazio'>Sem itens lançados.</p>";
   if(v.oe&&v.oe.trim())h+="<p class='pn' style='font-size:14px'>📝 Observação anterior: "+esc(v.oe)+"</p>";
@@ -2988,7 +2988,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="127";
+const VER="128";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
