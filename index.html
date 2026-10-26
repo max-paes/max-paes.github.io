@@ -1076,10 +1076,9 @@ function renderVisBar(){const b=$("vbb"),t=$("vbtx");b.dataset.c="";
   if(!visita.ini){t.textContent="Visita não iniciada";b.textContent="Iniciar visita";b.className=""}
   else if(!visita.fim){t.textContent="● Visita em andamento desde "+visita.ini;b.textContent="Finalizar visita";b.className="fin"}
   else{t.textContent="✓ Visita finalizada · entrada "+visita.ini+" · saída "+visita.fim;b.textContent="Reabrir";b.className="sec"}}
-function pegaGeo(){try{if(!navigator.geolocation)return;const v=visita;navigator.geolocation.getCurrentPosition(p=>{if(visita!==v)return;v.geo={la:+p.coords.latitude.toFixed(6),lo:+p.coords.longitude.toFixed(6),ac:Math.round(p.coords.accuracy||0),ts:Date.now()};salvar()},()=>{},{enableHighAccuracy:true,timeout:15000,maximumAge:60000})}catch(_){}}
 $("vbb").onclick=()=>{const b=$("vbb");
   if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);b.textContent="Informe o cliente";setTimeout(renderVisBar,2000);return}
-  if(!visita.ini){visita.ini=hhmm();visita.fim="";preencheCtt();pegaGeo()}
+  if(!visita.ini){visita.ini=hhmm();visita.fim="";preencheCtt()}
   else if(!visita.fim){visita.fim=hhmm();preencheCtt();renderVisBar();mode="visita";render();window.scrollTo(0,0);return}
   else{if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Toque de novo para reabrir";setTimeout(()=>{if(b.dataset.c==="1")renderVisBar()},3000);return}visita.fim=""}
   renderVisBar();salvar();if(mode==="visita")renderVis();};
@@ -1482,9 +1481,9 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;if(!ehSup()){B.inne
    else h+="<div style='overflow-x:auto'><table class='tx' style='min-width:420px'><tr><th>Produto</th><th class='n'>Pedido</th><th class='n'>Produzido</th><th class='n'>No estoque</th><th class='n'>Disponível</th></tr>"+ns.map(n=>{const o=it[n]||{},e=typeof o.e==="number"?o.e:null,p0=typeof o.p==="number"?o.p:null,dsp=e===null?null:e-(PD[n]||0);
      return "<tr><td>"+esc(n)+"</td><td class='n'>"+(PD[n]||"")+"</td><td class='n'>"+(p0===null?"—":p0)+"</td><td class='n'>"+(e===null?"—":e)+"</td><td class='n"+(dsp!==null&&dsp<0?" rd":"")+"'><b>"+(dsp===null?"—":(dsp>0?"+":"")+dsp)+"</b></td></tr>"}).join("")+"<tr class='tot'><td>Total</td><td class='n'>"+tP+"</td><td class='n'>"+tPr+"</td><td class='n'>"+tE+"</td><td class='n"+(tE-tP<0?" rd":"")+"'><b>"+(tE-tP>0?"+":"")+(tE-tP)+"</b></td></tr></table></div><p class='msg' style='margin:6px 0 0;font-size:12px'>Disponível = entregue ao estoque − pedidos fechados do dia. Em vermelho: falta para atender.</p>";
    h+="</div>"}
-  h+="<div class='acts'><button id='dirmp'>🗺️ Mapa das visitas</button><button id='dirrs'>🧾 Resumo (JPG)</button>"+(ADM?"<button id='dirmt'>🎯 Definir metas do mês</button>":"")+"</div>";
+  h+="<div class='acts'><button id='dirrs'>🧾 Resumo (JPG)</button>"+(ADM?"<button id='dirmt'>🎯 Definir metas do mês</button>":"")+"</div>";
   h+="</div>";B.innerHTML=h;
-  $("dirmp").onclick=()=>mapaAbrir(T);$("dirrs").onclick=()=>resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU);if($("dirmt"))$("dirmt").onclick=metasAbrir}
+  $("dirrs").onclick=()=>resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU);if($("dirmt"))$("dirmt").onclick=metasAbrir}
 function metaCel(u,un){const m=+(((sup.vend[u]||{}).meta)||0);if(!m)return un+" un.";const p=Math.round(un/m*100);return "<b"+(p>=100?" style='color:#1a8f4c'":"")+">"+p+"%</b><small> "+un+"/"+m+"</small>"}
 function metasAbrir(){const U0=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao|faturamento|developer)$/.test((sup.vend[u]||{}).papel||"")&&(sup.vend[u]||{}).ativo!==false).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   const C=$("mtc");C.innerHTML=U0.map(u=>"<label class='rr'><span class='t'>"+esc(nomeV(u))+" · "+esc(rotP((sup.vend[u]||{}).papel))+"</span><input type='number' inputmode='numeric' min='0' data-u='"+u+"' value='"+(+((sup.vend[u]||{}).meta||0)||"")+"' placeholder='un./mês' style='width:110px'></label>").join("")||"<p class='vazio'>Nenhum vendedor ativo.</p>";
@@ -3196,7 +3195,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="139";
+const VER="140";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
