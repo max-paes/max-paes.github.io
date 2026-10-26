@@ -479,6 +479,11 @@ body.trv #edbar{border-color:#0b7a75}
   <p class="msg" id="rlm" style="margin:6px 0"></p>
   <div id="rlc"></div>
 </div></div>
+<div class="ov" id="vh"><div class="box">
+  <div class="hhead"><b id="vht">Histórico</b><button id="vhx">Fechar</button></div>
+  <input id="vhq" type="search" placeholder="Buscar cliente no histórico" autocomplete="off" style="margin:4px 0 8px">
+  <div id="vhl"></div><p class="msg" id="vhm" style="margin:6px 2px 0"></p>
+</div></div>
 <div class="ov" id="sdt"><div class="box">
   <div class="hhead"><b id="sdtt">Detalhe</b><button id="sdx">Fechar</button></div>
   <div id="sdc"></div>
@@ -1402,7 +1407,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();f
     const st=ab?"● Em visita · "+ab.cliente+" desde "+ab.ini:ult?"Última atividade hoje às "+hhDe(ult):v.ultimoAcesso?"Último acesso "+new Date(v.ultimoAcesso).toLocaleDateString("pt-BR")+" "+hhDe(v.ultimoAcesso):"Ainda não usou o app";
     const pu=mine.reduce((a,x)=>a+(x.ped||0),0),tu=mine.reduce((a,x)=>a+(x.tro||0),0);
     b.innerHTML="<b>"+esc(nomeV(uid))+" · "+rotP(v.papel).toLowerCase()+"</b><span class='vs"+(ab?" on":"")+"'>"+esc(st)+"</span><span class='vn'><span><b>"+mine.filter(x=>x.ini).length+"</b> visitas</span><span><b>"+mine.filter(x=>x.status!=="rascunho").length+"</b> fechados</span><span><b>"+pu+"</b> un.</span><span><b>"+tu+"</b> troca</span></span>";
-    b.onclick=()=>{sup.filtro=sup.filtro===uid?"":uid;supRender()};V.appendChild(b)});
+    b.onclick=()=>vhAbrir(uid);V.appendChild(b)});
   $("spl").textContent="Visitas e pedidos"+(sup.filtro?" · "+nomeV(sup.filtro)+" (toque no card de novo para ver todos)":"");
   const T=$("spt2");T.innerHTML="";
   const ord=L.slice().sort((a,b)=>(b.data+(b.ini||hhDe(b.ts))).localeCompare(a.data+(a.ini||hhDe(a.ts))));
@@ -1665,8 +1670,22 @@ $("rlj").onclick=async()=>{const R=rlCalc();if(!R||!(R.ped.length||R.tro.length)
     abrirPrev("Relatório pronto (A4 paisagem). Salve o PDF para imprimir.")}
   catch(e){$("rlm").textContent="Não foi possível gerar a imagem."}
   b.textContent="Gerar imagem"};
-function entDe(k){const x=sup.docs[k];if(!x)return null;try{return normEnt(JSON.parse(x.j))}catch(e){return null}}
-function supDetalhe(k,silencioso){const e=entDe(k),x=sup.docs[k];if(!e)return;sup.det=k;
+const VH={uid:"",L:[]};
+async function vhAbrir(uid){VH.uid=uid;VH.L=[];$("vht").textContent="Histórico · "+nomeV(uid);$("vhq").value="";$("vhm").textContent="Carregando…";$("vhl").innerHTML="";$("vh").classList.add("on");
+  try{const sn=await fbDb.collection("vendedores/"+uid+"/docs").where("data",">=",addD(hojeISO(),-90)).get();if(VH.uid!==uid)return;sup.hv=sup.hv||{};
+    VH.L=sn.docs.filter(d=>d.id.startsWith("p_")).map(d=>{const x={...(d.data()||{}),uid,id:d.id};sup.hv[uid+"/"+d.id]=x;return x}).sort((a,b)=>(b.data||"").localeCompare(a.data||"")||(b.ts||0)-(a.ts||0));
+    $("vhm").textContent=VH.L.length?"":"Nenhum pedido nos últimos 90 dias.";vhRender()}
+  catch(e){$("vhm").textContent="Não consegui carregar o histórico ("+(e.code||e.message)+")."}}
+function vhRender(){const q=norm($("vhq").value||""),L=$("vhl");L.innerHTML="";let mes="";
+  VH.L.filter(x=>!q||norm(x.cliente||"").includes(q)).forEach(x=>{const m=(x.data||"").slice(0,7);if(m&&m!==mes){mes=m;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+m.slice(5,7)-1]+" "+m.slice(0,4);L.appendChild(h)}
+    const en=(sup.ent||{})[x.uid+"_"+x.id]||{},st=(x.ped?rotSt(x.status,x.fat):"Sem pedido")+(en.fin?" · ✅ Entregue":en.rota?" · 🚚 Em rota":"");
+    const r=document.createElement("button");r.className="tr";
+    r.innerHTML="<span class='tt'>"+esc(dBR(x.data||"").slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc(x.ini?"Visita "+x.ini+(x.fim?"–"+x.fim:""):"")+"</small></span><span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+(x.ped?clsSt(x.status,x.fat):"sempedido")+"'>"+esc(st)+"</span></span>";
+    r.onclick=()=>supDetalhe(x.uid+"/"+x.id);L.appendChild(r)})}
+$("vhx").onclick=()=>$("vh").classList.remove("on");$("vhq").oninput=vhRender;
+const supDoc=k=>sup.docs[k]||(sup.hv||{})[k];
+function entDe(k){const x=supDoc(k);if(!x)return null;try{return normEnt(JSON.parse(x.j))}catch(e){return null}}
+function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.det=k;
   $("sdtt").textContent=e.cliente+" · "+dBR(e.data);ocMarca($("sdoc"),"Ocorrência",(sup.ent||{})[k.replace("/","_")]);
   const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0));
   let h="<p class='msg' style='margin:0 0 8px'><b>"+esc(nomeV(x.uid))+"</b> · "+esc(STN[e.status]||"Rascunho")+(e.fechadoEm?" em "+new Date(e.fechadoEm).toLocaleString("pt-BR").slice(0,17):"")+
@@ -1692,14 +1711,14 @@ async function supJpg(m){const e=entDe(sup.det);if(!e)return;const b=m==="troca"
   try{try{await document.fonts.load("800 28px Archivo")}catch(_){}
     await comEntrada(e,async()=>{const sig=sigOk(m)?await carregaImg(assin[m]):null,logo=await carregaImg(LOGO);const c=desenhar(sig,logo,m);
       const blob=await new Promise(z=>c.toBlob(z,"image/jpeg",0.92));ultimo={blob,nome:nomeArq(m),url:c.toDataURL("image/jpeg",0.92)}});
-    $("sdt").classList.remove("on");abrirPrev((m==="troca"?"Troca":"Pedido")+" de "+e.cliente+" · "+nomeV(sup.docs[sup.det].uid)+". Salve ou envie no WhatsApp.")}
+    $("sdt").classList.remove("on");abrirPrev((m==="troca"?"Troca":"Pedido")+" de "+e.cliente+" · "+nomeV(supDoc(sup.det).uid)+". Salve ou envie no WhatsApp.")}
   finally{b.textContent=r}}
 $("sdp").onclick=()=>supJpg("pedido");$("sdtr").onclick=()=>supJpg("troca");
-$("sdcp").onclick=async()=>{const e=entDe(sup.det);if(!e)return;const x=sup.docs[sup.det];
+$("sdcp").onclick=async()=>{const e=entDe(sup.det);if(!e)return;const x=supDoc(sup.det);
   const bloco=(t,o)=>{const l=ITENS.filter(n=>o[n]>0);return l.length?["*"+t+"*",...l.map(n=>n+": "+o[n]),"Total: "+soma(o)+" un.",""]:[]};
   const t=["*"+U(e.cliente)+"* · "+dBR(e.data),"Vendedor: "+nomeV(x.uid),e.comprador?"Comprador: "+e.comprador:"","",...bloco("PEDIDO",e.pedido),...bloco("TROCA",e.troca)].filter((l,i,a)=>l!==""||a[i-1]!=="").join("\n").trim();
   $("sdm").textContent=(await copiaTexto(t))?"Resumo copiado. Cole no WhatsApp.":"Não foi possível copiar."};
-$("sdoc").onclick=()=>{const x=sup.docs[sup.det],e=entDe(sup.det);if(!x||!e)return;ocAbrir(sup.det.replace("/","_"),{c:e.cliente,d:e.data},e.cliente)};
+$("sdoc").onclick=()=>{const x=supDoc(sup.det),e=entDe(sup.det);if(!x||!e)return;ocAbrir(sup.det.replace("/","_"),{c:e.cliente,d:e.data},e.cliente)};
 $("sdx").onclick=()=>{sup.det=null;$("sdt").classList.remove("on")};
 $("spx").onclick=()=>$("sp").classList.remove("on");$("sbtn").onclick=supAbrir;
 $("spa").onclick=()=>{sup.dia=addD(sup.dia,sup.modo==="dia"?-1:-7);supDocs();supRender()};$("spn").onclick=()=>{sup.dia=addD(sup.dia,sup.modo==="dia"?1:7);supDocs();supRender()};
@@ -2992,7 +3011,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="130";
+const VER="131";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
