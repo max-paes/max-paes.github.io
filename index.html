@@ -30,6 +30,7 @@ header p{margin:2px 0 0;font-size:13px;opacity:.85}
 .tabs{max-width:640px;margin:0 auto;display:flex;gap:6px;padding:10px 12px 0;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:2}
 .tabs button{flex:1;min-width:0;padding:12px 2px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 15px Archivo,system-ui,sans-serif;border-radius:10px}
 .tabs button[aria-selected="true"]{background:var(--brand);color:var(--on)}
+@media (max-width:420px){.tabs button{font-size:min(15px,3.7vw);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 main{padding:10px 12px;max-width:640px;margin:0 auto}
 .head{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .head label{display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:3px}
@@ -1356,6 +1357,7 @@ function aplicaAcesso(){const dono=false;/* gôndola retirada de todos os usuár
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
 const rotPDev=p=>p==="developer"?"Developer":rotP(p);
+const abaPro=()=>!!perfil&&/^(promotor|developer)$/.test(perfil.papel||"");const rotAbaEnt=()=>abaPro()?"Ocorrência":"Entrega";
 const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Promotor":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
@@ -1388,7 +1390,7 @@ function pintaMeta(){try{const m=+((perfil&&perfil.meta)||0),el=$("vnd");if(!el)
 setInterval(pintaMeta,60000);
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
-  $("vnd").textContent=n?rotP(pp)+": "+U(n):"";pintaMeta();try{$("t-entrega").textContent=pp==="promotor"?"Ocorrência":"Entrega"}catch(_){}
+  $("vnd").textContent=n?rotP(pp)+": "+U(n):"";pintaMeta();try{ocMarca($("t-entrega"),rotAbaEnt(),null)}catch(_){}
   $("sair").hidden=true;$("msen").hidden=true;
   [garanteClientes,aplicaSeeds,motPronto,fabPronto].forEach(f=>{try{f()}catch(e){diag(e,"mostraVendedor:"+f.name)}});try{vcPinta()}catch(e){diag(e,"vcPinta")}}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
@@ -2962,7 +2964,7 @@ function ocPainel(B,k,meta){B.innerHTML="";const st=document.createElement("div"
   const pinta=d=>{cur=d||{};const fin=!!cur.fin;
     st.innerHTML="<span class='ocst "+(fin?"fin":"ab")+"'>"+(fin?"✅ Entrega finalizada"+(cur.finEm?" · "+esc(hmTs(cur.finEm)):"")+(cur.finPor?" · "+esc(cur.finPor.split(" ")[0]):""):cur.rota?"🚚 Em rota"+(cur.rotaEm?" · saiu "+esc(hmTs(cur.rotaEm)):"")+(cur.rotaPor?" · "+esc(cur.rotaPor.split(" ")[0]):""):"🚚 Entrega em aberto")+"</span>";
     const it=ocLista(cur);L.innerHTML=it.length?it.map(x=>"<div class='oci'><small>"+esc(hmTs(x.ts))+" · "+esc(x.por||"")+(x.papel?" ("+esc(rotP(x.papel))+")":"")+(x.ed?" · editada "+esc(hmTs(x.ed)):"")+"</small>"+esc(x.t)+(ocMeu(x)?"<button data-ed='"+esc(x.id)+"' class='oce'>✎ Editar</button>":"")+"</div>").join(""):"<p class='msg' style='margin:0'>Nenhuma ocorrência registrada.</p>";
-    bf.dataset.c="";if(!fin&&podeFin()){bf.hidden=false;bf.className="fin";bf.textContent="✅ Finalizar entrega"}else if(fin&&podeReab()){bf.hidden=false;bf.className="";bf.textContent="↺ Reabrir entrega"}else bf.hidden=true};
+    bf.dataset.c="";if(fin&&podeReab()){bf.hidden=false;bf.className="";bf.textContent="↺ Reabrir entrega"}else bf.hidden=true};
   ba.onclick=async()=>{if(!ta.value.trim()){ta.focus();return}ba.disabled=true;try{if(edId){await ocEdita(k,edId,ta.value);fimEd()}else{await ocAdd(k,meta,ta.value);ta.value="";m.textContent=""}}catch(e){m.textContent="Não foi possível salvar ("+(e.code||e.message)+")."}ba.disabled=false};
   bf.onclick=async()=>{if(bf.dataset.c!=="1"){bf.dataset.c="1";bf.textContent=cur.fin?"Reabrir? Toque de novo":"Finalizar? Toque de novo";setTimeout(()=>{if(bf.dataset.c==="1")pinta(cur)},3000);return}
     bf.disabled=true;try{await ocFin(k,meta,!cur.fin)}catch(e){m.textContent="Sem permissão ou sem internet ("+(e.code||e.message)+")."}bf.disabled=false};
@@ -2993,10 +2995,10 @@ var entUn=null,entK=null,entFin=false,entRota=false,entUnCur=null,entKCur=null;
 function ocMarca(b,txt,d,pre){if(!b)return;const n=ocLista(d).filter(o=>!o.sis).length;b.textContent=(pre||"")+txt+(n?" ("+n+")":"");b.classList.toggle("ocb",n>0)}
 function entKey(){const u=fbAuth&&fbAuth.currentUser;return u&&fbDb&&curId?u.uid+"_p_"+curId:null}
 function entVigia(){const k=entKey();if(k===entKCur)return;if(entUnCur){entUnCur();entUnCur=null}entKCur=k;if(entFin||entRota){entFin=false;entRota=false;pintaFat()}
-  ocMarca($("t-entrega"),"Entrega",null);
-  if(k)entUnCur=ocOuve(k,d=>{ocMarca($("t-entrega"),"Entrega",d);const f=!!(d&&d.fin),r=!!(d&&d.rota&&!d.fin);if(f!==entFin||r!==entRota){entFin=f;entRota=r;pintaFat();if(mode==="entrega")contar()}})}
+  ocMarca($("t-entrega"),rotAbaEnt(),null);
+  if(k)entUnCur=ocOuve(k,d=>{ocMarca($("t-entrega"),rotAbaEnt(),d);const f=!!(d&&d.fin),r=!!(d&&d.rota&&!d.fin);if(f!==entFin||r!==entRota){entFin=f;entRota=r;pintaFat();if(mode==="entrega")contar()}})}
 function renderEnt(){const B=$("ent"),k=entKey();if(entUn&&entK!==k){entUn();entUn=null;entK=null}
-  const PRO=!!perfil&&perfil.papel==="promotor",TIT=PRO?"📝 Ocorrências da visita e do pedido":"🚚 Entrega e ocorrência";
+  const PRO=abaPro(),TIT=PRO?"📝 Ocorrências da visita e do pedido":"🚚 Entrega e ocorrência";
   if(!k){B.innerHTML="<div class='card'><b>"+TIT+"</b><p class='msg' style='margin:6px 0 0'>"+(visUid()?(PRO?"Informe a loja e toque em Iniciar visita (aba Visita) ou lance o pedido para registrar ocorrências.":"Lance o pedido (cliente e itens) para abrir a ocorrência desta entrega."):"Entre na sua conta e conecte à internet para usar a ocorrência.")+"</p></div>";return}
   if(entUn)return;entK=k;B.innerHTML="<div class='card'><b>"+TIT+"</b><p class='msg' style='margin:4px 0 8px'>"+(PRO?"Registre aqui qualquer ocorrência desta visita ou pedido: loja fechada, falta de produto, avaria, recado para a entrega… Fica assinada com seu nome e horário, e supervisão, expedição e motorista veem na hora.":"Vendedor, promotor, expedição, motorista e supervisão podem acrescentar informações. Cada uma fica assinada com nome e horário.")+"</p><div id='entp'></div></div>";
   entUn=ocPainel($("entp"),k,{c:U($("cliente").value.trim()),d:$("data").value})}
@@ -3324,7 +3326,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="154";
+const VER="156";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
