@@ -376,7 +376,12 @@ body.trv #edbar{border-color:#0b7a75}
 .pn{background:rgba(217,160,30,.13);color:inherit;border:1px solid rgba(217,160,30,.45);border-radius:10px;padding:8px 10px;font-weight:600;font-size:13px;margin:8px 0}
 .mk label.pd{border-color:#b3261e}
 #fs{z-index:65}
-#ocm{z-index:35}#ov{z-index:45}
+#ocm{z-index:35}#ov{z-index:45}#mex{z-index:30}
+#fv{position:fixed;inset:0;z-index:80;background:#000;color:#fff}#fv[hidden]{display:none}#fvs{position:absolute;inset:0;overflow:hidden;touch-action:none}
+#fvi{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-select:none;max-width:none;will-change:transform}
+.fvt{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+.fvt span{margin-right:auto;font-weight:800}.fvt button{padding:9px 14px;border-radius:10px;border:0;background:rgba(255,255,255,.18);color:#fff;font:800 14px Archivo,sans-serif}
+.fvn{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.15);color:#fff;font-size:34px}.fvn[hidden]{display:none}#fvp{left:8px}#fvn{right:8px}
 #cam{z-index:70;background:#000;padding:0}.camw{position:fixed;inset:0;display:flex;flex-direction:column}#camv,#camp{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}#camp{height:auto;max-height:100%;margin:auto}
 .camb{background:#000;color:#fff;padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px))}.camb p{margin:0 0 8px;text-align:center;font-weight:700}
 .camc{display:flex;gap:10px;align-items:center;justify-content:center}.camc button{padding:14px 18px;border-radius:14px;border:2px solid #fff;background:transparent;color:#fff;font:800 16px Archivo,sans-serif}
@@ -524,7 +529,7 @@ body.trv #edbar{border-color:#0b7a75}
   <p class="msg" id="sdm" style="margin:6px 2px 0"></p>
 </div></div>
 <div class="ov" id="mot" role="dialog" aria-modal="true" aria-labelledby="mott"><div class="sw">
-  <div class="stop"><h2 class="hlg"><img class="slogo" alt="Max Pães"><span><small class="quem" id="motq"></small></span></h2><span id="mott" hidden></span><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="motr">Atualizar</button><button id="mots">Sair</button></div>
+  <div class="stop"><h2 class="hlg"><img class="slogo" alt="Max Pães"><span><small class="quem" id="motq"></small></span></h2><span id="mott" hidden></span><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="motex">📦 Expedição</button><button id="motr">Atualizar</button><button id="mots">Sair</button></div>
   <p class="msg" id="motm" style="margin:0 2px 10px"></p>
   <div id="motc"></div>
 </div></div>
@@ -559,6 +564,14 @@ body.trv #edbar{border-color:#0b7a75}
 <div class="ov" id="cam" role="dialog" aria-modal="true" aria-label="Câmera"><div class="camw">
   <video id="camv" playsinline muted autoplay></video><canvas id="camp" hidden></canvas>
   <div class="camb"><p id="camm"></p><div class="camc"><button id="camf" class="sec">Concluir</button><button id="camt" aria-label="Tirar foto">📷</button><button id="camx2" hidden>🗑 Excluir</button><button id="camok" hidden>✓ Confirmar</button></div></div>
+</div></div>
+<div id="fv" hidden role="dialog" aria-modal="true" aria-label="Foto em tela cheia"><div id="fvs"><img id="fvi" alt="Foto" draggable="false"></div>
+  <div class="fvt"><span id="fvc"></span><button id="fvz" aria-label="Tamanho original">1:1</button><button id="fvx">Fechar</button></div>
+  <button id="fvp" class="fvn" aria-label="Foto anterior">‹</button><button id="fvn" class="fvn" aria-label="Próxima foto">›</button></div>
+<div class="ov" id="mex"><div class="box" style="max-width:760px">
+  <div class="hhead"><b>Expedição</b><button id="mexx">Fechar</button></div>
+  <div style="display:flex;align-items:center;gap:8px;margin:6px 0"><button id="mexa" aria-label="Dia anterior">◀</button><b id="mext" style="flex:1;text-align:center"></b><button id="mexn" aria-label="Próximo dia">▶</button><button id="mexh">Hoje</button></div>
+  <p class="msg" id="mexm" style="margin:6px 2px"></p><div id="mexc"></div>
 </div></div>
 <div id="toast" hidden role="status"></div>
 <div id="offb" role="status" hidden>Sem conexão · o pedido fica salvo no celular e sobe quando o sinal voltar</div>
@@ -1171,7 +1184,7 @@ function visUid(){return fbAuth&&fbAuth.currentUser&&fbDb?fbAuth.currentUser.uid
 function visFotos(){const B=$("vfotos");if(!B)return;B.innerHTML="";const ids=visita.fo||[],uid=visUid();
   ids.forEach(id=>{const w=document.createElement("div");w.className="th";
     if(!vfoto[id]&&uid){vfoto[id]="…";fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).get().then(sn=>{vfoto[id]=sn.exists?(sn.data()||{}).j:"";if(mode==="visita")visFotos()}).catch(()=>{vfoto[id]=""})}
-    const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
+    const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.onclick=()=>{const L=(visita.fo||[]).map(k=>vfoto[k]).filter(u=>u&&u!=="…");verFotos(L,Math.max(0,L.indexOf(d)))};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
     const x=document.createElement("button");x.textContent="🗑 Excluir";
     x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}
       visita.fo=(visita.fo||[]).filter(y=>y!==id);delete vfoto[id];if(uid){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).delete().catch(()=>{});fiTira(uid,"v_"+id)}salvar();visFotos();atualizaTxt()};
@@ -1906,7 +1919,7 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.
   if(v.fo&&v.fo.length)h+="<p class='msg' style='margin:8px 0 4px'><b>Fotos da visita ("+v.fo.length+")</b></p><div class='fb' id='sdfo'>"+v.fo.map(id=>"<a target='_blank' data-f='"+esc(id)+"'><div style='width:64px;height:64px;border-radius:8px;background:var(--line)'></div></a>").join("")+"</div>";
   $("sdc").innerHTML=h;
   {const fb=fiBloco((v.fo||[]).map(id=>({u:x.uid,f:"v_"+id})));if(fb)$("sdc").appendChild(fb)}
-  (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a)return;if(!sn.exists){a.innerHTML="<small class='fim'>foto expirada</small>";return}const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();fiMarca([{u:x.uid,f:"v_"+id}]);const w=window.open();if(w)w.document.write("<img src='"+d+"' style='max-width:100%'>")}}).catch(()=>{})});
+  (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a)return;if(!sn.exists){a.innerHTML="<small class='fim'>foto expirada</small>";return}const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();fiMarca([{u:x.uid,f:"v_"+id}]);const L=[...document.querySelectorAll("#sdfo a img")].map(i=>i.src);verFotos(L,Math.max(0,L.indexOf(d)))}}).catch(()=>{})});
   $("sdp").hidden=!(soma(e.pedido)>0);$("sdtr").hidden=!(soma(e.troca)>0);if(!silencioso)$("sdm").textContent="";
   $("sdt").classList.add("on")}
 async function comEntrada(e,fn){
@@ -2636,7 +2649,7 @@ $("dup").onclick=async()=>{
   b.textContent=rot0;
   marcaFechado();$("gf").classList.remove("on");abrirPrev("Folha A4 paisagem pronta. Salve o PDF para imprimir.");
 };
-$("tc").onclick=()=>{$("fsimg").style.width=ultimo.dup?"220%":"100%";$("fsimg").src=ultimo.url;$("fs").scrollTop=0;$("fs").classList.add("on")};
+$("tc").onclick=()=>verFotos([ultimo.url],0);
 $("fsx").onclick=()=>$("fs").classList.remove("on");
 $("fch").onclick=()=>$("ov").classList.remove("on");
 
@@ -2763,7 +2776,7 @@ function motCarregaFoto(sid,cat,id){const k=sid+"_"+cat+"_"+id;if(mot.fotos[k]||
   fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).get().then(sn=>{if(sn.exists){mot.fotos[k]=(sn.data()||{}).j;motRender()}}).catch(()=>{})}
 function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.createElement("div");b.className="fb";
   ids.forEach(id=>{motCarregaFoto(sid,cat,id);const d=mot.fotos[sid+"_"+cat+"_"+id];const w=document.createElement("div");w.className="th";
-    if(d){const im=document.createElement("img");im.src=d;im.alt="Foto";w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
+    if(d){const im=document.createElement("img");im.src=d;im.alt="Foto";im.onclick=()=>{const L=ids.map(k=>mot.fotos[sid+"_"+cat+"_"+k]).filter(Boolean);verFotos(L,Math.max(0,L.indexOf(d)))};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
     const x=document.createElement("button");x.textContent="🗑 Excluir";x.setAttribute("aria-label","Excluir foto");
     x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}motFotoTira(sid,cat,id)};w.appendChild(x);b.appendChild(w)});
   if(ids.length<MAXF){const fb=document.createElement("button"),fi=document.createElement("input");fb.textContent="📷 "+(rot||"Fotos")+" ("+ids.length+"/"+MAXF+")";
@@ -2784,6 +2797,21 @@ async function motDoc(ref,m,b){if(!ref)return;const r=b.textContent;b.textConten
     abrirPrev((m==="troca"?"Troca":"Pedido")+" de "+e.cliente+".")}
   catch(e){$("motm").textContent="Não consegui abrir o "+(m==="troca"?"documento da troca":"pedido")+" ("+(e.code||e.message)+")."}
   finally{b.textContent=r}}
+const MX={dia:"",u:null,docs:{}};
+function mexAbrir(){if(!MX.dia)MX.dia=hojeISO();$("mex").classList.add("on");mexLiga()}
+function mexLiga(){if(MX.u){MX.u();MX.u=null}MX.docs={};$("mext").textContent=(MX.dia===hojeISO()?"Hoje · ":"")+dBR(MX.dia);$("mexm").textContent="Carregando…";$("mexc").innerHTML="";
+  const d=MX.dia;MX.u=fbDb.collection("entrega").where("d","==",d).onSnapshot(sn=>{if(MX.dia!==d)return;const o={};sn.docs.forEach(x=>{o[x.id]=x.data()||{}});MX.docs=o;mexRender()},e=>{$("mexm").textContent="Não consegui carregar ("+(e.code||e.message)+")."})}
+function mexRender(){if(!$("mex").classList.contains("on"))return;const L=Object.entries(MX.docs).map(([k,x])=>({k,...x})).filter(x=>x.ref&&(x.ped||0)>0).sort((a,b)=>(a.c||"").localeCompare(b.c||"","pt-BR"));
+  const sep=L.filter(x=>x.sep).length,un=L.reduce((a,x)=>a+(x.ped||0),0),P={};L.forEach(x=>Object.entries((x.it||{}).p||{}).forEach(([n,q])=>{P[n]=(P[n]||0)+q}));
+  $("mexm").textContent=L.length?L.length+(L.length===1?" pedido · ":" pedidos · ")+un+" un. · "+sep+" de "+L.length+" separados":"Nenhum pedido fechado para este dia.";
+  let h="";if(L.length){const ns=ITENS.filter(n=>P[n]>0).concat(Object.keys(P).filter(n=>!ITENS.includes(n)));
+    h+="<div class='dc'><b>Carga do dia por produto</b><table class='tx'><tr><th>Produto</th><th class='n'>Un.</th><th class='n'>Caixas</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'><b>"+P[n]+"</b></td><td class='n'>"+esc(cxTxt(n,P[n]))+"</td></tr>").join("")+"</table></div>"}
+  h+=L.map(x=>{const P2=(x.it||{}).p||{},T2=(x.it||{}).t||{};return "<div class='dc' style='margin-top:10px'><b>"+esc(x.c||"(sem loja)")+" · "+(x.ped||0)+" un."+(x.tro?" · troca "+x.tro:"")+"</b><span class='hst "+(x.fin?"fechado":x.sep?"fechado":"sempedido")+"'>"+(x.fin?"✅ Entregue":x.rota?"🚚 Em rota":x.sep?"✓ Separado"+(x.sepEm?" "+esc(hhDe(x.sepEm)):""):"⏳ Aguardando separação")+"</span>"+
+    (x.en?"<small style='display:block;color:var(--mute);margin-top:4px'>"+esc(x.en)+"</small>":"")+
+    "<table class='tx' style='margin-top:6px'><tr><th>Item</th><th class='n'>Pedido</th><th class='n'>Troca</th></tr>"+[...new Set(Object.keys(P2).concat(Object.keys(T2)))].map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+(P2[n]||"")+"</td><td class='n'>"+(T2[n]||"")+"</td></tr>").join("")+"</table></div>"}).join("");
+  $("mexc").innerHTML=h}
+const mexMove=n=>{MX.dia=addD(MX.dia||hojeISO(),n);mexLiga()};
+$("motex").onclick=mexAbrir;$("mexx").onclick=()=>{$("mex").classList.remove("on");if(MX.u){MX.u();MX.u=null}};$("mexa").onclick=()=>mexMove(-1);$("mexn").onclick=()=>mexMove(1);$("mexh").onclick=()=>{MX.dia=hojeISO();mexLiga()};
 function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   const a=document.activeElement;if(a&&$("motc").contains(a)&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.type!=="checkbox"&&a.type!=="file"){mot.adiado=true;return}
   mot.adiado=false;
@@ -3051,7 +3079,7 @@ function fabRender(){if(!perfil)return;if(fab.modo==="producao"&&prEditando()){f
     const bb=[...d.querySelectorAll(".xa button")],bo=bb.pop(),boc=bb.pop(),bs=bb.pop()||document.createElement("button");
     ocMarca(boc,"Ocorrência",(fab.ent||{})[fabK(e)]);boc.dataset.oc="1";bo.dataset.oc="1";boc.onclick=()=>ocAbrir(fabK(e),{c:e.cliente,d:e.data},e.cliente);
     bs.onclick=async()=>{if(ok&&bs.dataset.c!=="1"){bs.dataset.c="1";bs.textContent="Desmarcar?";setTimeout(()=>{bs.dataset.c="";fabRender()},3000);return}
-      bs.disabled=true;try{const v={on:!ok,em:Date.now(),por:(perfil&&perfil.nome)||""};await fbDb.collection("expedicao").doc(e.data||fab.dia).set({s:{[fabK(e)]:v}},{merge:true});if(e.data!==fab.dia){fab.sepAnt[fabK(e)]=v;fabRender()}}
+      bs.disabled=true;try{const v={on:!ok,em:Date.now(),por:(perfil&&perfil.nome)||""};await fbDb.collection("expedicao").doc(e.data||fab.dia).set({s:{[fabK(e)]:v}},{merge:true});ocRef(fabK(e)).set({c:e.cliente||"",d:e.data||fab.dia,sep:!!v.on,sepEm:v.em,sepPor:v.por},{merge:true}).catch(()=>{});if(e.data!==fab.dia){fab.sepAnt[fabK(e)]=v;fabRender()}}
       catch(_){bs.disabled=false;$("fabm").textContent="Não foi possível salvar. Confira a internet ou as regras do banco."}};
     bo.onclick=()=>supDetalhe(e.k);
     C.appendChild(d)};
@@ -3163,8 +3191,37 @@ function mdRender(){if(!$("md").classList.contains("on"))return;
       box.appendChild(e)});
     if(m.reg.obs){const o=document.createElement("div");o.className="me";o.innerHTML="<b>Observações do dia</b><br><small>"+esc(m.reg.obs)+"</small>";box.appendChild(o)}
     C.appendChild(box)})}
-function mostraFotos(L){document.querySelectorAll("#fs .fsx2").forEach(e=>e.remove());$("fsimg").src=L[0];
-  L.slice(1).forEach(u=>{const im=document.createElement("img");im.className="fsx2";im.src=u;im.alt="Foto";im.style.cssText="width:100%;display:block;margin-top:6px";$("fs").appendChild(im)});$("fs").scrollTop=0;$("fs").classList.add("on")}
+function mostraFotos(L){verFotos(L,0)}
+const FV={L:[],i:0,nw:1,nh:1,b:1,s:1,tx:0,ty:0,pt:new Map(),pinch:null,tap:0,sw:null};
+function verFotos(L,i){L=(L||[]).filter(Boolean);if(!L.length)return;FV.L=L;FV.i=Math.min(Math.max(0,i||0),L.length-1);$("fv").hidden=false;fvCarrega()}
+function fvCarrega(){const im=$("fvi");$("fvc").textContent=FV.L.length>1?(FV.i+1)+" de "+FV.L.length:"";$("fvp").hidden=FV.i<=0;$("fvn").hidden=FV.i>=FV.L.length-1;
+  im.onload=()=>{FV.nw=im.naturalWidth||1;FV.nh=im.naturalHeight||1;fvFit()};im.src=FV.L[FV.i];if(im.complete&&im.naturalWidth){FV.nw=im.naturalWidth;FV.nh=im.naturalHeight;fvFit()}}
+function fvFit(){const W=innerWidth,H=innerHeight;FV.b=Math.min(W/FV.nw,H/FV.nh);const im=$("fvi");im.style.width=FV.nw*FV.b+"px";im.style.height=FV.nh*FV.b+"px";FV.s=1;FV.tx=(W-FV.nw*FV.b)/2;FV.ty=(H-FV.nh*FV.b)/2;fvAp()}
+function fvLim(){const W=innerWidth,H=innerHeight,w=FV.nw*FV.b*FV.s,h=FV.nh*FV.b*FV.s;FV.tx=w<=W?(W-w)/2:Math.min(0,Math.max(W-w,FV.tx));FV.ty=h<=H?(H-h)/2:Math.min(0,Math.max(H-h,FV.ty))}
+function fvAp(){fvLim();$("fvi").style.transform="translate("+FV.tx+"px,"+FV.ty+"px) scale("+FV.s+")";$("fvz").textContent=FV.s>1.01?"Ajustar":"1:1"}
+function fvZoom(ns,cx,cy){const max=Math.max(4,1/FV.b*2);ns=Math.min(max,Math.max(1,ns));const k=ns/FV.s;FV.tx=cx-(cx-FV.tx)*k;FV.ty=cy-(cy-FV.ty)*k;FV.s=ns;fvAp()}
+function fvVai(d){const j=FV.i+d;if(j<0||j>=FV.L.length)return;FV.i=j;fvCarrega()}
+function fvFecha(){$("fv").hidden=true;FV.pt.clear();FV.pinch=null}
+$("fvx").onclick=fvFecha;$("fvp").onclick=()=>fvVai(-1);$("fvn").onclick=()=>fvVai(1);
+$("fvz").onclick=()=>{if(FV.s>1.01){fvFit();return}fvZoom(1/FV.b,innerWidth/2,innerHeight/2)};
+addEventListener("resize",()=>{if(!$("fv").hidden)fvFit()});
+addEventListener("keydown",e=>{if($("fv").hidden)return;if(e.key==="Escape")fvFecha();else if(e.key==="ArrowLeft")fvVai(-1);else if(e.key==="ArrowRight")fvVai(1)});
+{const S=$("fvs");
+ S.addEventListener("wheel",e=>{e.preventDefault();fvZoom(FV.s*(e.deltaY<0?1.15:1/1.15),e.clientX,e.clientY)},{passive:false});
+ S.addEventListener("pointerdown",e=>{try{S.setPointerCapture(e.pointerId)}catch(_){}FV.pt.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(FV.pt.size===2){const [a,b]=[...FV.pt.values()];FV.pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,s:FV.s,mx:(a.x+b.x)/2,my:(a.y+b.y)/2,tx:FV.tx,ty:FV.ty};FV.sw=null}
+   else if(FV.pt.size===1)FV.sw={x:e.clientX,y:e.clientY,t:Date.now(),tx:FV.tx,ty:FV.ty,mv:false}});
+ S.addEventListener("pointermove",e=>{if(!FV.pt.has(e.pointerId))return;FV.pt.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(FV.pinch&&FV.pt.size>=2){const [a,b]=[...FV.pt.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2,P=FV.pinch;
+     const ns=Math.min(Math.max(4,1/FV.b*2),Math.max(1,P.s*d/P.d)),k=ns/P.s;FV.s=ns;FV.tx=mx-(P.mx-P.tx)*k;FV.ty=my-(P.my-P.ty)*k;fvAp();return}
+   const w=FV.sw;if(!w)return;const dx=e.clientX-w.x,dy=e.clientY-w.y;if(Math.abs(dx)+Math.abs(dy)>6)w.mv=true;
+   if(FV.s>1.01){FV.tx=w.tx+dx;FV.ty=w.ty+dy;fvAp()}});
+ const fim=e=>{FV.pt.delete(e.pointerId);if(FV.pt.size<2)FV.pinch=null;const w=FV.sw;if(!w||FV.pt.size)return;FV.sw=null;
+   const dx=e.clientX-w.x,dy=e.clientY-w.y;
+   if(!w.mv&&Date.now()-w.t<300){const n=Date.now();if(n-FV.tap<320){FV.tap=0;if(FV.s>1.01)fvFit();else fvZoom(2.5,e.clientX,e.clientY)}else FV.tap=n;return}
+   if(FV.s<=1.01&&Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)fvVai(dx<0?1:-1);
+   else if(FV.s<=1.01&&dy>120&&Math.abs(dy)>Math.abs(dx)*1.5)fvFecha()};
+ S.addEventListener("pointerup",fim);S.addEventListener("pointercancel",fim)}
 async function mdFotos(uid,dia,sid,cat,ids){$("mdm").textContent="Abrindo fotos…";
   try{const L=[];for(const id of ids){const sn=await fbDb.collection("vendedores/"+uid+"/fotos").doc(dia+"_"+sid+"_"+cat+"_"+id).get();if(sn.exists&&(sn.data()||{}).j)L.push(sn.data().j)}
     if(L.length){mostraFotos(L);fiMarca(ids.map(id=>({u:uid,f:dia+"_"+sid+"_"+cat+"_"+id})));$("mdm").textContent=""}else $("mdm").textContent="Foto expirada (apagada "+FOTO_DIAS+" dias após a visualização)."}
@@ -3177,7 +3234,7 @@ function mdPend(){motoristas().forEach(u=>{if(mdPendL.u[u])return;
   mdPendL.u[u]=fbDb.collection("vendedores/"+u+"/docs").doc("m_pend").onSnapshot(sn=>{mdPendL.v[u]=sn.exists?((sn.data()||{}).l||{}):{};mdRender()},()=>{})})}
 async function mdFoto(uid,sid){$("mdm").textContent="Abrindo foto…";
   try{const sn=await fbDb.collection("vendedores/"+uid+"/fotos").doc(sup.dia+"_"+sid).get();
-    if(sn.exists&&(sn.data()||{}).j){$("fsimg").src=sn.data().j;$("fs").classList.add("on");$("mdm").textContent=""}else $("mdm").textContent="Foto não encontrada."}
+    if(sn.exists&&(sn.data()||{}).j){verFotos([sn.data().j],0);$("mdm").textContent=""}else $("mdm").textContent="Foto não encontrada."}
   catch(e){$("mdm").textContent="Não consegui abrir a foto ("+(e.code||e.message)+")."}}
 function mdAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("mdm").textContent="";$("md").classList.add("on");mdLiga();mdRender()}
 $("spen").onclick=mdAbrir;$("mdx").onclick=()=>$("md").classList.remove("on");
@@ -3220,7 +3277,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="142";
+const VER="144";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
