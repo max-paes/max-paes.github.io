@@ -2348,6 +2348,10 @@ function abreWa(t){const u="https://wa.me/?text="+encodeURIComponent(t);let w=nu
 $("vwpp").onclick=()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash($("vwpp"),"Enviar no WhatsApp","Informe o cliente");return}
   salvar();const t=textoChecklist();
   copiaFundo(t);
+  const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);
+    fs.push(new File([u],"foto-visita-"+(i+1)+".jpg",{type:"image/jpeg"}))})}catch(_){}
+  if(fs.length&&navigator.share&&navigator.canShare&&(()=>{try{return navigator.canShare({files:fs,text:t})}catch(_){return false}})()){
+    navigator.share({files:fs,text:t}).then(()=>aviso("Fotos enviadas. O texto do checklist também está copiado: se o WhatsApp não colocar o texto, é só colar.")).catch(e=>{if(e&&e.name==="AbortError")return;navigator.share({text:t}).catch(()=>abreWa(t))});return}
   if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;abreWa(t)});return}
   abreWa(t)};
 function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.pdf&&podeCompart());$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
@@ -2988,7 +2992,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="129";
+const VER="130";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
