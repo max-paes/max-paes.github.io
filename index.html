@@ -1652,6 +1652,36 @@ function rlCalc(todos){const D=rl.dados;if(!D)return null;
   const ped=es.filter(e=>rlOk(e)&&soma(e.pedido)>0),tro=es.filter(e=>rlOk(e)&&soma(e.troca)>0);
   es.filter(rlOk).forEach(e=>ITENS.forEach(n=>{if(e.pedido[n]>0)P[n]=(P[n]||0)+e.pedido[n];if(e.troca[n]>0)T[n]=(T[n]||0)+e.troca[n]}));
   return {es,P,T,ped,tro,vis:es.filter(e=>e.visita&&e.visita.ini),rasc:es.filter(e=>!rlOk(e)&&(soma(e.pedido)>0||soma(e.troca)>0)),un:soma(P),tr:soma(T)}}
+function rlTabs(R){const L={};R.es.forEach(e=>{const k=norm(e.cliente||"");if(!k)return;const o=L[k]=L[k]||{n:e.cliente,vis:0,ped:0,un:0,tro:0,ult:"",vs:new Set()};if(e.visita&&e.visita.ini)o.vis++;if(rlOk(e)&&soma(e.pedido)>0){o.ped++;o.un+=soma(e.pedido)}if(rlOk(e))o.tro+=soma(e.troca);if((e.data||"")>o.ult)o.ult=e.data;o.vs.add(nomeV(e.uid).split(" ")[0])});
+  const LL=Object.values(L).map(o=>({...o,vend:[...o.vs].join(", ")})).sort((a,b)=>b.un-a.un||a.n.localeCompare(b.n,"pt-BR"));
+  const mn=t=>{const m=/^(\d\d):(\d\d)$/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
+  const VV=R.es.filter(e=>(e.visita&&e.visita.ini)||soma(e.pedido)>0||soma(e.troca)>0).sort((a,b)=>((b.data||"")+((b.visita||{}).ini||"")).localeCompare((a.data||"")+((a.visita||{}).ini||""))).slice(0,400).map(e=>{const v=e.visita||{},a=mn(v.ini),b=mn(v.fim);
+    return {d:e.data||"",c:e.cliente||"",vend:nomeV(e.uid).split(" ")[0],st:soma(e.pedido)>0?rotSt(e.status,e.fat):"Sem pedido",hr:v.ini?(v.ini+(v.fim?"–"+v.fim:"")):"",du:a!==null&&b!==null&&b>=a?b-a:null,p:soma(e.pedido),t:soma(e.troca)}});
+  return {LL,VV}}
+function pdfMulti(pg){const enc=new TextEncoder(),parts=[],offs=[];let len=0;const add=b=>{const u=typeof b==="string"?enc.encode(b):b;parts.push(u);len+=u.length};
+  const n=pg.length,kids=pg.map((_,i)=>(3+i*3)+" 0 R").join(" ");add("%PDF-1.4\n");
+  offs[1]=len;add("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");offs[2]=len;add("2 0 obj\n<< /Type /Pages /Kids ["+kids+"] /Count "+n+" >>\nendobj\n");
+  pg.forEach((p,i)=>{const o=3+i*3;offs[o]=len;add(o+" 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+p.pw+" "+p.ph+"] /Resources << /XObject << /Im0 "+(o+1)+" 0 R >> >> /Contents "+(o+2)+" 0 R >>\nendobj\n");
+    offs[o+1]=len;add((o+1)+" 0 obj\n<< /Type /XObject /Subtype /Image /Width "+p.w+" /Height "+p.h+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+p.bytes.length+" >>\nstream\n");add(p.bytes);add("\nendstream\nendobj\n");
+    const cs="q "+p.pw+" 0 0 "+p.ph+" 0 0 cm /Im0 Do Q";offs[o+2]=len;add((o+2)+" 0 obj\n<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream\nendobj\n")});
+  const tot=3+n*3,xr=len;let t="xref\n0 "+tot+"\n0000000000 65535 f \n";for(let k=1;k<tot;k++)t+=String(offs[k]).padStart(10,"0")+" 00000 n \n";
+  add(t+"trailer\n<< /Size "+tot+" /Root 1 0 R >>\nstartxref\n"+xr+"\n%%EOF");return new Blob(parts,{type:"application/pdf"})}
+function rlPaginas(logo,rot,R){const {LL,VV}=rlTabs(R),W=1240,H=1754,M=60,FT="Archivo,sans-serif",RH=44,out=[];let c=null,x=null,y=0,pn=0;
+  const nova=tit=>{c=document.createElement("canvas");c.width=W;c.height=H;x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);pn++;
+    x.fillStyle="#1f4fa8";x.fillRect(0,0,W,110);if(logo)try{x.drawImage(logo,M,15,80,80)}catch(_){}x.fillStyle="#fff";x.font="800 34px "+FT;x.fillText(tit,M+100,58);x.font="600 20px "+FT;x.fillText(rot,M+100,90);
+    out.push(c);y=150};
+  const fit=(t,w)=>{t=String(t);while(x.measureText(t).width>w&&t.length>1)t=t.slice(0,-1);return t};
+  const tabela=(tit,cols,rows,linha)=>{if(!rows.length)return;let first=true;
+    const cab=()=>{x.fillStyle="#1f4fa8";x.fillRect(M,y,W-2*M,40);x.fillStyle="#fff";x.font="800 17px "+FT;let cx=M;cols.forEach(([t,w,al])=>{x.textAlign=al==="r"?"right":"left";x.fillText(t,al==="r"?cx+w-10:cx+10,y+27);cx+=w});x.textAlign="left";y+=40};
+    rows.forEach((r,i)=>{if(first||y+RH>H-60){if(!first||!c||y>H-200)nova(tit+(first?"":" (continuação)"));else{x.fillStyle="#1f4fa8";x.font="800 26px "+FT;x.fillText(tit,M,y+10);y+=30}cab();first=false}
+      x.fillStyle=i%2?"#fff":"#f4f7fc";x.fillRect(M,y,W-2*M,RH);let cx=M;linha(r).forEach((v,j)=>{const [,w,al,cor]=cols[j];x.fillStyle=(typeof v==="object"&&v&&v.c)||"#111a2e";x.font=(typeof v==="object"&&v&&v.b?"800 ":"600 ")+"17px "+FT;const t=typeof v==="object"&&v?v.t:v;
+        x.textAlign=al==="r"?"right":"left";x.fillText(fit(t,w-16),al==="r"?cx+w-10:cx+10,y+28);cx+=w});x.textAlign="left";y+=RH});y+=40};
+  nova("Lojas e visitas");
+  tabela("Lojas visitadas ("+LL.length+")",[["Loja",380],["Vendedor(es)",230],["Visitas",100,"r"],["Pedidos",100,"r"],["Un.",100,"r"],["Troca",110,"r"],["Última",100,"r"]],LL,o=>[{t:o.n,b:1},o.vend,o.vis,o.ped,{t:o.un,b:1},{t:o.tro+(o.un?" ("+Math.round(o.tro/o.un*100)+"%)":""),c:o.un&&o.tro/o.un>0.1?"#b3261e":null},dBR(o.ult).slice(0,5)]);
+  tabela("Visitas e pedidos detalhados ("+VV.length+")",[["Dia",80],["Loja",300],["Vendedor",140],["Status",190],["Chegada–saída",160,"r"],["Min",70,"r"],["Ped.",90,"r"],["Troca",90,"r"]],VV,v=>[dBR(v.d).slice(0,5),{t:v.c,b:1},v.vend,v.st,v.hr||"—",v.du===null?"":v.du,{t:v.p||"",b:1},v.t||""]);
+  if(out.length===1&&!LL.length&&!VV.length)return [];
+  out.forEach((cv,i)=>{const g=cv.getContext("2d");g.fillStyle="#5b6b8c";g.font="600 16px "+FT;g.textAlign="right";g.fillText("Página "+(i+2)+" · Max Pães",W-M,H-25);g.textAlign="left"});
+  return out}
 function rlRender(){const C=$("rlc"),R=rlCalc(rl.tipo==="producao");$("rlt").textContent=rlRot();
   const adm=ehAdm();$("rltipo").hidden=!adm;if(!adm)rl.tipo="vendas";const pz=rl.tipo==="producao";
   $("rltv").setAttribute("aria-pressed",!pz);$("rltp").setAttribute("aria-pressed",pz);
@@ -1672,15 +1702,9 @@ function rlRender(){const C=$("rlc"),R=rlCalc(rl.tipo==="producao");$("rlt").tex
   // por dia
   if(rl.modo!=="dia"){const dias={};R.es.filter(rlOk).forEach(e=>{const k=e.data||"";const o=dias[k]||(dias[k]={p:0,u:0,t:0});if(soma(e.pedido)>0)o.p++;o.u+=soma(e.pedido);o.t+=soma(e.troca)});
     h+="<h3>Por dia</h3><table class='tx'><tr><th>Dia</th><th class='n'>Pedidos</th><th class='n'>Un.</th><th class='n'>Trocas</th></tr>"+Object.keys(dias).sort().map(k=>"<tr><td>"+esc(dBR(k))+"</td><td class='n'>"+dias[k].p+"</td><td class='n'>"+dias[k].u+"</td><td class='n'>"+dias[k].t+"</td></tr>").join("")+"</table>"}
-  // lojas visitadas
-  {const L={};R.es.forEach(e=>{const k=norm(e.cliente||"");if(!k)return;const o=L[k]=L[k]||{n:e.cliente,vis:0,ped:0,un:0,tro:0,ult:"",vend:new Set()};if(e.visita&&e.visita.ini)o.vis++;if(rlOk(e)&&soma(e.pedido)>0){o.ped++;o.un+=soma(e.pedido)}if(rlOk(e))o.tro+=soma(e.troca);if((e.data||"")>o.ult)o.ult=e.data;o.vend.add(nomeV(e.uid).split(" ")[0])});
-   const LL=Object.values(L).sort((a,b)=>b.un-a.un||a.n.localeCompare(b.n,"pt-BR"));
-   if(LL.length)h+="<h3>Lojas visitadas ("+LL.length+")</h3><table class='tx'><tr><th>Loja</th><th class='n'>Visitas</th><th class='n'>Pedidos</th><th class='n'>Un.</th><th class='n'>Troca</th><th class='n'>Última</th></tr>"+LL.map(o=>"<tr><td>"+esc(o.n)+"<br><small style='color:var(--mute)'>"+esc([...o.vend].join(", "))+"</small></td><td class='n'>"+o.vis+"</td><td class='n'>"+o.ped+"</td><td class='n'>"+o.un+"</td><td class='n"+(o.un&&o.tro/o.un>0.1?" rd":"")+"'>"+o.tro+(o.un?"<small> "+Math.round(o.tro/o.un*100)+"%</small>":"")+"</td><td class='n'>"+esc(dBR(o.ult).slice(0,5))+"</td></tr>").join("")+"</table>"}
-  // visitas detalhadas
-  {const mn=t=>{const m=/^(\d\d):(\d\d)$/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
-   const VV=R.es.filter(e=>(e.visita&&e.visita.ini)||soma(e.pedido)>0||soma(e.troca)>0).sort((a,b)=>((b.data||"")+((b.visita||{}).ini||"")).localeCompare((a.data||"")+((a.visita||{}).ini||""))).slice(0,400);
-   if(VV.length)h+="<h3>Visitas e pedidos detalhados ("+VV.length+")</h3><table class='tx'><tr><th>Dia</th><th>Loja · vendedor</th><th class='n'>Chegada–saída</th><th class='n'>Pedido</th><th class='n'>Troca</th></tr>"+VV.map(e=>{const v=e.visita||{},a=mn(v.ini),b=mn(v.fim),du=a!==null&&b!==null&&b>=a?b-a:null;
-     return "<tr><td>"+esc(dBR(e.data||"").slice(0,5))+"</td><td>"+esc(e.cliente||"")+"<br><small style='color:var(--mute)'>"+esc(nomeV(e.uid).split(" ")[0])+" · "+esc(soma(e.pedido)>0?rotSt(e.status,e.fat):"Sem pedido")+"</small></td><td class='n'>"+esc(v.ini?(v.ini+(v.fim?"–"+v.fim:"")):"—")+(du!==null?"<br><small>"+du+" min</small>":"")+"</td><td class='n'>"+(soma(e.pedido)||"")+"</td><td class='n'>"+(soma(e.troca)||"")+"</td></tr>"}).join("")+"</table>"}
+  {const {LL,VV}=rlTabs(R);
+   if(LL.length)h+="<h3>Lojas visitadas ("+LL.length+")</h3><table class='tx'><tr><th>Loja</th><th class='n'>Visitas</th><th class='n'>Pedidos</th><th class='n'>Un.</th><th class='n'>Troca</th><th class='n'>Última</th></tr>"+LL.map(o=>"<tr><td>"+esc(o.n)+"<br><small style='color:var(--mute)'>"+esc(o.vend)+"</small></td><td class='n'>"+o.vis+"</td><td class='n'>"+o.ped+"</td><td class='n'>"+o.un+"</td><td class='n"+(o.un&&o.tro/o.un>0.1?" rd":"")+"'>"+o.tro+(o.un?"<small> "+Math.round(o.tro/o.un*100)+"%</small>":"")+"</td><td class='n'>"+esc(dBR(o.ult).slice(0,5))+"</td></tr>").join("")+"</table>";
+   if(VV.length)h+="<h3>Visitas e pedidos detalhados ("+VV.length+")</h3><table class='tx'><tr><th>Dia</th><th>Loja · vendedor</th><th class='n'>Chegada–saída</th><th class='n'>Pedido</th><th class='n'>Troca</th></tr>"+VV.map(v=>"<tr><td>"+esc(dBR(v.d).slice(0,5))+"</td><td>"+esc(v.c)+"<br><small style='color:var(--mute)'>"+esc(v.vend)+" · "+esc(v.st)+"</small></td><td class='n'>"+esc(v.hr||"—")+(v.du!==null?"<br><small>"+v.du+" min</small>":"")+"</td><td class='n'>"+(v.p||"")+"</td><td class='n'>"+(v.t||"")+"</td></tr>").join("")+"</table>"}
   // por produto
   const ns=ITENS.filter(n=>R.P[n]>0||R.T[n]>0);
   h+="<h3>Total por produto</h3>"+(ns.length?"<table class='tx'><tr><th>Produto</th><th class='n'>Pedido</th><th class='n'>Troca</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+(R.P[n]||"")+"</td><td class='n'>"+(R.T[n]||"")+"</td></tr>").join("")+"<tr class='tot'><td>Total</td><td class='n'>"+R.un+"</td><td class='n'>"+R.tr+"</td></tr></table>":"<p class='msg'>Nenhum item.</p>");
@@ -1811,8 +1835,15 @@ $("rlj").onclick=async()=>{const R=rlCalc();if(!R||!(R.ped.length||R.tro.length)
     const c1=metadeResumo(logo,"","PEDIDOS · "+nm,"PEDIDOS: TOTAL POR PRODUTO",R.P,nomes,rot);
     const c2=metadeResumo(logo,"","TROCAS · "+nm,"TROCAS: TOTAL POR PRODUTO",R.T,nomes,rot);
     const f=await folhaA4(c1,c2),arq="relatorio-"+rl.modo+"-"+rlRange()[0]+".jpg";
-    ultimo={blob:f.jb,nome:arq,pdf:f.pdf,nomePdf:arq.replace(/\.jpg$/,".pdf"),url:f.url,dup:true};
-    abrirPrev("Relatório pronto (A4 paisagem). Salve o PDF para imprimir.")}
+    const PG=rlPaginas(logo,rot,R).slice(0,14);
+    if(!PG.length){ultimo={blob:f.jb,nome:arq,pdf:f.pdf,nomePdf:arq.replace(/\.jpg$/,".pdf"),url:f.url,dup:true};abrirPrev("Relatório pronto (A4 paisagem). Salve o PDF para imprimir.")}
+    else{const pags=[{bytes:new Uint8Array(await f.jb.arrayBuffer()),w:2000,h:1413,pw:842,ph:595}];
+      for(const cv of PG){const jb=await new Promise(z=>cv.toBlob(z,"image/jpeg",0.9));pags.push({bytes:new Uint8Array(await jb.arrayBuffer()),w:cv.width,h:cv.height,pw:595,ph:842})}
+      const W=1240,h0=Math.round(1413*W/2000),tall=document.createElement("canvas");tall.width=W;tall.height=h0+PG.length*1754;const g=tall.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,tall.height);
+      const im=await carregaImg(f.url);if(im)g.drawImage(im,0,0,W,h0);PG.forEach((cv,i)=>g.drawImage(cv,0,h0+i*1754));
+      const jb=await new Promise(z=>tall.toBlob(z,"image/jpeg",0.85));
+      ultimo={blob:jb,nome:arq,pdf:pdfMulti(pags),nomePdf:arq.replace(/\.jpg$/,".pdf"),url:tall.toDataURL("image/jpeg",0.85),dup:true};
+      abrirPrev("Relatório pronto: resumo por produto + lojas visitadas + visitas detalhadas ("+pags.length+" páginas no PDF).")}}
   catch(e){$("rlm").textContent="Não foi possível gerar a imagem."}
   b.textContent="Gerar imagem"};
 const VH={uid:"",L:[]};
@@ -3162,7 +3193,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="137";
+const VER="138";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
