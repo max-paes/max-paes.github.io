@@ -351,6 +351,7 @@ body.trv #edbar{border-color:#0b7a75}
 #rm,#md{z-index:30}
 .fb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.fb img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
 .fb .th{display:flex;flex-direction:column;align-items:center;gap:4px}.fb .th button{padding:3px 10px;border-radius:10px;font-size:12px;line-height:1.2}
+#spk .kpe{cursor:pointer}
 .pi{background:rgba(31,111,235,.08);border:1px solid rgba(31,111,235,.3);border-radius:10px;padding:8px 10px;font-size:13px;margin:8px 0;line-height:1.45}
 .pit{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;font-size:13px}.pit b{display:block;margin:6px 0 2px}.pit div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:2px 0}
 .pn{background:rgba(217,160,30,.13);color:inherit;border:1px solid rgba(217,160,30,.45);border-radius:10px;padding:8px 10px;font-weight:600;font-size:13px;margin:8px 0}
@@ -1368,6 +1369,9 @@ function supLiga(){
 function supDocs(){const hj=hojeISO(),dia=sup.modo==="dia",a=dia?sup.dia:semDe(sup.dia),b=dia?sup.dia:addD(semDe(sup.dia),6);
   const rs=[[a,b]];if(hj<a||hj>b)rs.push([hj,hj]);const key=rs.map(r=>r.join("_")).join("|");
   if(key!==sup.ini){Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.pronto={};sup.ini=key}
+  {const t0=new Date(a+"T00:00:00").getTime(),t1=new Date(b+"T23:59:59").getTime();sup.etr=[t0,t1];
+   ["rotaEm","finEm"].forEach(f=>{const lk="ex|"+f+"|"+a+"_"+b;if(sup.lst[lk])return;sup.ent=sup.ent||{};
+     sup.lst[lk]=fbDb.collection("entrega").where(f,">=",t0).where(f,"<=",t1).onSnapshot(sn=>{sn.docs.forEach(d=>{sup.ent[d.id]=d.data()||{}});supRender()},()=>{})})}
   rs.forEach(([x0,y0])=>{const lk="ent|"+x0+"_"+y0;if(sup.lst[lk])return;sup.ent=sup.ent||{};
     sup.lst[lk]=fbDb.collection("entrega").where("d",">=",x0).where("d","<=",y0).onSnapshot(sn=>{sn.docs.forEach(d=>{sup.ent[d.id]=d.data()||{}});supRender()},()=>{})});
   Object.keys(sup.vend).forEach(uid=>rs.forEach(([x0,y0])=>{const lk=uid+"|"+x0+"_"+y0;if(sup.lst[lk])return;
@@ -1397,7 +1401,11 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();f
   const agora=Object.values(sup.docs).filter(x=>x.id.startsWith("p_")&&x.data===hj&&x.ini&&!x.fim);
   const kp=[["Visitas",L.filter(x=>x.ini).length,(n=>n+(n===1?" finalizada":" finalizadas"))(L.filter(x=>x.ini&&x.fim).length)],["Em visita agora",agora.length,agora.length?agora.map(x=>nomeV(x.uid).split(" ")[0]).join(", "):"ninguém"],
     ["Pedidos fechados",fech.length,L.filter(x=>x.status==="rascunho"&&x.ped>0).length+" em rascunho"],["Unidades pedidas",un,(n=>n+(n===1?" loja":" lojas"))(L.filter(x=>x.ped>0).length)],["Trocas",tr+" un.",un?Math.round(tr/un*100)+"% do pedido":"—"]];
-  $("spk").innerHTML=kp.map(([a,b,c])=>"<div><small>"+esc(a)+"</small><b>"+esc(b)+"</b><span>"+esc(c)+"</span></div>").join("");
+  {const [t0,t1]=sup.etr||[0,0],ns=(x,f)=>(x[f]||0)>=t0&&(x[f]||0)<=t1,E=Object.values(sup.ent||{}).filter(x=>ns(x,"rotaEm")||ns(x,"finEm"));
+   const fin=E.filter(x=>x.fin&&ns(x,"finEm")).length,rt=E.filter(x=>x.rota&&!x.fin).length;
+   kp.push(["Entregas "+(sup.modo==="dia"?(sup.dia===hj?"hoje":"do dia"):"da semana"),fin+rt,rt+" em rota · "+fin+(fin===1?" concluída":" concluídas")])}
+  $("spk").innerHTML=kp.map(([a,b,c])=>"<div"+(/^Entregas/.test(a)?" class='kpe' role='button' tabindex='0'":"")+"><small>"+esc(a)+"</small><b>"+esc(b)+"</b><span>"+esc(c)+"</span></div>").join("");
+  {const ke=$("spk").querySelector(".kpe");if(ke)ke.onclick=()=>{try{$("spen").click()}catch(_){}}}
   const V=$("spv");V.innerHTML="";
   const uids=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test((sup.vend[u]||{}).papel||"")).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   if(!uids.length)V.innerHTML='<div class="vazio">Nenhum vendedor cadastrado ainda. Peça para cada um criar a conta no app.</div>';
@@ -3011,7 +3019,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="131";
+const VER="132";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
