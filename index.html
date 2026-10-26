@@ -3220,7 +3220,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="141";
+const VER="142";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -3238,7 +3238,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127
 async function swNovo(w){let v="";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(r.ok)v=(await r.text()).trim()}catch(e){}
   if(v&&v===VER){try{w.postMessage({tipo:"atualizar"})}catch(e){}return}mostraAtt(w)}
 function cfgAbrir(){$("cfq").textContent=perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"Sem conta conectada";$("cfsen").hidden=!(fbAuth&&perfil);$("cfsair").hidden=!fbAuth;
-  $("cfv").textContent="Versão "+(VER/100).toFixed(2)+" · atualização nº "+VER;$("cfdev").hidden=!(ehDev()&&!(typeof ESP!=="undefined"&&ESP));$("cfdc").innerHTML="";$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
+  $("cfv").textContent="Versão 1.0 · em desenvolvimento · atualização nº "+VER;$("cfdev").hidden=!(ehDev()&&!(typeof ESP!=="undefined"&&ESP));$("cfdc").innerHTML="";$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
 document.querySelectorAll(".cfgb").forEach(b=>b.onclick=cfgAbrir);$("cfgx").onclick=()=>$("cfgv").classList.remove("on");
 document.querySelectorAll("#cftema button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("mpv:tema",b.dataset.t)}catch(e){}aplicaTema()});
 $("cfsen").onclick=()=>{$("cfgv").classList.remove("on");mostraLogin("mudar")};
