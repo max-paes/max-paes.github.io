@@ -77,6 +77,18 @@ header .vnd:empty{display:none}
 #sp .sw{max-width:1180px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 30px}
 #sp .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
 #sp .stop h2{margin:0;font-size:19px;flex:1 1 auto}
+.dir{display:grid;gap:10px;margin-bottom:12px}.dk{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.dk>div{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px}.dk small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}.dk b{display:block;font-size:24px;margin:2px 0}.dk span{font-size:12px;color:var(--mute)}
+.dc{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px}.dc>b{display:block;margin-bottom:6px}
+.da{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}.da>span{font-size:18px}.da small{display:block;color:var(--mute);font-size:12px}
+.db{display:grid;grid-template-columns:minmax(0,1fr) 30% 44px;gap:8px;align-items:center;padding:3px 0;font-size:13px}.db.t{grid-template-columns:minmax(0,1fr) 44px}.db span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.db i{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.db em{display:block;height:100%;background:var(--brand)}.db b{text-align:right}
+.rd{color:#b3261e!important}.dc small.on{color:#1a8f4c;font-weight:700}
+.cfgb{min-width:44px;font-size:18px!important;padding-left:10px!important;padding-right:10px!important}
+.cfs{border-top:1px solid var(--line);padding:12px 0}.cfs>small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-bottom:6px}
+.cfn{margin:0 0 8px;font-weight:700}.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{flex:1;min-width:90px}.seg button[aria-pressed=true]{background:var(--brand);color:var(--on)}
+#cfrt{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:10px;font:inherit;background:var(--card);color:var(--ink);resize:vertical}
+#fab.so #fabc input,#fab.so #fabc textarea,#fab.so #fabc select,#fab.so #fabc label,#fab.so #fabc button:not(#fabj):not(.ocb):not([data-oc]){pointer-events:none;opacity:.75}
+.stop h2 .quem{display:block;font-size:12px;font-weight:700;opacity:.9;letter-spacing:.02em;margin-top:2px}
 #sp .stop button,#sp .seg button{border:1.5px solid currentColor;background:transparent;color:inherit;border-radius:9px;padding:7px 11px;font:700 14px Archivo,sans-serif}
 #sp .ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 #sp .ctl .dl{font-weight:800;min-width:120px;text-align:center}
@@ -371,7 +383,7 @@ body.trv #edbar{border-color:#0b7a75}
 </style>
 </head>
 <body>
-<header><div class="hl"><h1><img id="hlogo" alt="Max Pães"></h1><div class="hi"><p id="vnd" class="vnd"></p><p id="count">Pedido · 0 itens</p></div></div><div class="hb"><button id="sbtn" hidden>Painel</button><button id="abtn">Agenda</button><button id="hbtn">Histórico</button></div></header>
+<header><div class="hl"><h1><img id="hlogo" alt="Max Pães"></h1><div class="hi"><p id="vnd" class="vnd"></p><p id="count">Pedido · 0 itens</p></div></div><div class="hb"><button id="sbtn" hidden>Painel</button><button id="abtn">Agenda</button><button id="hbtn">Histórico</button><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button></div></header>
 <div class="tabs" role="tablist">
   <button role="tab" id="t-pedido" aria-selected="true">Pedido</button>
   <button role="tab" id="t-troca" aria-selected="false">Troca</button>
@@ -437,12 +449,13 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="lgl"><button id="lgc">Cancelar</button><button id="lgr">Esqueci a senha</button></div>
 </div></div>
 <div class="ov" id="sp" role="dialog" aria-modal="true" aria-labelledby="spt"><div class="sw">
-  <div class="stop"><h2 id="spt">Painel do supervisor</h2><button id="spr">Relatórios</button><button id="spfp" hidden>Produção</button><button id="spfe" hidden>Expedição</button><button id="sprt">Rota do motorista</button><button id="spen">Entregas</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button></div>
+  <div class="stop"><h2 id="spt">Painel do supervisor<small class="quem" id="spq"></small></h2><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="spr">Relatórios</button><button id="spfp" hidden>Produção</button><button id="spfe" hidden>Expedição</button><button id="sprt">Rota do motorista</button><button id="spen">Entregas</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button></div>
   <div class="ctl"><button id="spa" aria-label="Dia anterior">◀</button><span class="dl" id="spd"></span><button id="spn" aria-label="Próximo dia">▶</button><button id="sph">Hoje</button>
     <span style="flex:1"></span><button id="smd" aria-pressed="true">Dia</button><button id="sms" aria-pressed="false">Semana</button></div>
   <p class="msg" id="spm" style="margin:0 2px 10px"></p>
   <button id="fiav" class="fich" hidden></button>
   <div class="kp" id="spk"></div>
+  <div id="spdir"></div>
   <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
@@ -460,7 +473,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div id="spsem" hidden><div class="sh">Troca por loja na semana</div><div class="tl" style="padding:4px 4px"><table class="tx" id="spts"></table></div></div>
 </div></div>
 <div class="ov" id="fab" role="dialog" aria-modal="true" aria-labelledby="fabt"><div class="sw">
-  <div class="stop"><h2 id="fabt">Produção</h2><button id="fabr">Atualizar</button><button id="fabs">Sair</button></div>
+  <div class="stop"><h2><span id="fabt">Produção</span><small class="quem" id="fabq"></small></h2><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="fabr">Atualizar</button><button id="fabs">Sair</button></div>
   <div class="fctl"><button id="faba" aria-label="Dia anterior">◀</button><b id="fabd"></b><button id="fabn" aria-label="Próximo dia">▶</button><button id="fabh">Hoje</button></div>
   <p class="msg" id="fabm" style="margin:0 2px 10px"></p>
   <div id="fabc"></div>
@@ -492,7 +505,7 @@ body.trv #edbar{border-color:#0b7a75}
   <p class="msg" id="sdm" style="margin:6px 2px 0"></p>
 </div></div>
 <div class="ov" id="mot" role="dialog" aria-modal="true" aria-labelledby="mott"><div class="sw">
-  <div class="stop"><h2 id="mott">Motorista</h2><button id="motr">Atualizar</button><button id="mots">Sair</button></div>
+  <div class="stop"><h2>Motorista<small class="quem" id="motq"></small></h2><span id="mott" hidden></span><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="motr">Atualizar</button><button id="mots">Sair</button></div>
   <p class="msg" id="motm" style="margin:0 2px 10px"></p>
   <div id="motc"></div>
 </div></div>
@@ -515,6 +528,14 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="acts" style="margin-top:10px"><button id="mdj">Gerar relatório (JPG)</button></div>
   <p class="msg" id="mdm" style="margin:6px 2px 0"></p>
 </div></div>
+<div class="ov" id="cfgv" role="dialog" aria-modal="true" aria-labelledby="cfgt"><div class="box">
+  <div class="hhead"><b id="cfgt">Configurações</b><button id="cfgx">Fechar</button></div>
+  <div class="cfs"><small>Conta</small><p id="cfq" class="cfn"></p><div class="acts"><button id="cfsen">Mudar senha</button><button id="cfsair">Sair da conta</button></div></div>
+  <div class="cfs"><small>Tema</small><div class="seg" id="cftema"><button data-t="claro">☀️ Claro</button><button data-t="escuro">🌙 Escuro</button><button data-t="auto">Automático</button></div></div>
+  <div class="cfs"><small>Reportar erro</small><p class="msg" style="margin:0 0 6px">Conte o que aconteceu: em que tela estava, o que tocou e o que apareceu. O aparelho, a versão e os últimos erros registrados vão junto.</p>
+    <textarea id="cfrt" rows="4" placeholder="Ex.: na Agenda, toquei em Auristela 1 e o pedido não abriu"></textarea><div class="acts"><button id="cfre">Enviar relato</button></div><p class="msg" id="cfrm" style="margin:6px 0 0"></p></div>
+  <div class="cfs"><small>Aplicativo</small><p class="cfn" id="cfv"></p><div class="acts"><button id="cfat">Procurar atualização</button></div><p class="msg" id="cfam" style="margin:6px 0 0"></p></div>
+</div></div>
 <div id="toast" hidden role="status"></div>
 <div id="offb" role="status" hidden>Sem conexão · o pedido fica salvo no celular e sobe quando o sinal voltar</div>
 <div id="attb" role="status" hidden><span>Nova versão disponível</span><button id="attok">Atualizar</button></div>
@@ -526,7 +547,7 @@ body.trv #edbar{border-color:#0b7a75}
 <div class="ov" id="hs"><div class="box">
   <div class="hhead"><b id="htit">Histórico</b><button id="hfx">Fechar</button></div>
   <p id="nvst" class="msg" style="margin:0 2px 8px"></p>
-  <div class="acts" style="margin-bottom:8px"><button id="pnb">Painel do mês</button><button id="prb" hidden>Tabela de preços</button><button id="rsb">Resumo do dia</button><button id="tema">Tema: automático</button><button id="msen" hidden>Mudar senha</button><button id="sair" hidden>Sair da conta</button></div>
+  <div class="acts" style="margin-bottom:8px"><button id="pnb">Painel do mês</button><button id="prb" hidden>Tabela de preços</button><button id="rsb">Resumo do dia</button><button id="tema" hidden>Tema: automático</button><button id="msen" hidden>Mudar senha</button><button id="sair" hidden>Sair da conta</button></div>
   <p id="hmsg" class="msg" hidden></p>
   <div id="rsv" class="rs" hidden>
     <div class="acts" style="align-items:flex-end"><label style="flex:1 1 40%;display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:3px">Data<input id="rsd" type="date"></label><button id="rsj">Gerar imagem</button><button id="rsx">Voltar</button></div>
@@ -1268,7 +1289,8 @@ function aplicaTema(){let t="claro";try{t=localStorage.getItem("mpv:tema")||"cla
   const h=document.documentElement;if(t==="claro")h.setAttribute("data-theme","light");else if(t==="escuro")h.setAttribute("data-theme","dark");else h.removeAttribute("data-theme");
   const dark=t==="escuro"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=dark?"#0f1626":"#1f4fa8";
-  const b=$("tema");if(b)b.textContent="Tema: "+(t==="claro"?"claro":t==="escuro"?"escuro":"automático")}
+  const b=$("tema");if(b)b.textContent="Tema: "+(t==="claro"?"claro":t==="escuro"?"escuro":"automático");
+  document.querySelectorAll("#cftema button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.t===t))}
 $("tema").onclick=()=>{let t="claro";try{t=localStorage.getItem("mpv:tema")||"claro"}catch(e){}
   const n=t==="claro"?"escuro":t==="escuro"?"auto":"claro";try{localStorage.setItem("mpv:tema",n)}catch(e){}aplicaTema()};
 aplicaTema();
@@ -1306,7 +1328,7 @@ function aplicaSeeds(){try{
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";
-  $("sair").hidden=!fbAuth;$("msen").hidden=!(fbAuth&&perfil);
+  $("sair").hidden=true;$("msen").hidden=true;
   [garanteClientes,aplicaSeeds,motPronto,fabPronto].forEach(f=>{try{f()}catch(e){diag(e,"mostraVendedor:"+f.name)}});try{vcPinta()}catch(e){diag(e,"vcPinta")}}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
@@ -1391,7 +1413,35 @@ function supAviso(x,k,tipo){const t=tipo==="faturar"?"Pronto para faturar · "+n
 function fiChip(){const b=$("fiav");if(!b)return;const P=ehAdm()?fiPend():[];b.hidden=!P.length;if(!P.length)return;
   P.sort((a,c)=>a.ts-c.ts);const o=P[0],d=o.d||fiYmd(o.ts);b.textContent="⏳ "+P.length+(P.length===1?" foto aguardando":" fotos aguardando")+" sua visualização · ir para "+dBR(d).slice(0,5);
   b.onclick=()=>{sup.modo="dia";sup.dia=d;supDocs();supRender()}}
-function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();fiChip();
+function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;if(!ehAdm()){B.innerHTML="";return}
+  const per=dia?(sup.dia===hj?"hoje":"no dia"):"na semana",ent=sup.ent||{},pct=(a,b)=>b?Math.round(a/b*100):0;
+  const ped=T.filter(x=>(x.ped||0)>0),fech=ped.filter(x=>x.status&&x.status!=="rascunho");
+  // por vendedor
+  const V={};T.forEach(x=>{const v=V[x.uid]=V[x.uid]||{lojas:new Set(),vis:0,fech:0,un:0,tro:0,ras:0,agora:""};if(x.ini)v.vis++;v.lojas.add(norm(x.cliente||""));if((x.ped||0)>0){v.un+=x.ped;if(x.status&&x.status!=="rascunho")v.fech++;else v.ras++}v.tro+=x.tro||0;if(x.data===hj&&x.ini&&!x.fim)v.agora=x.cliente});
+  const rk=Object.entries(V).sort((a,b)=>b[1].un-a[1].un);
+  // produtos
+  const PR={},TR={};T.forEach(x=>{let e=null;try{e=JSON.parse(x.j)}catch(_){}if(!e)return;Object.entries(e.pedido||{}).forEach(([n,q])=>{if(q>0)PR[n]=(PR[n]||0)+q});Object.entries(e.troca||{}).forEach(([n,q])=>{if(q>0)TR[n]=(TR[n]||0)+q})});
+  const top=Object.entries(PR).sort((a,b)=>b[1]-a[1]).slice(0,8),topT=Object.entries(TR).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  // alertas
+  const enx=x=>ent[x.uid+"_"+x.id]||{};
+  const semRota=fech.filter(x=>{const e=enx(x);return !e.rota&&!e.fin}),emRota=fech.filter(x=>{const e=enx(x);return e.rota&&!e.fin}),entregues=fech.filter(x=>enx(x).fin);
+  const ocAb=fech.filter(x=>{const e=enx(x);return !e.fin&&ocLista(e).some(o=>!o.sis)});
+  const ras=ped.filter(x=>!x.status||x.status==="rascunho"),alt=fech.filter(x=>x.status==="alterado");
+  const trAlta=rk.filter(([,v])=>v.un&&pct(v.tro,v.un)>10);
+  const al=[];if(ras.length)al.push(["⚠️",ras.length+(ras.length===1?" pedido com itens ainda não fechado":" pedidos com itens ainda não fechados"),ras.map(x=>x.cliente).slice(0,6).join(", ")]);
+  if(alt.length)al.push(["✏️",alt.length+(alt.length===1?" pedido alterado depois de fechado":" pedidos alterados depois de fechados"),alt.map(x=>x.cliente).slice(0,6).join(", ")]);
+  if(ocAb.length)al.push(["📝",ocAb.length+(ocAb.length===1?" entrega com ocorrência em aberto":" entregas com ocorrência em aberto"),ocAb.map(x=>x.cliente).slice(0,6).join(", ")]);
+  if(semRota.length)al.push(["📦",semRota.length+(semRota.length===1?" pedido fechado ainda sem rota":" pedidos fechados ainda sem rota"),semRota.map(x=>x.cliente).slice(0,6).join(", ")]);
+  trAlta.forEach(([u,v])=>al.push(["🔁","Troca de "+pct(v.tro,v.un)+"% com "+nomeV(u).split(" ")[0],v.tro+" un. de troca para "+v.un+" un. pedidas"]));
+  const un=ped.reduce((a,x)=>a+x.ped,0),tro=T.reduce((a,x)=>a+(x.tro||0),0);
+  let h="<div class='sh'>Visão do diretor · "+esc(per)+"</div><div class='dir'>";
+  h+="<div class='dk'><div><small>Pedidos fechados</small><b>"+fech.length+"</b><span>"+fech.reduce((a,x)=>a+x.ped,0)+" un.</span></div><div><small>Lojas atendidas</small><b>"+new Set(T.filter(x=>x.ini||(x.ped||0)>0).map(x=>norm(x.cliente||""))).size+"</b><span>"+T.filter(x=>x.ini).length+" visitas</span></div><div><small>Troca / pedido</small><b"+(pct(tro,un)>10?" class='rd'":"")+">"+pct(tro,un)+"%</b><span>"+tro+" de "+un+" un.</span></div><div><small>Entregas</small><b>"+entregues.length+"/"+fech.length+"</b><span>"+emRota.length+" em rota · "+semRota.length+" sem rota</span></div></div>";
+  h+="<div class='dc'><b>Alertas</b>"+(al.length?al.map(a=>"<div class='da'><span>"+a[0]+"</span><div><b>"+esc(a[1])+"</b><small>"+esc(a[2])+"</small></div></div>").join(""):"<p class='msg' style='margin:4px 0 0'>Nenhum alerta "+esc(per)+".</p>")+"</div>";
+  h+="<div class='dc'><b>Ranking da equipe</b>"+(rk.length?"<table class='tx'><tr><th>Nome</th><th class='n'>Visitas</th><th class='n'>Fechados</th><th class='n'>Un.</th><th class='n'>% troca</th></tr>"+rk.map(([u,v])=>"<tr><td>"+esc(nomeV(u).split(" ").slice(0,2).join(" "))+(v.agora?"<br><small class='on'>● em visita · "+esc(v.agora)+"</small>":"")+"</td><td class='n'>"+v.vis+"</td><td class='n'>"+v.fech+(v.ras?"<small> +"+v.ras+" aberto</small>":"")+"</td><td class='n'><b>"+v.un+"</b></td><td class='n"+(pct(v.tro,v.un)>10?" rd":"")+"'>"+(v.un?pct(v.tro,v.un)+"%":"—")+"</td></tr>").join("")+"</table>":"<p class='msg' style='margin:4px 0 0'>Sem movimento "+esc(per)+".</p>")+"</div>";
+  if(top.length){const mx=top[0][1];h+="<div class='dc'><b>Produtos mais pedidos</b>"+top.map(([n,q])=>"<div class='db'><span>"+esc(n)+"</span><i><em style='width:"+Math.round(q/mx*100)+"%'></em></i><b>"+q+"</b></div>").join("")+(topT.length?"<b style='display:block;margin-top:10px'>Mais trocados</b>"+topT.map(([n,q])=>"<div class='db t'><span>"+esc(n)+"</span><b>"+q+"</b></div>").join(""):"")+"</div>"}
+  h+="</div>";B.innerHTML=h}
+const quemTxt=()=>perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"";
+function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=dv;$("spx").hidden=dv}try{$("spq").textContent=quemTxt();$("spt").firstChild.textContent=ehAdm()&&perfil.papel==="admin"?"Painel do diretor":"Painel do supervisor"}catch(_){}supGerencia();fiChip();
   const d=sup.dia,hj=hojeISO(),s0=semDe(d),s1=addD(s0,6),dia=sup.modo==="dia";
   $("spd").textContent=dia?(d===hj?"Hoje · ":["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][new Date(d+"T12:00:00").getDay()]+" · ")+dBR(d):dBR(s0)+" a "+dBR(s1);
   $("smd").setAttribute("aria-pressed",dia);$("sms").setAttribute("aria-pressed",!dia);$("spsem").hidden=dia;
@@ -1405,6 +1455,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;supGerencia();f
    const fin=E.filter(x=>x.fin&&ns(x,"finEm")).length,rt=E.filter(x=>x.rota&&!x.fin).length;
    kp.push(["Entregas "+(sup.modo==="dia"?(sup.dia===hj?"hoje":"do dia"):"da semana"),fin+rt,rt+" em rota · "+fin+(fin===1?" concluída":" concluídas")])}
   $("spk").innerHTML=kp.map(([a,b,c])=>"<div"+(/^Entregas/.test(a)?" class='kpe' role='button' tabindex='0'":"")+"><small>"+esc(a)+"</small><b>"+esc(b)+"</b><span>"+esc(c)+"</span></div>").join("");
+  try{dirRender(todos,dia,hj)}catch(e){diag(e,"dir")}
   {const ke=$("spk").querySelector(".kpe");if(ke)ke.onclick=()=>{try{$("spen").click()}catch(_){}}}
   const V=$("spv");V.innerHTML="";
   const uids=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test((sup.vend[u]||{}).papel||"")).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
@@ -2586,7 +2637,7 @@ async function motDoc(ref,m,b){if(!ref)return;const r=b.textContent;b.textConten
 function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   const a=document.activeElement;if(a&&$("motc").contains(a)&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.type!=="checkbox"&&a.type!=="file"){mot.adiado=true;return}
   mot.adiado=false;
-  $("mott").textContent="Motorista: "+U(perfil&&perfil.nome||"");
+  $("mott").textContent="Motorista: "+U(perfil&&perfil.nome||"");$("motq").textContent=quemTxt();
   const C=$("motc"),R=mot.rota,reg=mot.reg||{},PP=reg.p||{};C.innerHTML="";
   const LST=((R&&R.paradas)||[]).concat((reg.x||[]).map(e=>({id:e.id,cliente:e.cliente,ped:e.ped||0,ob:"",extra:1,ref:e.ref||"",pd:e.pd||""})));
   const card=(cls)=>{const d=document.createElement("div");d.className="mc"+(cls?" "+cls:"");return d};
@@ -2791,7 +2842,7 @@ const podeProd=()=>!!(perfil&&/^(producao|admin|developer)$/.test(perfil.papel||
 const prEditando=()=>{const a=document.activeElement;return !!(a&&a.closest&&a.closest(".prt"))};
 const ehFab=()=>!!(perfil&&/^(producao|expedicao|faturamento)$/.test(perfil.papel||"")&&fbDb&&fbAuth&&fbAuth.currentUser);
 function fabPronto(){if(fab.dosp&&ehAdm())return;if(!ehFab()){fabDesliga();return}fab.dosp=false;fabAbrir(perfil.papel)}
-function fabAbrir(m){fab.modo=m;if(fab.ud&&m!=="expedicao"){if(fab.un){fab.un();fab.un=null}fab.ud=null}if(fab.upd&&m!=="producao"){if(fab.upr){fab.upr();fab.upr=null}fab.upd=null}if(!fab.dia)fab.dia=hojeISO();$("fabt").textContent=rotP(m);$("fabs").textContent=fab.dosp?"Voltar":"Sair";$("fab").classList.add("on");fabBusca();
+function fabAbrir(m){fab.modo=m;try{$("fab").classList.toggle("so",!!perfil&&perfil.papel==="admin")}catch(_){}if(fab.ud&&m!=="expedicao"){if(fab.un){fab.un();fab.un=null}fab.ud=null}if(fab.upd&&m!=="producao"){if(fab.upr){fab.upr();fab.upr=null}fab.upd=null}if(!fab.dia)fab.dia=hojeISO();$("fabt").textContent=rotP(m);$("fabq").textContent=quemTxt();$("fabs").textContent=fab.dosp?"Voltar":"Sair";$("fab").classList.add("on");fabBusca();
   if(!fab.iv)fab.iv=setInterval(()=>{if(!document.hidden&&$("fab").classList.contains("on"))fabBusca(true)},90000)}
 function fabDesliga(){fab.dosp=false;if(fab.upr){fab.upr();fab.upr=null}fab.upd=null;fab.pr={};if(fab.un){fab.un();fab.un=null}if(fab.ue){fab.ue();fab.ue=null}fab.ed=null;fab.ent={};if(fab.iv){clearInterval(fab.iv);fab.iv=null}fab.es=[];fab.ant=[];fab.sep={};fab.sepAnt={};fab.ud=null;$("fab").classList.remove("on")}
 const fabK=e=>e.k.replace("/","_");
@@ -2848,7 +2899,7 @@ function fabRender(){if(!perfil)return;if(fab.modo==="producao"&&prEditando()){f
       "<details><summary>Itens ("+ns.length+")</summary><table class='tx'><tr><th>Produto</th><th class='n'>Unid.</th><th class='n'>Caixas</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+e.pedido[n]+"</td><td class='n'>"+esc(cxTxt(n,e.pedido[n]))+"</td></tr>").join("")+"</table></details>"+
       "<div class='xa'>"+(fat?"":"<button class='"+(ok?"on":"")+"'>"+(ok?"✓ Separado"+(s.em?" "+new Date(s.em).toTimeString().slice(0,5):""):"Marcar separado")+"</button>")+"<button>Ocorrência</button><button>Abrir pedido</button></div>";
     const bb=[...d.querySelectorAll(".xa button")],bo=bb.pop(),boc=bb.pop(),bs=bb.pop()||document.createElement("button");
-    ocMarca(boc,"Ocorrência",(fab.ent||{})[fabK(e)]);boc.onclick=()=>ocAbrir(fabK(e),{c:e.cliente,d:e.data},e.cliente);
+    ocMarca(boc,"Ocorrência",(fab.ent||{})[fabK(e)]);boc.dataset.oc="1";bo.dataset.oc="1";boc.onclick=()=>ocAbrir(fabK(e),{c:e.cliente,d:e.data},e.cliente);
     bs.onclick=async()=>{if(ok&&bs.dataset.c!=="1"){bs.dataset.c="1";bs.textContent="Desmarcar?";setTimeout(()=>{bs.dataset.c="";fabRender()},3000);return}
       bs.disabled=true;try{const v={on:!ok,em:Date.now(),por:(perfil&&perfil.nome)||""};await fbDb.collection("expedicao").doc(e.data||fab.dia).set({s:{[fabK(e)]:v}},{merge:true});if(e.data!==fab.dia){fab.sepAnt[fabK(e)]=v;fabRender()}}
       catch(_){bs.disabled=false;$("fabm").textContent="Não foi possível salvar. Confira a internet ou as regras do banco."}};
@@ -3019,7 +3070,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="133";
+const VER="135";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -3036,6 +3087,23 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127
 }
 async function swNovo(w){let v="";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(r.ok)v=(await r.text()).trim()}catch(e){}
   if(v&&v===VER){try{w.postMessage({tipo:"atualizar"})}catch(e){}return}mostraAtt(w)}
+function cfgAbrir(){$("cfq").textContent=perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"Sem conta conectada";$("cfsen").hidden=!(fbAuth&&perfil);$("cfsair").hidden=!fbAuth;
+  $("cfv").textContent="Versão "+VER;$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
+document.querySelectorAll(".cfgb").forEach(b=>b.onclick=cfgAbrir);$("cfgx").onclick=()=>$("cfgv").classList.remove("on");
+document.querySelectorAll("#cftema button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("mpv:tema",b.dataset.t)}catch(e){}aplicaTema()});
+$("cfsen").onclick=()=>{$("cfgv").classList.remove("on");mostraLogin("mudar")};
+$("cfsair").onclick=()=>{const b=$("cfsair");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair da conta"},3000);return}
+  b.dataset.c="";b.textContent="Sair da conta";$("cfgv").classList.remove("on");document.querySelectorAll(".ov.on").forEach(o=>o.classList.remove("on"));const s0=$("sair");s0.dataset.c="1";s0.onclick()};
+$("cfre").onclick=async()=>{const t=$("cfrt").value.trim(),m=$("cfrm");if(!t){m.textContent="Escreva o que aconteceu antes de enviar.";return}
+  const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb){m.textContent="Entre na sua conta e conecte à internet para enviar.";return}
+  if(typeof ESP!=="undefined"&&ESP){m.textContent="No modo espelho o relato não é enviado.";return}
+  const b=$("cfre");b.disabled=true;m.textContent="Enviando…";
+  try{const id=Date.now().toString(36);const ab=[...document.querySelectorAll(".ov.on")].map(o=>o.id).filter(x=>x!=="cfgv").join(",");
+    await fbDb.collection("vendedores/"+u.uid+"/docs").doc("diag").set({tipo:"diag",ts:Date.now(),ua:navigator.userAgent.slice(0,160),papel:(perfil&&perfil.papel)||"",rep:{[id]:{t:t.slice(0,2000),ts:Date.now(),v:VER,papel:(perfil&&perfil.papel)||"",nome:(perfil&&perfil.nome)||"",tela:(typeof mode!=="undefined"?mode:"")+(ab?" · "+ab:""),on:navigator.onLine,ua:navigator.userAgent.slice(0,160),err:(DG.l||[]).slice(-5).map(x=>x.m).join(" | ").slice(0,600)}}},{merge:true});
+    $("cfrt").value="";m.textContent="Relato enviado. Obrigado! O desenvolvedor vai analisar."}
+  catch(e){m.textContent="Não consegui enviar ("+(e.code||e.message)+"). Tente de novo com internet."}finally{b.disabled=false}};
+$("cfat").onclick=async()=>{const m=$("cfam");m.textContent="Procurando…";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});const v=(await r.text()).trim();
+  if(v&&v!==VER){m.textContent="Nova versão "+v+" disponível. Toque em Atualizar na barra que apareceu.";mostraAtt(swReg&&swReg.waiting||null);try{if(swReg)swReg.update()}catch(_){}}else m.textContent="Você já está na versão mais recente."}catch(e){m.textContent="Sem internet para procurar agora."}};
 async function checaVersao(){
   if(!navigator.onLine)return;
   try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
