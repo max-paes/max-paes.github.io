@@ -1388,7 +1388,7 @@ function pintaMeta(){try{const m=+((perfil&&perfil.meta)||0),el=$("vnd");if(!el)
 setInterval(pintaMeta,60000);
 function mostraVendedor(){aplicaAcesso();
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
-  $("vnd").textContent=n?rotP(pp)+": "+U(n):"";pintaMeta();
+  $("vnd").textContent=n?rotP(pp)+": "+U(n):"";pintaMeta();try{$("t-entrega").textContent=pp==="promotor"?"Ocorrência":"Entrega"}catch(_){}
   $("sair").hidden=true;$("msen").hidden=true;
   [garanteClientes,aplicaSeeds,motPronto,fabPronto].forEach(f=>{try{f()}catch(e){diag(e,"mostraVendedor:"+f.name)}});try{vcPinta()}catch(e){diag(e,"vcPinta")}}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
@@ -2996,8 +2996,9 @@ function entVigia(){const k=entKey();if(k===entKCur)return;if(entUnCur){entUnCur
   ocMarca($("t-entrega"),"Entrega",null);
   if(k)entUnCur=ocOuve(k,d=>{ocMarca($("t-entrega"),"Entrega",d);const f=!!(d&&d.fin),r=!!(d&&d.rota&&!d.fin);if(f!==entFin||r!==entRota){entFin=f;entRota=r;pintaFat();if(mode==="entrega")contar()}})}
 function renderEnt(){const B=$("ent"),k=entKey();if(entUn&&entK!==k){entUn();entUn=null;entK=null}
-  if(!k){B.innerHTML="<div class='card'><b>🚚 Entrega e ocorrência</b><p class='msg' style='margin:6px 0 0'>"+(visUid()?"Lance o pedido (cliente e itens) para abrir a ocorrência desta entrega.":"Entre na sua conta e conecte à internet para usar a ocorrência.")+"</p></div>";return}
-  if(entUn)return;entK=k;B.innerHTML="<div class='card'><b>🚚 Entrega e ocorrência</b><p class='msg' style='margin:4px 0 8px'>Vendedor, promotor, expedição, motorista e supervisão podem acrescentar informações. Cada uma fica assinada com nome e horário.</p><div id='entp'></div></div>";
+  const PRO=!!perfil&&perfil.papel==="promotor",TIT=PRO?"📝 Ocorrências da visita e do pedido":"🚚 Entrega e ocorrência";
+  if(!k){B.innerHTML="<div class='card'><b>"+TIT+"</b><p class='msg' style='margin:6px 0 0'>"+(visUid()?(PRO?"Informe a loja e toque em Iniciar visita (aba Visita) ou lance o pedido para registrar ocorrências.":"Lance o pedido (cliente e itens) para abrir a ocorrência desta entrega."):"Entre na sua conta e conecte à internet para usar a ocorrência.")+"</p></div>";return}
+  if(entUn)return;entK=k;B.innerHTML="<div class='card'><b>"+TIT+"</b><p class='msg' style='margin:4px 0 8px'>"+(PRO?"Registre aqui qualquer ocorrência desta visita ou pedido: loja fechada, falta de produto, avaria, recado para a entrega… Fica assinada com seu nome e horário, e supervisão, expedição e motorista veem na hora.":"Vendedor, promotor, expedição, motorista e supervisão podem acrescentar informações. Cada uma fica assinada com nome e horário.")+"</p><div id='entp'></div></div>";
   entUn=ocPainel($("entp"),k,{c:U($("cliente").value.trim()),d:$("data").value})}
 // ===== Registro da produção (produzido e entregue ao estoque) =====
 function prVal(n,c){const it=((fab.pr||{}).itens||{})[n]||{};return typeof it[c]==="number"?it[c]:null}
@@ -3323,7 +3324,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="153";
+const VER="154";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
