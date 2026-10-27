@@ -419,7 +419,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="ed" id="aviso" role="alert" hidden><span id="avtx" class="warn"></span><button id="avx">OK</button></div>
   <div class="ed" id="edbar" hidden><span id="edtx">Pedido salvo no histórico. As alterações são salvas sozinhas.</span></div>
   <div class="head">
-    <label class="full">Cliente<input id="cliente" autocomplete="off" autocorrect="off" spellcheck="false"></label><div id="sug" class="sug" role="listbox" aria-label="Clientes sugeridos" hidden></div><div id="clitr" hidden><span>🔒 O nome da loja não pode ser alterado. Só o comprador pode mudar.</span><button type="button" id="clitrb">Trocar loja</button></div>
+    <label class="full">Cliente<input id="cliente" autocomplete="off" autocorrect="off" spellcheck="false"></label><div id="sug" class="sug" role="listbox" aria-label="Clientes sugeridos" hidden></div><div id="clitr" hidden><button type="button" id="clitrb">Trocar loja</button></div>
     <label class="full">Endereço<input id="endereco" autocomplete="off"></label>
     <label>Data<input id="data" type="date"></label>
     <label>Comprador<input id="comprador" autocomplete="off"></label>
@@ -666,7 +666,7 @@ const U=t=>String(t??"").toUpperCase();
 
 let cliSel=false;
 function trancaCli(){const el=$("cliente"),bx=$("clitr");if(!el||!bx)return;const t=!!el.value.trim()&&(cliSel||(!!curId&&document.activeElement!==el));
-  el.readOnly=t||document.body.classList.contains("trv");el.classList.toggle("trc",t);bx.hidden=!t;$("clitrb").hidden=!!curId;if(t)$("sug").hidden=true}
+  el.readOnly=t||document.body.classList.contains("trv");el.classList.toggle("trc",t);bx.hidden=!t||!!curId;if(t)$("sug").hidden=true}
 function salvaCli(){try{localStorage.setItem(CKEY,JSON.stringify(clientes))}catch(e){}}
 function lembraCli(nome,end,comp,save=true){
   nome=U(nome).trim();if(!nome)return;nome=canon(nome);const k=norm(nome);
@@ -3333,7 +3333,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="159";
+const VER="160";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
