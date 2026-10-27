@@ -478,7 +478,7 @@ body.trv #edbar{border-color:#0b7a75}
   <button id="fiav" class="fich" hidden></button>
   <div class="kp" id="spk"></div>
   <div id="spdir"></div>
-  <div class="sh">Vendedores</div><div class="vg" id="spv"></div>
+  <div class="sh">Equipe de vendas</div><div class="vg" id="spv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
       <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option><option value="supervisor">Supervisor</option><option value="admin">Diretor</option></select></label>
@@ -1356,6 +1356,7 @@ function aplicaAcesso(){const dono=false;/* gôndola retirada de todos os usuár
   const sp=!!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||""));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
+const NAO_VENDE=/^(motorista|producao|expedicao|faturamento|admin)$/,vende=v=>!NAO_VENDE.test((v||{}).papel||"");
 const rotPDev=p=>p==="developer"?"Developer":rotP(p);
 const abaPro=()=>!!perfil&&/^(promotor|developer)$/.test(perfil.papel||"");const rotAbaEnt=()=>abaPro()?"Ocorrência":"Entrega";
 const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Promotor":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
@@ -1480,7 +1481,7 @@ function fiChip(){const b=$("fiav");if(!b)return;const P=ehAdm()?fiPend():[];b.h
   b.onclick=()=>{sup.modo="dia";sup.dia=d;supDocs();supRender()}}
 const DH={k:"",t:0,docs:[],carr:false};
 function dirHist(a,b){const k=a+"|"+b+"|"+Object.keys(sup.vend).length;if(DH.carr||(DH.k===k&&Date.now()-DH.t<300000))return;DH.carr=true;
-  const U0=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test((sup.vend[u]||{}).papel||""));
+  const U0=Object.keys(sup.vend).filter(u=>vende(sup.vend[u]));
   Promise.all(U0.map(u=>fbDb.collection("vendedores/"+u+"/docs").where("data",">=",a).where("data","<=",b).get().then(sn=>sn.docs.filter(d=>d.id.startsWith("p_")).map(d=>{const x=d.data()||{};return {uid:u,id:d.id,data:x.data,cliente:x.cliente,ped:x.ped||0,tro:x.tro||0,status:x.status,ini:x.ini,la:x.la,lo:x.lo,fim:x.fim}})).catch(()=>[])))
   .then(L=>{DH.docs=[].concat(...L);DH.k=k;DH.t=Date.now()}).finally(()=>{DH.carr=false;supRender()})}
 const somaP=L=>{const f=L.filter(x=>(x.ped||0)>0&&x.status&&x.status!=="rascunho");return {fech:f.length,un:f.reduce((a,x)=>a+x.ped,0),tro:L.reduce((a,x)=>a+(x.tro||0),0),vis:L.filter(x=>x.ini).length}};
@@ -1532,7 +1533,7 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;if(!ehSup()){B.inne
     OCX=null;if(a[4]){vhAbrir(a[4]);return}if(a[3])alertaAbrir(a[0]+" "+a[1],a[3])});
   $("dirrs").onclick=()=>resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU);if($("dirmt"))$("dirmt").onclick=metasAbrir}
 function metaCel(u,un){const m=+(((sup.vend[u]||{}).meta)||0);if(!m)return un+" un.";const p=Math.round(un/m*100);return "<b"+(p>=100?" style='color:#1a8f4c'":"")+">"+p+"%</b><small> "+un+"/"+m+"</small>"}
-function metasAbrir(){const U0=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao|faturamento|developer)$/.test((sup.vend[u]||{}).papel||"")&&(sup.vend[u]||{}).ativo!==false).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
+function metasAbrir(){const U0=Object.keys(sup.vend).filter(u=>vende(sup.vend[u])&&(sup.vend[u]||{}).ativo!==false).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   const C=$("mtc");C.innerHTML=U0.map(u=>"<label class='rr'><span class='t'>"+esc(nomeV(u))+" · "+esc(rotP((sup.vend[u]||{}).papel))+"</span><input type='number' inputmode='numeric' min='0' data-u='"+u+"' value='"+(+((sup.vend[u]||{}).meta||0)||"")+"' placeholder='un./mês' style='width:110px'></label>").join("")||"<p class='vazio'>Nenhum vendedor ativo.</p>";
   $("mtm").textContent="Meta de unidades pedidas no mês para cada pessoa. Deixe em branco para não ter meta.";$("mt").classList.add("on")}
 function mapaAbrir(T){const P=T.filter(x=>typeof x.la==="number"&&typeof x.lo==="number");$("mpm").textContent=P.length?P.length+(P.length===1?" visita com localização":" visitas com localização"):"Nenhuma visita com localização neste período. A localização é registrada quando o vendedor toca em Iniciar visita (a partir desta versão).";
@@ -1584,7 +1585,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!per
   try{dirRender(todos,dia,hj)}catch(e){diag(e,"dir")}
   {const ke=$("spk").querySelector(".kpe");if(ke)ke.onclick=()=>{try{$("spen").click()}catch(_){}}}
   const V=$("spv");V.innerHTML="";
-  const uids=Object.keys(sup.vend).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test((sup.vend[u]||{}).papel||"")).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
+  const uids=Object.keys(sup.vend).filter(u=>vende(sup.vend[u])).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   if(!uids.length)V.innerHTML='<div class="vazio">Nenhum vendedor cadastrado ainda. Peça para cada um criar a conta no app.</div>';
   uids.forEach(uid=>{const v=sup.vend[uid]||{},mine=todos.filter(x=>x.uid===uid),hoje=Object.values(sup.docs).filter(x=>x.uid===uid&&x.id.startsWith("p_")&&x.data===hj);
     const ab=hoje.find(x=>x.ini&&!x.fim),ult=Math.max(0,...hoje.map(x=>x.ts||0));
@@ -1689,7 +1690,7 @@ async function rlBusca(forca){
   const c=rl.cache[key];if(!forca&&c&&Date.now()-c.t<180000){rl.dados=c;rlRender();return}
   m.textContent="Carregando…";$("rlc").innerHTML="";
   try{const out=[];
-    await Promise.all(Object.keys(sup.vend).map(async uid=>{
+    await Promise.all(Object.keys(sup.vend).filter(u=>vende(sup.vend[u])).map(async uid=>{
       const sn=await fbDb.collection("vendedores/"+uid+"/docs").where("data",">=",a).where("data","<=",b).get();
       sn.docs.forEach(d=>{if(!d.id.startsWith("p_"))return;let e;try{e=normEnt(JSON.parse((d.data()||{}).j))}catch(_){return}if(!e||!e.id)return;e.uid=uid;out.push(e)})}));
     let pr={};if(ehAdm()){try{const ps=await fbDb.collection("producao").where("d",">=",a).where("d","<=",b).get();ps.docs.forEach(x=>{const v=x.data()||{};pr[v.d||x.id]=v})}catch(_){}}
@@ -1867,7 +1868,7 @@ $("rlp").onclick=async()=>{const R=rlCalc(true);
   catch(e){$("rlm").textContent="Não foi possível gerar a lista."}
   b.textContent="Lista de produção"};
 function rlAbrir(){if(!ehSup())return;if(!rl.dia)rl.dia=sup.dia||hojeISO();
-  const sel=$("rlv");sel.innerHTML="<option value=''>Todos os vendedores</option>"+Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).map(u=>"<option value='"+esc(u)+"'>"+esc(nomeV(u))+"</option>").join("");sel.value=rl.uid;
+  const sel=$("rlv");sel.innerHTML="<option value=''>Toda a equipe de vendas</option>"+Object.keys(sup.vend).filter(u=>vende(sup.vend[u])).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).map(u=>"<option value='"+esc(u)+"'>"+esc(nomeV(u))+"</option>").join("");sel.value=rl.uid;
   $("rl").classList.add("on");rlBusca(false)}
 function rlModo(m){rl.modo=m;[["dia","rld"],["semana","rls"],["mes","rlm2"]].forEach(([k,id])=>$(id).setAttribute("aria-pressed",k===m));rlBusca(false)}
 $("spr").onclick=rlAbrir;$("rlx").onclick=()=>$("rl").classList.remove("on");
@@ -3043,7 +3044,7 @@ async function prSalva(n,c,i){const raw=i.value.trim(),v=raw===""?null:Math.max(
   catch(e){const m=$("prst");if(m)m.textContent="Não foi possível salvar ("+(e.code||e.message)+"). Confira a internet."}}
 // ===== Pedidos de dias anteriores ainda não entregues (expedição, faturamento e rota) =====
 const ANT_DIAS=14;
-const vendUids=vv=>Object.keys(vv||{}).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test((vv[u]||{}).papel||""));
+const vendUids=vv=>Object.keys(vv||{}).filter(u=>vende(vv[u]));
 async function pedAnt(d){const d0=addD(d,-ANT_DIAS),d1=addD(d,-1),out=[],en={};
   await Promise.all(vendUids(sup.vend).map(async uid=>{
     const sn=await fbDb.collection("vendedores/"+uid+"/docs").where("data",">=",d0).where("data","<=",d1).get();
@@ -3075,7 +3076,7 @@ async function fabBusca(quieto){const d=fab.dia,m=$("fabm");$("fabd").textConten
   if(fab.mx){try{await fabBuscaMot(d)}catch(e){m.textContent="Não foi possível carregar. Confira a internet e toque em Atualizar."}return}
   try{const vs=await fbDb.collection("vendedores").get(),vv={};vs.docs.forEach(x=>{vv[x.id]=x.data()||{}});sup.vend=vv;
     const out=[];
-    await Promise.all(Object.keys(vv).filter(u=>!/^(motorista|producao|expedicao|faturamento)$/.test(vv[u].papel||"")).map(async uid=>{
+    await Promise.all(Object.keys(vv).filter(u=>vende(vv[u])).map(async uid=>{
       const sn=await fbDb.collection("vendedores/"+uid+"/docs").where("data","==",d).get();
       sn.docs.forEach(x=>{if(!x.id.startsWith("p_"))return;const raw=x.data()||{};let e;try{e=normEnt(JSON.parse(raw.j))}catch(_){return}if(!e||!e.id)return;
         e.uid=uid;e.k=uid+"/"+x.id;sup.docs[e.k]={...raw,uid,id:x.id};out.push(e)})}));
@@ -3326,7 +3327,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="156";
+const VER="157";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
