@@ -9,7 +9,10 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-maskable-512.png">
 <link rel="preload" as="image" href="logo-app.webp">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" media="print" onload="this.media='all'">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js">
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 --bg:#f3f6fb;--card:#fff;--ink:#14213d;--mute:#5b6b8c;--line:#c9d6ee;--brand:#1f4fa8;--on:#fff;--hit:#e6eefc}
@@ -390,10 +393,13 @@ body.trv #edbar{border-color:#0b7a75}
 .fvt span{margin-right:auto;font-weight:800}.fvt button{padding:9px 14px;border-radius:10px;border:0;background:rgba(255,255,255,.18);color:#fff;font:800 14px Archivo,sans-serif}
 .fvn{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.15);color:#fff;font-size:34px}.fvn[hidden]{display:none}#fvp{left:8px}#fvn{right:8px}
 #cam{z-index:70;background:#000;padding:0}.camw{position:fixed;inset:0;display:flex;flex-direction:column}#camv,#camp{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}#camp{height:auto;max-height:100%;margin:auto}
-.camb{background:#000;color:#fff;padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px))}.camb p{margin:0 0 8px;text-align:center;font-weight:700}
-.camc{display:flex;gap:10px;align-items:center;justify-content:center}.camc button{padding:14px 18px;border-radius:14px;border:2px solid #fff;background:transparent;color:#fff;font:800 16px Archivo,sans-serif}
-#camt{width:74px;height:74px;border-radius:50%;font-size:30px;background:#fff;color:#000;padding:0}#camok{background:#1a8f4c;border-color:#1a8f4c}#camx2{border-color:#e05a4f;color:#ffb4ac}
+.camtop{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 22px;background:linear-gradient(rgba(0,0,0,.55),transparent);color:#fff}
+#camf{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font:700 22px Archivo,sans-serif;padding:0}#camm{font:800 15px Archivo,sans-serif;background:rgba(0,0,0,.45);border-radius:20px;padding:6px 12px}#camm:empty{display:none}
+.camc{position:absolute;left:0;right:0;bottom:0;display:flex;gap:56px;align-items:center;justify-content:center;padding:26px 14px calc(26px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.55))}
+#camt{width:78px;height:78px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 5px rgba(0,0,0,.35),0 0 0 9px #fff;padding:0}#camt:active{transform:scale(.92)}
+#camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
 #vh,#mt,#mp{z-index:30}#cfgv{z-index:48}
+body:has(#cam.on) #vcb{display:none!important}
 .ocl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .oci{border-left:3px solid var(--brand);padding:4px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}.oce{display:block;margin:4px 0 0;padding:3px 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--brand)}.oci small{display:block;color:var(--mute);font-size:12px;font-weight:700}
 .ocst{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:800;font-size:13px}.ocst.fin{background:#1a8a4a;color:#fff}.ocst.ab{background:var(--hit);border:1px solid var(--line)}
@@ -570,7 +576,8 @@ body.trv #edbar{border-color:#0b7a75}
 </div></div>
 <div class="ov" id="cam" role="dialog" aria-modal="true" aria-label="Câmera"><div class="camw">
   <video id="camv" playsinline muted autoplay></video><canvas id="camp" hidden></canvas>
-  <div class="camb"><p id="camm"></p><div class="camc"><button id="camf" class="sec">Concluir</button><button id="camt" aria-label="Tirar foto">📷</button><button id="camx2" hidden>🗑 Excluir</button><button id="camok" hidden>✓ Confirmar</button></div></div>
+  <div class="camtop"><button id="camf" aria-label="Fechar câmera">✕</button><span id="camm"></span></div>
+  <div class="camc"><button id="camx2" hidden aria-label="Descartar foto">✕</button><button id="camt" aria-label="Tirar foto"></button><button id="camok" hidden aria-label="Usar foto">✓</button></div>
 </div></div>
 <div id="fv" hidden role="dialog" aria-modal="true" aria-label="Foto em tela cheia"><div id="fvs"><img id="fvi" alt="Foto" draggable="false"></div>
   <div class="fvt"><span id="fvc"></span><button id="fvz" aria-label="Tamanho original">1:1</button><button id="fvx">Fechar</button></div>
@@ -1213,18 +1220,18 @@ function visFoto(file){const uid=visUid();if(!uid)return Promise.resolve();
     im.onerror=()=>{URL.revokeObjectURL(u);ok()};im.src=u})}
 const CAM={st:null,n:0,max:0,fn:null,blob:null};
 async function camAbrir(max,fn,falha){if(max<=0)return;if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
-  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.blob=null;camModo("vivo");$("cam").classList.add("on");$("camm").textContent="Abrindo a câmera…";
+  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.blob=null;camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
   try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
     const v=$("camv");v.srcObject=CAM.st;await v.play().catch(()=>{});$("camm").textContent=camTxt()}
   catch(e){camFecha();falha()}}
-const camTxt=()=>"Foto "+(CAM.n+1)+(CAM.max<900?" de até "+CAM.max:"");
+const camTxt=()=>CAM.n?"✓ "+CAM.n+(CAM.max<900?"/"+CAM.max:(CAM.n===1?" foto":" fotos")):"";
 function camModo(m){$("camv").hidden=m!=="vivo";$("camp").hidden=m==="vivo";$("camt").hidden=m!=="vivo";$("camx2").hidden=m==="vivo";$("camok").hidden=m==="vivo"}
 function camFecha(){try{(CAM.st&&CAM.st.getTracks()||[]).forEach(t=>t.stop())}catch(_){}CAM.st=null;try{$("camv").srcObject=null}catch(_){}$("cam").classList.remove("on")}
 $("camt").onclick=()=>{const v=$("camv");if(!v.videoWidth)return;const m=1280,k=Math.min(1,m/Math.max(v.videoWidth,v.videoHeight)),c=$("camp");c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);
-  c.getContext("2d").drawImage(v,0,0,c.width,c.height);camModo("prev");$("camm").textContent="Confira a foto";CAM.blob=null;c.toBlob(b=>{CAM.blob=b},"image/jpeg",0.85)};
+  c.getContext("2d").drawImage(v,0,0,c.width,c.height);camModo("prev");CAM.blob=null;c.toBlob(b=>{CAM.blob=b},"image/jpeg",0.85)};
 $("camx2").onclick=()=>{CAM.blob=null;camModo("vivo");$("camm").textContent=camTxt()};
 $("camok").onclick=async()=>{const c=$("camp");const b=CAM.blob||await new Promise(z=>c.toBlob(z,"image/jpeg",0.85));if(!b)return;CAM.n++;const f=new File([b],"foto.jpg",{type:"image/jpeg"});const fn=CAM.fn;
-  if(CAM.n>=CAM.max){camFecha()}else{camModo("vivo");$("camm").textContent="✓ Foto salva · "+camTxt()}
+  if(CAM.n>=CAM.max){camFecha()}else{camModo("vivo");$("camm").textContent=camTxt()}
   try{await fn(f)}catch(e){diag(e,"camera")}};
 $("camf").onclick=camFecha;
 function salvaNoCel(f,base){try{const t=new Date(),nm=("MaxPaes_"+(base||"foto")+"_"+isoD(t)+"_"+String(t.getHours()).padStart(2,"0")+"-"+String(t.getMinutes()).padStart(2,"0")+"-"+String(t.getSeconds()).padStart(2,"0")).replace(/[^\w\-]+/g,"_")+".jpg",u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=nm;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}catch(e){}}
@@ -2005,6 +2012,7 @@ function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classLis
 async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
     stNuvem("Modo sem nuvem: os dados ficam só neste celular. Faça backup com frequência.");return}
+  if(souDev()&&lsG("mpv:nome")&&!perfil){try{perfil={nome:lsG("mpv:nome"),papel:devPapel()||"developer",papelReal:"developer"};mostraVendedor();render()}catch(e){diag(e,"devRapido")}}
   try{for(const m of ["app","auth","firestore"])if(!(window.firebase&&firebase[m==="app"?"initializeApp":m]))await carregaScript("https://www.gstatic.com/firebasejs/"+FBV+"/firebase-"+m+"-compat.js")}
   catch(e){stNuvem("☁ Sem internet para conectar. Abra o app de novo quando tiver sinal.");const n=lsG("mpv:nome");if(n){perfil={nome:n,papel:lsG("mpv:papel")||"vendedor",papelReal:lsG("mpv:papelReal")||lsG("mpv:papel")||"vendedor"};mostraVendedor();try{vcPinta();supPronto()}catch(e2){}}
     window.addEventListener("online",()=>location.reload(),{once:true});return}
@@ -2017,7 +2025,9 @@ async function entrou(u){
   const dono=lsG("mpv:dono");
   if(dono&&dono!==u.uid){CHAVES_APP().forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});lsS("mpv:dono",u.uid);location.reload();return}
   lsS("mpv:dono",u.uid);
-  const pref=fbDb.collection("vendedores").doc(u.uid);let ps=null;try{ps=await pref.get()}catch(e){try{ps=await pref.get({source:"cache"})}catch(e2){}}
+  const pref=fbDb.collection("vendedores").doc(u.uid);let ps=null;
+  if(u.uid===DONO_UID){try{const c=await pref.get({source:"cache"});if(c&&c.exists)ps=c}catch(_){}}
+  if(!ps){try{ps=await pref.get()}catch(e){try{ps=await pref.get({source:"cache"})}catch(e2){}}}
   if(!ps||!ps.exists){const cp=lsG("mpv:papel"),cn=lsG("mpv:nome");
     if(u.uid===DONO_UID)ps={exists:true,data:()=>({nome:cn||"WESLEY FALCÃO",email:u.email||"",papel:"developer",ativo:true})};
     else if(!ps&&cp&&cn&&lsG("mpv:dono")===u.uid)ps={exists:true,data:()=>({nome:cn,email:u.email||"",papel:lsG("mpv:papelReal")||cp,ativo:true})}}
@@ -2030,7 +2040,7 @@ async function entrou(u){
     let ped=false;try{await pref.set({nome:U((u.email||"").split("@")[0]),email:u.email||"",papel:"vendedor",ativo:false,pendente:true,criadoEm:Date.now()});ped=true}catch(e){errB=" ("+(e.code||e.message)+")"}
     barra(ped?"Pedido de acesso enviado. Peça a liberação e entre de novo."
              :"Seu acesso ainda não foi liberado."+errB+" ["+u.uid+"]");return}
-  perfil={...ps.data()};perfil.papelReal=perfil.papel;if(!perfil.nome)perfil.nome=U((u.email||"").split("@")[0]);
+  perfil={...ps.data()};perfil.papelReal=perfil.papel;if(perfil.papelReal==="developer"&&devPapel())perfil.papel=devPapel();if(!perfil.nome)perfil.nome=U((u.email||"").split("@")[0]);
   if(perfil.ativo===false){barra(perfil.pendente?"Pedido de acesso enviado. Aguarde a liberação e entre de novo.":"Seu acesso está desativado.");return}
   if(perfil.papel!=="developer"){
     const meu=dispId(),dp=perfil.disp||"";
@@ -2040,7 +2050,9 @@ async function entrou(u){
   }
   pref.set({ultimoAcesso:Date.now(),visto:Date.now()},{merge:true}).catch(()=>{});presencaIni();
   lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");lsS("mpv:papelReal",perfil.papelReal||"vendedor");try{mostraVendedor()}catch(e){diag(e,"mostraVendedor")}try{vcPinta()}catch(e){}
-  const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();await sincroniza();escuta();migra(true);setTimeout(diagEnvia,3000)};
+  const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();
+    const ev=perfil.papelReal==="developer"?String(devEst().vc||""):"";if(perfil.papelReal==="developer"&&!ev.startsWith("u:"))devTela();
+    await sincroniza();escuta();migra(true);if(ev.startsWith("u:")){try{await espelhar(ev.slice(2))}catch(_){}setTimeout(devTela,600)}setTimeout(diagEnvia,3000)};
   if(perfil.trocarSenha&&lsG("mpv:senhaok")===u.uid){perfil.trocarSenha=false;pref.set({trocarSenha:false,senhaTrocadaEm:Date.now()},{merge:true}).catch(()=>{})}
   if(perfil.trocarSenha){pendEntrada=seguir;mostraLogin("nova");return}
   await seguir();
@@ -2090,7 +2102,7 @@ function carregar(){
     if(s.vis)visita=normVis(s.vis);
     if(s.f&&s.f.data)$("data").value=s.f.data;
     curId=s.cur||null;
-    if(s.mode==="troca"||s.mode==="gondola"||s.mode==="visita")mode=s.mode;
+    if(s.mode==="troca"||s.mode==="gondola"||s.mode==="visita"||s.mode==="entrega")mode=s.mode;
   }catch(e){}
 }
 // ===== Visitado sem pedido (na tela de vendas) =====
@@ -2717,6 +2729,8 @@ const OVS=[["fs","fsx"],["ov","fch"],["sg",null],["gf","gfx"],["sdt","sdx"],["rl
 function ovAberto(id){const e=$(id);return !!e&&e.classList.contains("on")}
 function telaAtual(){for(const id of ["rl","ag","hs","sp"]){if(ovAberto(id))return id}return ""}
 function voltaUm(){
+  if(ovAberto("cam")){camFecha();return true}
+  if($("fv")&&!$("fv").hidden){$("fvx").click();return true}
   if(ovAberto("sg")){fecharSg();return true}
   if($("rsv")&&!$("rsv").hidden&&ovAberto("hs")){$("rsx").click();return true}
   for(const [id,x] of OVS){
@@ -2736,8 +2750,19 @@ window.addEventListener("popstate",()=>{
   const el=$("toast");el.textContent="Toque em voltar novamente para sair";el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,2000)});
 armaVoltar();
 /* guarda a tela aberta para reabrir como estava */
-function guardaTela(){if(!perfil)return;try{localStorage.setItem("mpv:tela",hojeISO()+"|"+telaAtual())}catch(e){}}
-function telaSalva(){try{const v=(localStorage.getItem("mpv:tela")||"").split("|");return v[0]===hojeISO()?(v[1]||""):""}catch(e){return ""}}
+function souDev(){return lsG("mpv:papelReal")==="developer"&&lsG("mpv:dono")===DONO_UID}
+function telaDev(){if(ovAberto("mex"))return "mex";if(ovAberto("fab"))return "fab:"+(fab.modo||"");if(ovAberto("rl"))return "rl";if(ovAberto("ag"))return "ag";if(ovAberto("hs"))return "hs";if(ovAberto("sp"))return "sp";return ""}
+function guardaDev(){if(!perfil||!souDev()||devRest.ativo)return;try{localStorage.setItem("mpv:devest",JSON.stringify({vc:ESP?"u:"+ESP.uid:(perfil.papel||"developer"),tela:telaDev(),y:Math.round(window.scrollY||0)}))}catch(e){}}
+const devRest={feito:false,ativo:false};
+function devEst(){try{return JSON.parse(localStorage.getItem("mpv:devest")||"null")||{}}catch(e){return {}}}
+/* reabre o Developer exatamente onde parou: perfil de "Ver como", tela aberta e posição */
+function devPapel(){const e=devEst();return e.vc&&!String(e.vc).startsWith("u:")&&e.vc!=="developer"?e.vc:""}
+function devTela(){if(!souDev()||devRest.feito)return;devRest.feito=true;devRest.ativo=true;const e=devEst();
+  try{const t=e.tela||"";
+    if(t==="sp")supAbrir();else if(t==="ag")$("abtn").click();else if(t==="hs")$("hbtn").click();else if(t==="rl"){supAbrir();rlAbrir()}else if(t==="mex")mexAbrir();else if(t.startsWith("fab:"))fabAbrir(t.slice(4)||"expedicao")}catch(x){diag(x,"devTela")}
+  setTimeout(()=>{try{if(e.y)window.scrollTo(0,e.y)}catch(_){}devRest.ativo=false},350)}
+function guardaTela(){if(!perfil)return;guardaDev();try{localStorage.setItem("mpv:tela",hojeISO()+"|"+telaAtual())}catch(e){}}
+function telaSalva(){if(souDev())return "";try{const v=(localStorage.getItem("mpv:tela")||"").split("|");return v[0]===hojeISO()?(v[1]||""):""}catch(e){return ""}}
 document.addEventListener("visibilitychange",guardaTela);window.addEventListener("pagehide",guardaTela);setInterval(guardaTela,2000);
 setTimeout(()=>{const t=telaSalva();
   if(t==="ag")$("abtn").click();else if(t==="hs")$("hbtn").click()},400);
@@ -3333,12 +3358,14 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="160";
+const VER="161";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
     const al=(swReg&&swReg.waiting)||w;if(al){try{al.postMessage({tipo:"atualizar"})}catch(err){}}
-    setTimeout(()=>{if(!recarregando){recarregando=true;location.reload()}},al?1200:300)}}
+    const vai=()=>{if(!recarregando){recarregando=true;location.reload()}};
+    if(al){setTimeout(vai,1200);return}
+    (async()=>{try{const res=await fetch("index.html?fresh="+Date.now(),{cache:"no-store"});if(res.ok&&window.caches){const t=await res.text();for(const k of await caches.keys())if(/^mpv-/.test(k))await (await caches.open(k)).put(new Request("index.html"),new Response(t,{headers:{"content-type":"text/html; charset=utf-8"}}))}}catch(_){}vai()})()}}
 if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))&&!/claude\.ai|claudeusercontent/.test(location.host)){
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(pediuAtt&&!recarregando){recarregando=true;location.reload()}});
   navigator.serviceWorker.register("sw.js").then(reg=>{
