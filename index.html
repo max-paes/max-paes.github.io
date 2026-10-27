@@ -35,6 +35,8 @@ main{padding:10px 12px;max-width:640px;margin:0 auto}
 .head{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .head label{display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:3px}
 .head .full{grid-column:1/-1}
+#cliente.trc{background:var(--line);color:var(--ink,inherit);font-weight:700}
+#clitr{grid-column:1/-1;margin:-4px 2px 2px;font-size:12px;color:var(--mute);display:flex;gap:8px;align-items:center;flex-wrap:wrap}#clitr[hidden]{display:none}#clitrb{background:none;border:0;padding:0;color:var(--azul,#1f4fa8);font-weight:700;text-decoration:underline;font-size:12px;cursor:pointer}
 input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}
 .list{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
@@ -417,7 +419,7 @@ body.trv #edbar{border-color:#0b7a75}
   <div class="ed" id="aviso" role="alert" hidden><span id="avtx" class="warn"></span><button id="avx">OK</button></div>
   <div class="ed" id="edbar" hidden><span id="edtx">Pedido salvo no histórico. As alterações são salvas sozinhas.</span></div>
   <div class="head">
-    <label class="full">Cliente<input id="cliente" autocomplete="off" autocorrect="off" spellcheck="false"></label><div id="sug" class="sug" role="listbox" aria-label="Clientes sugeridos" hidden></div>
+    <label class="full">Cliente<input id="cliente" autocomplete="off" autocorrect="off" spellcheck="false"></label><div id="sug" class="sug" role="listbox" aria-label="Clientes sugeridos" hidden></div><div id="clitr" hidden><span>🔒 O nome da loja não pode ser alterado. Só o comprador pode mudar.</span><button type="button" id="clitrb">Trocar loja</button></div>
     <label class="full">Endereço<input id="endereco" autocomplete="off"></label>
     <label>Data<input id="data" type="date"></label>
     <label>Comprador<input id="comprador" autocomplete="off"></label>
@@ -662,6 +664,9 @@ $("hlogo").src="logo-app.webp";document.querySelectorAll(".slogo").forEach(i=>i.
 const U=t=>String(t??"").toUpperCase();
 ["cliente","endereco","comprador","vctt","vexp","vvp","vopv","agn","agb"].forEach(id=>$(id).addEventListener("input",e=>{const el=e.target,u=el.value.toUpperCase();if(u!==el.value){const p=el.selectionStart;el.value=u;try{el.setSelectionRange(p,p)}catch(_){}}},true));
 
+let cliSel=false;
+function trancaCli(){const el=$("cliente"),bx=$("clitr");if(!el||!bx)return;const t=!!el.value.trim()&&(cliSel||(!!curId&&document.activeElement!==el));
+  el.readOnly=t||document.body.classList.contains("trv");el.classList.toggle("trc",t);bx.hidden=!t;$("clitrb").hidden=!!curId;if(t)$("sug").hidden=true}
 function salvaCli(){try{localStorage.setItem(CKEY,JSON.stringify(clientes))}catch(e){}}
 function lembraCli(nome,end,comp,save=true){
   nome=U(nome).trim();if(!nome)return;nome=canon(nome);const k=norm(nome);
@@ -681,7 +686,7 @@ function mostraSug(){
   const S=$("sug"),l=sugestoes($("cliente").value);S.innerHTML="";S.hidden=!l.length;
   l.forEach(c=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");b.textContent=c.nome;
     b.addEventListener("pointerdown",e=>e.preventDefault());
-    b.onclick=()=>{$("cliente").value=c.nome;preencheCli(c,true);S.hidden=true;$("cliente").blur();apoio();agenda()};
+    b.onclick=()=>{$("cliente").value=c.nome;cliSel=true;preencheCli(c,true);S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda()};
     S.appendChild(b)});
 }
 function preencheCli(c,forca){
@@ -692,7 +697,7 @@ const chave2=t=>norm(t).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean).
 let apelidos={};
 const FIX_SRC={"AURISTELA 1":["SUPER AURISTELA 1","SUPERMERCADO AURISTELA 1"],"AURISTELA 2":["SUPER AURISTELA 2","SUPERMERCADO AURISTELA 2"],
   "PARENTE 1":["PARENTE ATACADISTA 1"],"PARENTE 2":["PARENTE ATACADISTA 2"],"ARAGÃO":["SUPER ARAGÃO","SUPERMERCADO ARAGÃO"],
-  "AGUIAR":["AGUIAR SUPERMERCADO","SUPERMERCADO AGUIAR"],"LEMOS":["SUPERMERCADO LEMOS","SUPER LEMOS","LEMOS SUPERMERCADO"],"RIBAMAR":["SUPERMERCADO RIBAMAR","SUPER RIBAMAR"],
+  "AGUIAR":["AGUIAR SUPERMERCADO","SUPERMERCADO AGUIAR"],"LEMOS":["LEMO","SUPERMERCADO LEMOS","SUPER LEMOS","LEMOS SUPERMERCADO","SUPERMERCADO LEMO","SUPER LEMO"],"RIBAMAR":["SUPERMERCADO RIBAMAR","SUPER RIBAMAR"],
   "ARIMATÉIA":["SUPER ARIMATEIA ATARAREJO","SUPER ARIMATEIA","ARIMATEIA ATACAREJO"],"HORTI POTIRA":["HORT MERCADO PQ. POTIRA","HORTI MERCADO PQ. POTIRA","HORT MERCADO POTIRA","HORTI MERCADO POTIRA"],
   "HORTI DAMAS":["HORTI MERCADO DAMAS","HORT MERCADO DAMAS","HORT MERCADO JARDIM AMÉRICA","HORTI MERCADO JARDIM AMÉRICA"],"GODÔ":["GODÓ","GODO"],
   "SUPERMASTER":["SUPER MASTER"],"JK FRIOS":["J&A FRIOS","JEK FRIOS","J E K FRIOS","JK FRIOS"],"TELEFRANGO JOÃO XXIII":["TELEFRANGO JOAO XXIII"]};
@@ -794,7 +799,8 @@ $("cliente").addEventListener("input",()=>{
   mostraSug();apoio();
 });
 $("cliente").addEventListener("focus",mostraSug);
-$("cliente").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("cliente"))$("sug").hidden=true},150));
+$("cliente").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("cliente")){$("sug").hidden=true;const k=norm($("cliente").value);if(k&&!cliSel&&clientes.some(x=>norm(x.nome)===k))cliSel=true;trancaCli()}},150));
+$("clitrb").onclick=()=>{if(curId)return;cliSel=false;CAMPOS.forEach(i=>$(i).value="");trancaCli();apoio();try{spRender()}catch(_){}$("cliente").focus()};
 $("cliente").addEventListener("keydown",e=>{if(e.key==="Escape")$("sug").hidden=true});
 $("data").addEventListener("input",apoio);["input","change"].forEach(ev=>{$("cliente").addEventListener(ev,()=>{try{spRender()}catch(e){}});$("data").addEventListener(ev,()=>{try{spRender()}catch(e){}})});
 const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],DCURTO=["","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -945,7 +951,7 @@ function abrirDaAgenda(x,r,st){
   if(!curId&&temItens()&&!outra&&r.dataset.c!=="1"){r.dataset.c="1";const o=st.textContent;st.textContent="Toque de novo para substituir o pedido atual";setTimeout(()=>{r.dataset.c="";st.textContent=o},3000);return}
   limparTudo();
   const nome=nomeCad(x.nome),c=clientes.find(k=>norm(k.nome)===norm(nome));
-  $("cliente").value=nome;
+  $("cliente").value=nome;cliSel=true;
   if(c&&(c.endereco||c.comprador))preencheCli(c,true);else if(x.bairro)$("endereco").value=x.bairro;
   $("ag").classList.remove("on");render();window.scrollTo(0,0);agenda_toast(nome);
 }
@@ -2213,7 +2219,7 @@ window.addEventListener("pagehide",salvar);
 const temItens=()=>[state.pedido,state.troca].some(o=>Object.values(o).some(v=>v>0))||Object.keys(state.gondola).length>0||!!visita.ini;
 function limparTudo(){
   if(tSalvar)salvar();
-  curId=null;state.pedido={};state.troca={};state.gondola={};visita=novaVis();assin.pedido="";assin.troca="";stPed="rascunho";eraFat=false;snapFat=null;fechEm=0;
+  curId=null;cliSel=false;state.pedido={};state.troca={};state.gondola={};visita=novaVis();assin.pedido="";assin.troca="";stPed="rascunho";eraFat=false;snapFat=null;fechEm=0;
   CAMPOS.forEach(i=>$(i).value="");$("data").value=hojeISO();mode="pedido";render();
 }
 let confirma=false;
@@ -2221,7 +2227,7 @@ function marcaFechado(){salvar();pintaFat()}
 function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const ok=!!curId;b.hidden=false;b.disabled=false;
   const trv=ok&&entFin;
   document.body.classList.toggle("trv",trv);
-  CAMPOS.forEach(i=>{const el=$(i);if(el)el.readOnly=trv});$("data").readOnly=trv;
+  CAMPOS.forEach(i=>{const el=$(i);if(el)el.readOnly=trv});$("data").readOnly=trv;trancaCli();
   const fe=ok&&stPed!=="rascunho"&&stPed!=="alterando";
   const tx=$("edtx");if(tx)tx.textContent=entFin&&ok?"Entrega finalizada pelo motorista. Só o faturamento pode reabrir.":entRota&&ok?"Em rota: o motorista já saiu da empresa com este pedido.":stPed==="alterado"&&ok?"Pedido fechado e alterado depois: a fábrica e o faturamento veem o aviso.":fe?"Pedido fechado. Se mudar algo, fica marcado como alterado.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
   if(entFin&&ok){b.className="on";b.textContent="✅ Entregue";return}
@@ -2282,7 +2288,7 @@ function registrar(){
     if(!e){
       if(!c.cliente||!temItens())return;
       e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),ts:Date.now()};
-      Object.assign(e,c);curId=e.id;hist.unshift(e);marcaPed(e.id);
+      Object.assign(e,c);curId=e.id;hist.unshift(e);marcaPed(e.id);try{trancaCli()}catch(_){}
     }else{
       const {id,ts,...resto}=e;
       if(JSON.stringify(resto)===JSON.stringify(c))return;
@@ -3327,7 +3333,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="158";
+const VER="159";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
