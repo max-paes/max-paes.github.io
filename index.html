@@ -3327,7 +3327,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="157";
+const VER="158";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -3345,7 +3345,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127
 async function swNovo(w){let v="";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(r.ok)v=(await r.text()).trim()}catch(e){}
   if(v&&v===VER){try{w.postMessage({tipo:"atualizar"})}catch(e){}return}mostraAtt(w)}
 function cfgAbrir(){$("cfq").textContent=perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"Sem conta conectada";$("cfsen").hidden=!(fbAuth&&perfil);$("cfsair").hidden=!fbAuth;
-  $("cfv").textContent="Versão 1.0 · em desenvolvimento · atualização nº "+VER;$("cfdev").hidden=!(ehDev()&&!(typeof ESP!=="undefined"&&ESP));$("cfdc").innerHTML="";$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
+  $("cfv").textContent="Versão 1.0 · em desenvolvimento";$("cfdev").hidden=!(ehDev()&&!(typeof ESP!=="undefined"&&ESP));$("cfdc").innerHTML="";$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
 document.querySelectorAll(".cfgb").forEach(b=>b.onclick=cfgAbrir);$("cfgx").onclick=()=>$("cfgv").classList.remove("on");
 document.querySelectorAll("#cftema button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("mpv:tema",b.dataset.t)}catch(e){}aplicaTema()});
 $("cfsen").onclick=()=>{$("cfgv").classList.remove("on");mostraLogin("mudar")};
@@ -3374,12 +3374,12 @@ $("cfdl").onclick=async()=>{const C=$("cfdc"),b=$("cfdl");C.innerHTML="<p class=
 async function relatoAviso(){try{const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb||(typeof ESP!=="undefined"&&ESP))return;
   const ref=fbDb.collection("vendedores/"+u.uid+"/docs").doc("diag"),sn=await ref.get();if(!sn.exists)return;const R=Object.entries((sn.data()||{}).rep||{}).filter(([,r])=>r&&r.res&&!r.avisado);if(!R.length)return;
   const [id,r]=R.sort((a,b)=>(a[1].ts||0)-(b[1].ts||0))[0],tx=String(r.t||"").slice(0,90)+(String(r.t||"").length>90?"…":"");
-  const t="✅ Obrigado pelo seu relato de "+dBR(isoD(new Date(r.ts||Date.now()))).slice(0,5)+(tx?": “"+tx+"”":"")+". O problema foi resolvido"+(r.res.v?" na atualização nº "+r.res.v:"")+". Se notar qualquer outro erro, conte em ⚙ Configurações → Reportar erro. Sua ajuda deixa o app melhor para todos!";
+  const t="✅ Obrigado pelo seu relato de "+dBR(isoD(new Date(r.ts||Date.now()))).slice(0,5)+(tx?": “"+tx+"”":"")+". O problema foi resolvido"+""+". Se notar qualquer outro erro, conte em ⚙ Configurações → Reportar erro. Sua ajuda deixa o app melhor para todos!";
   aviso(t);try{if(window.Notification&&Notification.permission==="granted")new Notification("Max Pães · relato resolvido",{body:t.slice(2),icon:"icon-192.png"})}catch(_){}
   await ref.set({rep:{[id]:{avisado:Date.now()}}},{merge:true})}catch(_){}}
 setTimeout(relatoAviso,9000);setInterval(relatoAviso,5*60*1000);
 $("cfat").onclick=async()=>{const m=$("cfam");m.textContent="Procurando…";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});const v=(await r.text()).trim();
-  if(v&&v!==VER){m.textContent="Nova versão "+v+" disponível. Toque em Atualizar na barra que apareceu.";mostraAtt(swReg&&swReg.waiting||null);try{if(swReg)swReg.update().catch(()=>{})}catch(_){}}else m.textContent="Você já está na versão mais recente."}catch(e){m.textContent="Sem internet para procurar agora."}};
+  if(v&&v!==VER){m.textContent="Há uma atualização disponível. Toque em Atualizar na barra que apareceu.";mostraAtt(swReg&&swReg.waiting||null);try{if(swReg)swReg.update().catch(()=>{})}catch(_){}}else m.textContent="Você já está na versão mais recente."}catch(e){m.textContent="Sem internet para procurar agora."}};
 async function checaVersao(){
   if(!navigator.onLine)return;
   try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
