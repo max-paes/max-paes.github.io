@@ -581,7 +581,7 @@ body:has(#cam.on) #vcb{display:none!important}
   <div class="camc"><button id="camx2" hidden aria-label="Descartar foto">✕</button><button id="camr" hidden aria-label="Girar foto">⟳</button><button id="camt" aria-label="Tirar foto"></button><button id="camok" hidden aria-label="Usar foto">✓</button></div>
 </div></div>
 <div id="fv" hidden role="dialog" aria-modal="true" aria-label="Foto em tela cheia"><div id="fvs"><img id="fvi" alt="Foto" draggable="false"></div>
-  <div class="fvt"><span id="fvc"></span><button id="fvz" aria-label="Tamanho original">1:1</button><button id="fvx">Fechar</button></div>
+  <div class="fvt"><span id="fvc"></span><button id="fvr" aria-label="Girar foto">⟳ Girar</button><button id="fvz" aria-label="Tamanho original">1:1</button><button id="fvx">Fechar</button></div>
   <button id="fvp" class="fvn" aria-label="Foto anterior">‹</button><button id="fvn" class="fvn" aria-label="Próxima foto">›</button></div>
 <div class="ov" id="mex"><div class="box" style="max-width:760px">
   <div class="hhead"><b>Expedição</b><button id="mexx">Fechar</button></div>
@@ -1203,7 +1203,7 @@ function visUid(){return fbAuth&&fbAuth.currentUser&&fbDb?fbAuth.currentUser.uid
 function visFotos(){const B=$("vfotos");if(!B)return;B.innerHTML="";const ids=visita.fo||[],uid=visUid();
   ids.forEach(id=>{const w=document.createElement("div");w.className="th";
     if(!vfoto[id]&&uid){vfoto[id]="…";fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).get().then(sn=>{vfoto[id]=sn.exists?(sn.data()||{}).j:"";if(mode==="visita")visFotos()}).catch(()=>{vfoto[id]=""})}
-    const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.onclick=()=>{const L=(visita.fo||[]).map(k=>vfoto[k]).filter(u=>u&&u!=="…");verFotos(L,Math.max(0,L.indexOf(d)))};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
+    const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.onclick=()=>{const K=(visita.fo||[]).filter(k=>vfoto[k]&&vfoto[k]!=="…"),L=K.map(k=>vfoto[k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;vfoto[id]=u;const uid=visUid();if(uid)fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:u},{merge:true}).catch(()=>{});try{visFotos()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
     const x=document.createElement("button");x.textContent="🗑 Excluir";
     x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}
       visita.fo=(visita.fo||[]).filter(y=>y!==id);delete vfoto[id];if(uid){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).delete().catch(()=>{});fiTira(uid,"v_"+id)}salvar();visFotos();atualizaTxt()};
@@ -1949,7 +1949,7 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.
   if(v.fo&&v.fo.length)h+="<p class='msg' style='margin:8px 0 4px'><b>Fotos da visita ("+v.fo.length+")</b></p><div class='fb' id='sdfo'>"+v.fo.map(id=>"<a target='_blank' data-f='"+esc(id)+"'><div style='width:64px;height:64px;border-radius:8px;background:var(--line)'></div></a>").join("")+"</div>";
   $("sdc").innerHTML=h;
   {const fb=fiBloco((v.fo||[]).map(id=>({u:x.uid,f:"v_"+id})));if(fb)$("sdc").appendChild(fb)}
-  (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a)return;if(!sn.exists){a.innerHTML="<small class='fim'>foto expirada</small>";return}const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();fiMarca([{u:x.uid,f:"v_"+id}]);const L=[...document.querySelectorAll("#sdfo a img")].map(i=>i.src);verFotos(L,Math.max(0,L.indexOf(d)))}}).catch(()=>{})});
+  (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a)return;if(!sn.exists){a.innerHTML="<small class='fim'>foto expirada</small>";return}const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();fiMarca([{u:x.uid,f:"v_"+id}]);const A=[...document.querySelectorAll("#sdfo a")].filter(z=>z.querySelector("img")),L=A.map(z=>z.querySelector("img").src);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const z=A[n];if(!z)return;z.querySelector("img").src=u;fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+z.dataset.f).set({j:u},{merge:true}).catch(()=>{})})}}).catch(()=>{})});
   $("sdp").hidden=!(soma(e.pedido)>0);$("sdtr").hidden=!(soma(e.troca)>0);$("sddu").hidden=!(soma(e.pedido)>0&&soma(e.troca)>0);if(!silencioso)$("sdm").textContent="";
   $("sdt").classList.add("on")}
 async function comEntrada(e,fn){
@@ -2831,7 +2831,7 @@ function motCarregaFoto(sid,cat,id){const k=sid+"_"+cat+"_"+id;if(mot.fotos[k]||
   fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).get().then(sn=>{if(sn.exists){mot.fotos[k]=(sn.data()||{}).j;motRender()}}).catch(()=>{})}
 function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.createElement("div");b.className="fb";
   ids.forEach(id=>{motCarregaFoto(sid,cat,id);const d=mot.fotos[sid+"_"+cat+"_"+id];const w=document.createElement("div");w.className="th";
-    if(d){const im=document.createElement("img");im.src=d;im.alt="Foto";im.onclick=()=>{const L=ids.map(k=>mot.fotos[sid+"_"+cat+"_"+k]).filter(Boolean);verFotos(L,Math.max(0,L.indexOf(d)))};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
+    if(d){const im=document.createElement("img");im.src=d;im.alt="Foto";im.onclick=()=>{const K=ids.filter(k=>mot.fotos[sid+"_"+cat+"_"+k]),L=K.map(k=>mot.fotos[sid+"_"+cat+"_"+k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;mot.fotos[sid+"_"+cat+"_"+id]=u;fbDb.collection("vendedores/"+fbAuth.currentUser.uid+"/fotos").doc(fdoc(sid,cat,id)).set({j:u},{merge:true}).catch(()=>{});try{motRender()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
     const x=document.createElement("button");x.textContent="🗑 Excluir";x.setAttribute("aria-label","Excluir foto");
     x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}motFotoTira(sid,cat,id)};w.appendChild(x);b.appendChild(w)});
   if(ids.length<MAXF){const fb=document.createElement("button"),fi=document.createElement("input");fb.textContent="📷 "+(rot||"Fotos")+(ids.length?" ("+ids.length+")":"");
@@ -3280,7 +3280,7 @@ function mdRender(){if(!$("md").classList.contains("on"))return;
     C.appendChild(box)})}
 function mostraFotos(L){verFotos(L,0)}
 const FV={L:[],i:0,nw:1,nh:1,b:1,s:1,tx:0,ty:0,pt:new Map(),pinch:null,tap:0,sw:null};
-function verFotos(L,i){L=(L||[]).filter(Boolean);if(!L.length)return;FV.L=L;FV.i=Math.min(Math.max(0,i||0),L.length-1);$("fv").hidden=false;fvCarrega()}
+function verFotos(L,i,salva){L=(L||[]).filter(Boolean);if(!L.length)return;FV.L=L.slice();FV.salva=typeof salva==="function"?salva:null;FV.i=Math.min(Math.max(0,i||0),L.length-1);$("fv").hidden=false;fvCarrega()}
 function fvCarrega(){const im=$("fvi");$("fvc").textContent=FV.L.length>1?(FV.i+1)+" de "+FV.L.length:"";$("fvp").hidden=FV.i<=0;$("fvn").hidden=FV.i>=FV.L.length-1;
   im.onload=()=>{FV.nw=im.naturalWidth||1;FV.nh=im.naturalHeight||1;fvFit()};im.src=FV.L[FV.i];if(im.complete&&im.naturalWidth){FV.nw=im.naturalWidth;FV.nh=im.naturalHeight;fvFit()}}
 function fvFit(){const W=innerWidth,H=innerHeight;FV.b=Math.min(W/FV.nw,H/FV.nh);const im=$("fvi");im.style.width=FV.nw*FV.b+"px";im.style.height=FV.nh*FV.b+"px";FV.s=1;FV.tx=(W-FV.nw*FV.b)/2;FV.ty=(H-FV.nh*FV.b)/2;fvAp()}
@@ -3289,6 +3289,10 @@ function fvAp(){fvLim();$("fvi").style.transform="translate("+FV.tx+"px,"+FV.ty+
 function fvZoom(ns,cx,cy){const max=Math.max(4,1/FV.b*2);ns=Math.min(max,Math.max(1,ns));const k=ns/FV.s;FV.tx=cx-(cx-FV.tx)*k;FV.ty=cy-(cy-FV.ty)*k;FV.s=ns;fvAp()}
 function fvVai(d){const j=FV.i+d;if(j<0||j>=FV.L.length)return;FV.i=j;fvCarrega()}
 function fvFecha(){$("fv").hidden=true;FV.pt.clear();FV.pinch=null}
+/* gira a foto 90° e grava a versão girada (quando a foto é do próprio usuário) */
+function giraUrl(u){return new Promise((ok,er)=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=im.naturalHeight;c.height=im.naturalWidth;const x=c.getContext("2d");x.translate(c.width/2,c.height/2);x.rotate(Math.PI/2);x.drawImage(im,-im.naturalWidth/2,-im.naturalHeight/2);
+  let q=0.8,d=c.toDataURL("image/jpeg",q);while(d.length>420000&&q>0.3){q-=0.1;d=c.toDataURL("image/jpeg",q)}ok(d)};im.onerror=er;im.src=u})}
+$("fvr").onclick=async()=>{const b=$("fvr");if(b.disabled)return;b.disabled=true;try{const i=FV.i,nu=await giraUrl(FV.L[i]);FV.L[i]=nu;fvCarrega();if(FV.salva){try{FV.salva(i,nu)}catch(e){diag(e,"girafoto")}}}catch(e){}finally{b.disabled=false}};
 $("fvx").onclick=fvFecha;$("fvp").onclick=()=>fvVai(-1);$("fvn").onclick=()=>fvVai(1);
 $("fvz").onclick=()=>{if(FV.s>1.01){fvFit();return}fvZoom(1/FV.b,innerWidth/2,innerHeight/2)};
 addEventListener("resize",()=>{if(!$("fv").hidden)fvFit()});
@@ -3364,7 +3368,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="163";
+const VER="164";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
