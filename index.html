@@ -395,8 +395,9 @@ body.trv #edbar{border-color:#0b7a75}
 #cam{z-index:70;background:#000;padding:0}.camw{position:fixed;inset:0;display:flex;flex-direction:column}#camv,#camp{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}#camp{height:auto;max-height:100%;margin:auto}
 .camtop{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 22px;background:linear-gradient(rgba(0,0,0,.55),transparent);color:#fff}
 #camf{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font:700 22px Archivo,sans-serif;padding:0}#camm{font:800 15px Archivo,sans-serif;background:rgba(0,0,0,.45);border-radius:20px;padding:6px 12px}#camm:empty{display:none}
-.camc{position:absolute;left:0;right:0;bottom:0;display:flex;gap:56px;align-items:center;justify-content:center;padding:26px 14px calc(26px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.camc{position:absolute;left:0;right:0;bottom:0;display:flex;gap:40px;align-items:center;justify-content:center;padding:26px 14px calc(26px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.55))}
 #camt{width:78px;height:78px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 5px rgba(0,0,0,.35),0 0 0 9px #fff;padding:0}#camt:active{transform:scale(.92)}
+#camr{width:54px;height:54px;border-radius:50%;border:0;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff;color:#fff;font:800 26px Archivo,sans-serif;padding:0}#camr[hidden]{display:none}
 #camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
 #vh,#mt,#mp{z-index:30}#cfgv{z-index:48}
 body:has(#cam.on) #vcb{display:none!important}
@@ -577,7 +578,7 @@ body:has(#cam.on) #vcb{display:none!important}
 <div class="ov" id="cam" role="dialog" aria-modal="true" aria-label="Câmera"><div class="camw">
   <video id="camv" playsinline muted autoplay></video><canvas id="camp" hidden></canvas>
   <div class="camtop"><button id="camf" aria-label="Fechar câmera">✕</button><span id="camm"></span></div>
-  <div class="camc"><button id="camx2" hidden aria-label="Descartar foto">✕</button><button id="camt" aria-label="Tirar foto"></button><button id="camok" hidden aria-label="Usar foto">✓</button></div>
+  <div class="camc"><button id="camx2" hidden aria-label="Descartar foto">✕</button><button id="camr" hidden aria-label="Girar foto">⟳</button><button id="camt" aria-label="Tirar foto"></button><button id="camok" hidden aria-label="Usar foto">✓</button></div>
 </div></div>
 <div id="fv" hidden role="dialog" aria-modal="true" aria-label="Foto em tela cheia"><div id="fvs"><img id="fvi" alt="Foto" draggable="false"></div>
   <div class="fvt"><span id="fvc"></span><button id="fvz" aria-label="Tamanho original">1:1</button><button id="fvx">Fechar</button></div>
@@ -1218,17 +1219,22 @@ function visFoto(file){const uid=visUid();if(!uid)return Promise.resolve();
       fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:d,ts:Date.now(),data:$("data").value,cli:U($("cliente").value.trim()),tipo:"visita"}).catch(e=>aviso("Não consegui enviar a foto ("+(e.code||e.message)+")."));
       salvar();fiReg(uid,"v_"+id,{t:"v",d:$("data").value,c:U($("cliente").value.trim()),p:curId?"p_"+curId:""});ok()};
     im.onerror=()=>{URL.revokeObjectURL(u);ok()};im.src=u})}
-const CAM={st:null,n:0,max:0,fn:null,blob:null};
+const CAM={st:null,n:0,max:0,fn:null,blob:null,gx:0,gy:9.8};
+/* o app fica travado em retrato: lê a inclinação do celular para gravar a foto em paisagem quando ele está deitado */
+function camSensor(e){const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;CAM.gx=CAM.gx*.6+g.x*.4;CAM.gy=CAM.gy*.6+(g.y||0)*.4}
+function camGiro(v){if(!(v.videoHeight>v.videoWidth))return 0;const x=CAM.gx,y=CAM.gy;if(Math.abs(x)<4||Math.abs(x)<Math.abs(y)+1)return 0;let r=x>0?-90:90;if(/iPhone|iPad|iPod/.test(navigator.userAgent))r=-r;return r}
+function camDesenha(src,sw,sh,giro,c){const m=1280,k=Math.min(1,m/Math.max(sw,sh)),w=Math.round(sw*k),h=Math.round(sh*k),q=Math.abs(giro)===90;
+  c.width=q?h:w;c.height=q?w:h;const x=c.getContext("2d");x.save();x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(src,-w/2,-h/2,w,h);x.restore()}
 async function camAbrir(max,fn,falha){if(max<=0)return;if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
-  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.blob=null;camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
+  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.blob=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
   try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
     const v=$("camv");v.srcObject=CAM.st;await v.play().catch(()=>{});$("camm").textContent=camTxt()}
   catch(e){camFecha();falha()}}
 const camTxt=()=>CAM.n?"✓ "+CAM.n+(CAM.max<900?"/"+CAM.max:(CAM.n===1?" foto":" fotos")):"";
-function camModo(m){$("camv").hidden=m!=="vivo";$("camp").hidden=m==="vivo";$("camt").hidden=m!=="vivo";$("camx2").hidden=m==="vivo";$("camok").hidden=m==="vivo"}
-function camFecha(){try{(CAM.st&&CAM.st.getTracks()||[]).forEach(t=>t.stop())}catch(_){}CAM.st=null;try{$("camv").srcObject=null}catch(_){}$("cam").classList.remove("on")}
-$("camt").onclick=()=>{const v=$("camv");if(!v.videoWidth)return;const m=1280,k=Math.min(1,m/Math.max(v.videoWidth,v.videoHeight)),c=$("camp");c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);
-  c.getContext("2d").drawImage(v,0,0,c.width,c.height);camModo("prev");CAM.blob=null;c.toBlob(b=>{CAM.blob=b},"image/jpeg",0.85)};
+function camModo(m){$("camv").hidden=m!=="vivo";$("camp").hidden=m==="vivo";$("camt").hidden=m!=="vivo";$("camx2").hidden=m==="vivo";$("camok").hidden=m==="vivo";$("camr").hidden=m==="vivo"}
+function camFecha(){try{window.removeEventListener("devicemotion",camSensor)}catch(_){}try{(CAM.st&&CAM.st.getTracks()||[]).forEach(t=>t.stop())}catch(_){}CAM.st=null;try{$("camv").srcObject=null}catch(_){}$("cam").classList.remove("on")}
+$("camt").onclick=()=>{const v=$("camv");if(!v.videoWidth)return;const c=$("camp");camDesenha(v,v.videoWidth,v.videoHeight,camGiro(v),c);camModo("prev");CAM.blob=null;c.toBlob(b=>{CAM.blob=b},"image/jpeg",0.85)};
+$("camr").onclick=()=>{const c=$("camp"),t=document.createElement("canvas");t.width=c.width;t.height=c.height;t.getContext("2d").drawImage(c,0,0);const o=document.createElement("canvas");o.width=t.height;o.height=t.width;const x=o.getContext("2d");x.translate(o.width/2,o.height/2);x.rotate(Math.PI/2);x.drawImage(t,-t.width/2,-t.height/2);c.width=o.width;c.height=o.height;c.getContext("2d").drawImage(o,0,0);CAM.blob=null;c.toBlob(b=>{CAM.blob=b},"image/jpeg",0.85)};
 $("camx2").onclick=()=>{CAM.blob=null;camModo("vivo");$("camm").textContent=camTxt()};
 $("camok").onclick=async()=>{const c=$("camp");const b=CAM.blob||await new Promise(z=>c.toBlob(z,"image/jpeg",0.85));if(!b)return;CAM.n++;const f=new File([b],"foto.jpg",{type:"image/jpeg"});const fn=CAM.fn;
   if(CAM.n>=CAM.max){camFecha()}else{camModo("vivo");$("camm").textContent=camTxt()}
@@ -3358,7 +3364,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="162";
+const VER="163";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
