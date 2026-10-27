@@ -1134,7 +1134,7 @@ function textoChecklist(){
   return ["CHECKLIST DE VISITA - MAX PÃES","(PROMOTOR)","","Data: "+(d?dBR(d):""),"Loja: "+U($("cliente").value.trim()),"Bairro/Cidade: "+U($("endereco").value.trim()),
     "Horário de Chegada: "+(v.ini||""),"Horário de Saída: "+(v.fim||""),"","✍🏼CONTATO COM A LOJA: ",...ctt,"",
     "EXPOSIÇÃO DOS PRODUTOS: "+U(v.exp).trim(),"VALIDADE E PRECIFICAÇÃO: "+U(v.vp).trim(),"",
-    "TROCAS: "+sn("tr","troca"),"PEDIDO: "+sn("pd","pedido"),...(v.oe&&v.oe.trim()?["","OBSERVAÇÃO PARA A ENTREGA: "+U(v.oe).trim()]:[]),...(v.fo&&v.fo.length?["FOTOS DA VISITA: "+v.fo.length]:[])].join("\n");
+    "TROCAS: "+sn("tr","troca"),"PEDIDO: "+(()=>{const r=sn("pd","pedido");if(r!=="NÃO")return r;const c=$("cliente").value.trim(),mo=motivos[d]||{},m=mo[norm(c)]||mo[norm(nomeCad(c))]||"";return m&&m!==OUTRO_DIA&&m!==VD?"NÃO - "+U(motL(m)):r})(),...(v.oe&&v.oe.trim()?["","OBSERVAÇÃO PARA A ENTREGA: "+U(v.oe).trim()]:[]),...(v.fo&&v.fo.length?["FOTOS DA VISITA: "+v.fo.length]:[])].join("\n");
 }
 function atualizaTxt(){$("vtxt").textContent=textoChecklist()}
 function renderVis(){
@@ -3358,7 +3358,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="161";
+const VER="162";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
