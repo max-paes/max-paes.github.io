@@ -1208,13 +1208,16 @@ function hqCarrega(ids){(ids||[]).forEach(id=>{if(HQ.m[id]!==undefined)return;HQ
 function hqLimpa(){hqDb().then(db=>{const st=db.transaction("f","readwrite").objectStore("f"),lim=Date.now()-5*864e5;st.openCursor().onsuccess=e=>{const c=e.target.result;if(!c)return;if(!c.value||c.value.t<lim)c.delete();c.continue()}}).catch(()=>{})}
 setTimeout(hqLimpa,8000);
 function visUid(){return fbAuth&&fbAuth.currentUser&&fbDb?fbAuth.currentUser.uid:null}
+const FDEL={k:"",t:0};
 function visFotos(){const B=$("vfotos");if(!B)return;try{hqCarrega(visita.fo||[])}catch(_){}B.innerHTML="";const ids=visita.fo||[],uid=visUid();
   ids.forEach(id=>{const w=document.createElement("div");w.className="th";
     if(!vfoto[id]&&uid){vfoto[id]="…";fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).get().then(sn=>{vfoto[id]=sn.exists?(sn.data()||{}).j:"";if(mode==="visita")visFotos()}).catch(()=>{vfoto[id]=""})}
     const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.onclick=()=>{const K=(visita.fo||[]).filter(k=>vfoto[k]&&vfoto[k]!=="…"),L=K.map(k=>vfoto[k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;vfoto[id]=u;const uid=visUid();if(uid)fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:u},{merge:true}).catch(()=>{});try{visFotos()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
-    const x=document.createElement("button");x.textContent="🗑 Excluir";
-    x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}
-      visita.fo=(visita.fo||[]).filter(y=>y!==id);delete vfoto[id];if(uid){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).delete().catch(()=>{});fiTira(uid,"v_"+id)}salvar();visFotos();atualizaTxt()};
+    const x=document.createElement("button");const pend=FDEL.k==="v"+id&&Date.now()-FDEL.t<4000;x.textContent=pend?"Confirmar?":"🗑 Excluir";
+    x.onclick=()=>{if(!(FDEL.k==="v"+id&&Date.now()-FDEL.t<4000)){FDEL.k="v"+id;FDEL.t=Date.now();x.textContent="Confirmar?";setTimeout(()=>{if(FDEL.k==="v"+id&&x.isConnected)x.textContent="🗑 Excluir"},4000);return}
+      FDEL.k="";w.remove();visita.fo=(visita.fo||[]).filter(y=>y!==id);delete vfoto[id];delete HQ.m[id];
+      try{if(uid){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).delete().catch(()=>{});fiTira(uid,"v_"+id)}}catch(e){diag(e,"fotoExclui")}
+      try{salvar()}catch(e){diag(e,"fotoExclui")}visFotos();try{atualizaTxt()}catch(_){}};
     w.appendChild(x);B.appendChild(w)});
   if(ids.length){const n=document.createElement("small");n.className="fin";n.textContent="As fotos são apagadas "+FOTO_DIAS+" dias depois que a direção as visualiza.";B.appendChild(n)}
   if(ids.length<999){const b=document.createElement("button");b.textContent="📷 Fotos da visita"+(ids.length?" ("+ids.length+")":"");b.onclick=()=>{if(!visUid()){aviso("Entre na sua conta e conecte à internet para enviar fotos.");return}if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);return}camAbrir(999-(visita.fo||[]).length,async f=>{await visFoto(f);visFotos();atualizaTxt()},()=>$("vfi").click())};B.appendChild(b)}}
@@ -2836,14 +2839,14 @@ function motFoto(sid,cat,file){const uid=fbAuth.currentUser.uid;
       motP(sid,{fo:{[cat]:ids.concat([id])}});motRender();ok()};
     im.onerror=()=>{URL.revokeObjectURL(u);$("motm").textContent="Não consegui ler essa foto.";ok()};im.src=u})}
 function motFotoTira(sid,cat,id){const uid=fbAuth.currentUser.uid,ids=((((mot.reg.p||{})[sid]||{}).fo||{})[cat]||[]).filter(x=>x!==id);
-  fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).delete().catch(()=>{});fiTira(uid,fdoc(sid,cat,id));delete mot.fotos[sid+"_"+cat+"_"+id];motP(sid,{fo:{[cat]:ids}})}
+  fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).delete().catch(()=>{});fiTira(uid,fdoc(sid,cat,id));delete mot.fotos[sid+"_"+cat+"_"+id];try{const P=(mot.reg.p=mot.reg.p||{}),q=(P[sid]=P[sid]||{});q.fo={...(q.fo||{}),[cat]:ids}}catch(_){}motP(sid,{fo:{[cat]:ids}});motRender()}
 function motCarregaFoto(sid,cat,id){const k=sid+"_"+cat+"_"+id;if(mot.fotos[k]||mot.fq[k])return;mot.fq[k]=1;const uid=fbAuth.currentUser.uid;
   fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).get().then(sn=>{if(sn.exists){mot.fotos[k]=(sn.data()||{}).j;motRender()}}).catch(()=>{})}
 function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.createElement("div");b.className="fb";
   ids.forEach(id=>{motCarregaFoto(sid,cat,id);const d=mot.fotos[sid+"_"+cat+"_"+id];const w=document.createElement("div");w.className="th";
     if(d){const im=document.createElement("img");im.src=d;im.alt="Foto";im.onclick=()=>{const K=ids.filter(k=>mot.fotos[sid+"_"+cat+"_"+k]),L=K.map(k=>mot.fotos[sid+"_"+cat+"_"+k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;mot.fotos[sid+"_"+cat+"_"+id]=u;fbDb.collection("vendedores/"+fbAuth.currentUser.uid+"/fotos").doc(fdoc(sid,cat,id)).set({j:u},{merge:true}).catch(()=>{});try{motRender()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
-    const x=document.createElement("button");x.textContent="🗑 Excluir";x.setAttribute("aria-label","Excluir foto");
-    x.onclick=()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmar?";setTimeout(()=>{x.dataset.c="";x.textContent="🗑 Excluir"},2500);return}motFotoTira(sid,cat,id)};w.appendChild(x);b.appendChild(w)});
+    const x=document.createElement("button");const fk="m"+sid+cat+id,pend=FDEL.k===fk&&Date.now()-FDEL.t<4000;x.textContent=pend?"Confirmar?":"🗑 Excluir";x.setAttribute("aria-label","Excluir foto");
+    x.onclick=()=>{if(!(FDEL.k===fk&&Date.now()-FDEL.t<4000)){FDEL.k=fk;FDEL.t=Date.now();x.textContent="Confirmar?";setTimeout(()=>{if(FDEL.k===fk&&x.isConnected)x.textContent="🗑 Excluir"},4000);return}FDEL.k="";w.remove();motFotoTira(sid,cat,id)};w.appendChild(x);b.appendChild(w)});
   if(ids.length<MAXF){const fb=document.createElement("button"),fi=document.createElement("input");fb.textContent="📷 "+(rot||"Fotos")+(ids.length?" ("+ids.length+")":"");
     fi.type="file";fi.accept="image/*";fi.setAttribute("capture","environment");fi.hidden=true;fb.onclick=()=>camAbrir(MAXF-ids.length,f=>motFoto(sid,cat,f),()=>fi.click());
     fi.onchange=async()=>{const L=[...fi.files].slice(0,MAXF-ids.length);if(!L.length)return;fb.textContent="Enviando…";for(const f of L)await motFoto(sid,cat,f)};
@@ -3378,7 +3381,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="167";
+const VER="168";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;

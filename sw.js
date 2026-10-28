@@ -1,6 +1,6 @@
 // Max Pães · Vendedor — funciona sem internet.
 // A página abre na hora pelo cache e é atualizada em segundo plano.
-const CACHE = "mpv-v167";
+const CACHE = "mpv-v168";
 const BASE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./logo-app.webp"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE))); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
