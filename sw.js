@@ -1,6 +1,6 @@
 // Max Pães · Vendedor — funciona sem internet.
 // A página abre na hora pelo cache e é atualizada em segundo plano.
-const CACHE = "mpv-v174";
+const CACHE = "mpv-v175";
 const BASE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./logo-app.webp"];
 // resposta "limpa": uma cópia marcada como redirecionada não pode abrir a página (o Chrome recusa)
 const limpa = r => (r && r.redirected) ? r.blob().then(b => new Response(b, { status: r.status, statusText: r.statusText, headers: r.headers })) : Promise.resolve(r);
