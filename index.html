@@ -1199,8 +1199,15 @@ function fiBloco(itens){if(!ehAdm()||!itens.length)return null;
   return null}
 // ===== Fotos e observação para a entrega (promotor) =====
 const vfoto={};let tOe=null;
+/* cópia em alta qualidade da foto, só neste celular, usada ao compartilhar no WhatsApp (o app guarda uma versão leve) */
+const HQ={m:{},db:null};
+function hqDb(){if(HQ.db)return HQ.db;HQ.db=new Promise((ok,er)=>{try{const q=indexedDB.open("mpv-hq",1);q.onupgradeneeded=()=>{try{q.result.createObjectStore("f")}catch(_){}};q.onsuccess=()=>ok(q.result);q.onerror=()=>er(q.error)}catch(e){er(e)}});return HQ.db}
+function hqPut(id,blob){if(!id||!blob)return;HQ.m[id]=blob;hqDb().then(db=>{const t=db.transaction("f","readwrite");t.objectStore("f").put({b:blob,t:Date.now()},id)}).catch(()=>{})}
+function hqCarrega(ids){(ids||[]).forEach(id=>{if(HQ.m[id]!==undefined)return;HQ.m[id]=null;hqDb().then(db=>{const q=db.transaction("f").objectStore("f").get(id);q.onsuccess=()=>{if(q.result&&q.result.b)HQ.m[id]=q.result.b}}).catch(()=>{})})}
+function hqLimpa(){hqDb().then(db=>{const st=db.transaction("f","readwrite").objectStore("f"),lim=Date.now()-5*864e5;st.openCursor().onsuccess=e=>{const c=e.target.result;if(!c)return;if(!c.value||c.value.t<lim)c.delete();c.continue()}}).catch(()=>{})}
+setTimeout(hqLimpa,8000);
 function visUid(){return fbAuth&&fbAuth.currentUser&&fbDb?fbAuth.currentUser.uid:null}
-function visFotos(){const B=$("vfotos");if(!B)return;B.innerHTML="";const ids=visita.fo||[],uid=visUid();
+function visFotos(){const B=$("vfotos");if(!B)return;try{hqCarrega(visita.fo||[])}catch(_){}B.innerHTML="";const ids=visita.fo||[],uid=visUid();
   ids.forEach(id=>{const w=document.createElement("div");w.className="th";
     if(!vfoto[id]&&uid){vfoto[id]="…";fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).get().then(sn=>{vfoto[id]=sn.exists?(sn.data()||{}).j:"";if(mode==="visita")visFotos()}).catch(()=>{vfoto[id]=""})}
     const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.onclick=()=>{const K=(visita.fo||[]).filter(k=>vfoto[k]&&vfoto[k]!=="…"),L=K.map(k=>vfoto[k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;vfoto[id]=u;const uid=visUid();if(uid)fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:u},{merge:true}).catch(()=>{});try{visFotos()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
@@ -1217,28 +1224,28 @@ function visFoto(file){const uid=visUid();if(!uid)return Promise.resolve();
       if((visita.fo||[]).length>=999){ok();return}
       const id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);vfoto[id]=d;visita.fo=(visita.fo||[]).concat([id]);
       fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:d,ts:Date.now(),data:$("data").value,cli:U($("cliente").value.trim()),tipo:"visita"}).catch(e=>aviso("Não consegui enviar a foto ("+(e.code||e.message)+")."));
-      salvar();fiReg(uid,"v_"+id,{t:"v",d:$("data").value,c:U($("cliente").value.trim()),p:curId?"p_"+curId:""});ok()};
+      salvar();fiReg(uid,"v_"+id,{t:"v",d:$("data").value,c:U($("cliente").value.trim()),p:curId?"p_"+curId:""});hqPut(id,file);ok(id)};
     im.onerror=()=>{URL.revokeObjectURL(u);ok()};im.src=u})}
 const CAM={st:null,n:0,max:0,fn:null,blob:null,gx:0,gy:9.8};
 /* o app fica travado em retrato: lê a inclinação do celular para gravar a foto em paisagem quando ele está deitado */
 function camSensor(e){const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;CAM.gx=CAM.gx*.6+g.x*.4;CAM.gy=CAM.gy*.6+(g.y||0)*.4}
 function camGiro(v){if(!(v.videoHeight>v.videoWidth))return 0;const x=CAM.gx,y=CAM.gy;if(Math.abs(x)<4||Math.abs(x)<Math.abs(y)+1)return 0;let r=x>0?-90:90;if(/iPhone|iPad|iPod/.test(navigator.userAgent))r=-r;return r}
-function camDesenha(src,sw,sh,giro,c){const m=1280,k=Math.min(1,m/Math.max(sw,sh)),w=Math.round(sw*k),h=Math.round(sh*k),q=Math.abs(giro)===90;
+function camDesenha(src,sw,sh,giro,c){const m=4096,k=Math.min(1,m/Math.max(sw,sh)),w=Math.round(sw*k),h=Math.round(sh*k),q=Math.abs(giro)===90;
   c.width=q?h:w;c.height=q?w:h;const x=c.getContext("2d");x.save();x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(src,-w/2,-h/2,w,h);x.restore()}
 async function camAbrir(max,fn,falha){if(max<=0)return;if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
   CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.blob=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
-  try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
+  try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:2560},height:{ideal:1440}},audio:false});
     const v=$("camv");v.srcObject=CAM.st;await v.play().catch(()=>{});$("camm").textContent=camTxt()}
   catch(e){camFecha();falha()}}
 const camTxt=()=>CAM.n?"✓ "+CAM.n+(CAM.max<900?"/"+CAM.max:(CAM.n===1?" foto":" fotos")):"";
 function camModo(m){$("camv").hidden=m!=="vivo";$("camp").hidden=m==="vivo";$("camt").hidden=m!=="vivo";$("camx2").hidden=m==="vivo";$("camok").hidden=m==="vivo";$("camr").hidden=m==="vivo"}
 function camFecha(){try{window.removeEventListener("devicemotion",camSensor)}catch(_){}try{(CAM.st&&CAM.st.getTracks()||[]).forEach(t=>t.stop())}catch(_){}CAM.st=null;try{$("camv").srcObject=null}catch(_){}$("cam").classList.remove("on")}
-$("camt").onclick=()=>{const v=$("camv");if(!v.videoWidth)return;const c=$("camp");camDesenha(v,v.videoWidth,v.videoHeight,camGiro(v),c);camModo("prev");CAM.blob=null;c.toBlob(b=>{CAM.blob=b},"image/jpeg",0.85)};
-$("camr").onclick=()=>{const c=$("camp"),t=document.createElement("canvas");t.width=c.width;t.height=c.height;t.getContext("2d").drawImage(c,0,0);const o=document.createElement("canvas");o.width=t.height;o.height=t.width;const x=o.getContext("2d");x.translate(o.width/2,o.height/2);x.rotate(Math.PI/2);x.drawImage(t,-t.width/2,-t.height/2);c.width=o.width;c.height=o.height;c.getContext("2d").drawImage(o,0,0);CAM.blob=null;c.toBlob(b=>{CAM.blob=b},"image/jpeg",0.85)};
-$("camx2").onclick=()=>{CAM.blob=null;camModo("vivo");$("camm").textContent=camTxt()};
-$("camok").onclick=async()=>{const c=$("camp");const b=CAM.blob||await new Promise(z=>c.toBlob(z,"image/jpeg",0.85));if(!b)return;CAM.n++;const f=new File([b],"foto.jpg",{type:"image/jpeg"});const fn=CAM.fn;
+$("camt").onclick=()=>{const v=$("camv");if(!v.videoWidth)return;const c=$("camp");camDesenha(v,v.videoWidth,v.videoHeight,camGiro(v),c);camModo("prev");CAM.bp=new Promise(z=>c.toBlob(z,"image/jpeg",0.92))};
+$("camr").onclick=()=>{const c=$("camp"),t=document.createElement("canvas");t.width=c.width;t.height=c.height;t.getContext("2d").drawImage(c,0,0);const o=document.createElement("canvas");o.width=t.height;o.height=t.width;const x=o.getContext("2d");x.translate(o.width/2,o.height/2);x.rotate(Math.PI/2);x.drawImage(t,-t.width/2,-t.height/2);c.width=o.width;c.height=o.height;c.getContext("2d").drawImage(o,0,0);CAM.bp=new Promise(z=>c.toBlob(z,"image/jpeg",0.92))};
+$("camx2").onclick=()=>{CAM.bp=null;camModo("vivo");$("camm").textContent=camTxt()};
+$("camok").onclick=async()=>{const bp=CAM.bp;if(!bp)return;CAM.bp=null;CAM.n++;const fn=CAM.fn;
   if(CAM.n>=CAM.max){camFecha()}else{camModo("vivo");$("camm").textContent=camTxt()}
-  try{await fn(f)}catch(e){diag(e,"camera")}};
+  try{const b=await bp;if(!b)return;await fn(new File([b],"foto.jpg",{type:"image/jpeg"}))}catch(e){diag(e,"camera")}};
 $("camf").onclick=camFecha;
 function salvaNoCel(f,base){try{const t=new Date(),nm=("MaxPaes_"+(base||"foto")+"_"+isoD(t)+"_"+String(t.getHours()).padStart(2,"0")+"-"+String(t.getMinutes()).padStart(2,"0")+"-"+String(t.getSeconds()).padStart(2,"0")).replace(/[^\w\-]+/g,"_")+".jpg",u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=nm;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}catch(e){}}
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
@@ -2631,7 +2638,7 @@ function abreWa(t){const u="https://wa.me/?text="+encodeURIComponent(t);let w=nu
 $("vwpp").onclick=()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash($("vwpp"),"Enviar no WhatsApp","Informe o cliente");return}
   salvar();const t=textoChecklist();
   copiaFundo(t);
-  const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);
+  const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const h=HQ.m[id];if(h&&h.size){fs.push(new File([h],"foto-visita-"+(i+1)+".jpg",{type:"image/jpeg"}));return}const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);
     fs.push(new File([u],"foto-visita-"+(i+1)+".jpg",{type:"image/jpeg"}))})}catch(_){}
   if(fs.length&&navigator.share&&navigator.canShare&&(()=>{try{return navigator.canShare({files:fs,text:t})}catch(_){return false}})()){
     navigator.share({files:fs,text:t}).then(()=>aviso("Fotos enviadas. O texto do checklist também está copiado: se o WhatsApp não colocar o texto, é só colar.")).catch(e=>{if(e&&e.name==="AbortError")return;navigator.share({text:t}).catch(()=>abreWa(t))});return}
@@ -3368,7 +3375,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="164";
+const VER="165";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
