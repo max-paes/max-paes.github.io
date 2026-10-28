@@ -2065,7 +2065,8 @@ async function entrou(u){
              :"Seu acesso ainda não foi liberado."+errB+" ["+u.uid+"]");return}
   perfil={...ps.data()};perfil.papelReal=perfil.papel;if(perfil.papelReal==="developer"&&devPapel())perfil.papel=devPapel();if(!perfil.nome)perfil.nome=U((u.email||"").split("@")[0]);
   if(perfil.ativo===false){barra(perfil.pendente?"Pedido de acesso enviado. Aguarde a liberação e entre de novo.":"Seu acesso está desativado.");return}
-  if(perfil.papel!=="developer"){
+  /* Developer: sem trava de aparelho nem limite de acessos simultâneos (vale mesmo usando "Ver como") */
+  if(perfil.papelReal!=="developer"&&u.uid!==DONO_UID){
     const meu=dispId(),dp=perfil.disp||"";
     const troca=dp&&dp!==meu&&perfil.dispHost!==location.host&&location.host!==HOST_ANT;
     if(dp&&dp!==meu&&!troca){barra("Esta conta já está aberta em outro aparelho"+(perfil.dispNome?" ("+perfil.dispNome+")":"")+". Saia da conta nele ou peça para liberar.");return}
@@ -3385,7 +3386,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="170";
+const VER="171";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
