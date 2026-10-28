@@ -1,8 +1,10 @@
 // Max Pães · Vendedor — funciona sem internet.
 // A página abre na hora pelo cache e é atualizada em segundo plano.
-const CACHE = "mpv-v168";
+const CACHE = "mpv-v169";
 const BASE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./logo-app.webp"];
-self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE))); });
+// resposta "limpa": uma cópia marcada como redirecionada não pode abrir a página (o Chrome recusa)
+const limpa = r => (r && r.redirected) ? r.blob().then(b => new Response(b, { status: r.status, statusText: r.statusText, headers: r.headers })) : Promise.resolve(r);
+self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => Promise.all(BASE.map(u => fetch(u, { cache: "reload" }).then(limpa).then(r => { if (r && r.ok) return c.put(u === "./" ? "./index.html" : u, r); }).catch(() => {}))))); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("message", e => { if (e.data && e.data.tipo === "atualizar") self.skipWaiting(); });
 self.addEventListener("fetch", e => {
@@ -14,9 +16,9 @@ self.addEventListener("fetch", e => {
   const pagina = r.mode === "navigate" || (u.origin === location.origin && /\/(index\.html)?$/.test(u.pathname));
   if (pagina) {
     // abre na hora com a cópia do celular e atualiza a cópia em segundo plano (a barra "Atualizar" avisa quando há versão nova)
-    const rede = fetch(r).then(res => { if (res.ok) { const c = res.clone(); caches.open(CACHE).then(k => k.put("./index.html", c)); } return res; });
+    const rede = fetch(r).then(res => { if (res.ok) { const c = res.clone(); limpa(c).then(l => caches.open(CACHE).then(k => k.put("./index.html", l))).catch(() => {}); } return res; });
     e.waitUntil(rede.catch(() => {}));
-    e.respondWith(caches.match("./index.html").then(hit => hit || rede).catch(() => rede));
+    e.respondWith(caches.match("./index.html").then(hit => hit ? limpa(hit) : rede).then(r2 => r2 || rede).catch(() => rede));
     return;
   }
   if (u.origin === location.origin || /gstatic\.com|fonts\.googleapis\.com|fonts\.gstatic\.com/.test(u.host)) {
