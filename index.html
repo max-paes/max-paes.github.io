@@ -33,11 +33,12 @@ header p{margin:2px 0 0;font-size:13px;opacity:.85}
 .tabs{max-width:640px;margin:0 auto;display:flex;gap:6px;padding:10px 12px 0;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:2}
 .tabs button{flex:1;min-width:0;padding:12px 2px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 15px Archivo,system-ui,sans-serif;border-radius:10px}
 .tabs button[aria-selected="true"]{background:var(--brand);color:var(--on)}
-@media (max-width:420px){.tabs button{font-size:min(15px,3.7vw);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media (max-width:420px){.tabs button{font-size:min(15px,3.4vw);letter-spacing:-.02em;padding-left:0;padding-right:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 main{padding:10px 12px;max-width:640px;margin:0 auto}
 .head{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .head label{display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:3px}
 .head .full{grid-column:1/-1}
+.head label{min-width:0}.head input{width:100%;min-width:0}
 #cliente.trc{background:var(--line);color:var(--ink,inherit);font-weight:700}
 #clitr{grid-column:1/-1;margin:-4px 2px 2px;font-size:12px;color:var(--mute);display:flex;gap:8px;align-items:center;flex-wrap:wrap}#clitr[hidden]{display:none}#clitrb{background:none;border:0;padding:0;color:var(--azul,#1f4fa8);font-weight:700;text-decoration:underline;font-size:12px;cursor:pointer}
 input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}
@@ -353,6 +354,7 @@ body.trv #edbar{border-color:#0b7a75}
 #mot .sw{max-width:640px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 40px}
 #mot .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
 #mot .stop h2{margin:0;font-size:19px;flex:1 1 auto}
+#sp .stop h2,#fab .stop h2,#mot .stop h2{flex:1 1 calc(100% - 70px)}
 #mot .stop button{border:1.5px solid currentColor;background:transparent;color:inherit;border-radius:9px;padding:7px 11px;font:700 14px Archivo,sans-serif}
 .mc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
 .mc.ok{border-color:#1a8f4c}
@@ -400,7 +402,7 @@ body.trv #edbar{border-color:#0b7a75}
 #camt{width:78px;height:78px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 5px rgba(0,0,0,.35),0 0 0 9px #fff;padding:0}#camt:active{transform:scale(.92)}
 #camr{width:54px;height:54px;border-radius:50%;border:0;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff;color:#fff;font:800 26px Archivo,sans-serif;padding:0}#camr[hidden]{display:none}
 #camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
-#vh,#mt,#mp{z-index:30}#cfgv{z-index:48}
+#vh,#mt{z-index:30}#cfgv{z-index:48}
 body:has(#cam.on) #vcb{display:none!important}
 .ocl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .oci{border-left:3px solid var(--brand);padding:4px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}.oce{display:block;margin:4px 0 0;padding:3px 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--brand)}.oci small{display:block;color:var(--mute);font-size:12px;font-weight:700}
@@ -528,9 +530,6 @@ body:has(#cam.on) #vcb{display:none!important}
 <div class="ov" id="mt"><div class="box">
   <div class="hhead"><b>Metas do mês</b><button id="mtx">Fechar</button></div><p class="msg" id="mtm" style="margin:0 2px 8px"></p><div id="mtc"></div>
   <div class="acts" style="margin-top:10px"><button id="mts">Salvar metas</button></div><p class="msg" id="mtr" style="margin:6px 2px 0"></p>
-</div></div>
-<div class="ov" id="mp"><div class="box" style="max-width:900px">
-  <div class="hhead"><b>Mapa das visitas</b><button id="mpx">Fechar</button></div><p class="msg" id="mpm" style="margin:0 2px 8px"></p><div id="mpc"></div>
 </div></div>
 <div class="ov" id="vh"><div class="box">
   <div class="hhead"><b id="vht">Histórico</b><button id="vhx">Fechar</button></div>
@@ -862,7 +861,6 @@ function visOntem(n,d){if(visitado(n,d))return false;const ks=[norm(n),norm(nome
   return hist.some(x=>x.data===on&&ks.includes(norm(x.cliente))&&(soma(x.pedido)>0||soma(x.troca)>0||!!(x.visita&&x.visita.ini)))}
 function stPedAg(e){if(!e||!(soma(e.pedido)>0))return "✓ Visitado";return !e.status||e.status==="rascunho"?"✓ Pedido em aberto":"✓ "+rotSt(e.status,e.fat)}
 function motivoDe(n,d){return (motivos[dataDoDia(d)]||{})[norm(n)]||""}
-function marcaComMotivo(n,d,m){const dt=dataDoDia(d);(visitas[dt]=visitas[dt]||{})[norm(n)]=true;marcaHora(dt,norm(n));if(m)(motivos[dt]=motivos[dt]||{})[norm(n)]=m;agMot=null;salvaAg();renderAg()}
 let arr=null;
 function iniciaArraste(e,row,i){
   e.preventDefault();const L=$("agl");
@@ -1257,10 +1255,7 @@ $("camok").onclick=async()=>{const bp=CAM.bp;if(!bp)return;CAM.bp=null;CAM.n++;c
   try{const b=await bp;if(!b)return;await fn(new File([b],"foto.jpg",{type:"image/jpeg"}))}catch(e){diag(e,"camera")}};
 $("camf").onclick=camFecha;
 $("camnat").onclick=()=>{const f=CAM.falha;camFecha();if(f)f()};
-function salvaNoCel(f,base){try{const t=new Date(),nm=("MaxPaes_"+(base||"foto")+"_"+isoD(t)+"_"+String(t.getHours()).padStart(2,"0")+"-"+String(t.getMinutes()).padStart(2,"0")+"-"+String(t.getSeconds()).padStart(2,"0")).replace(/[^\w\-]+/g,"_")+".jpg",u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=nm;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}catch(e){}}
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
-function enviaOe(){const uid=visUid(),cli=U($("cliente").value.trim()),dt=$("data").value;if(!uid||!cli||!dt)return;
-  const k=uid+"_"+pkey(cli);fbDb.collection("obsent").doc(dt).set({ts:Date.now(),l:{[k]:{c:cli,t:(visita.oe||"").trim(),por:(perfil&&perfil.nome)||"",ts:Date.now(),d:dt}}},{merge:true}).catch(()=>{})}
 async function copiaTexto(t){
   let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
   if(!ok){try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e){}}
@@ -1480,8 +1475,8 @@ const addD=(iso,n)=>{const t=new Date(iso+"T12:00:00");t.setDate(t.getDate()+n);
 const semDe=iso=>{const t=new Date(iso+"T12:00:00");return addD(iso,-((t.getDay()+6)%7))};
 const hhDe=ms=>ms?new Date(ms).toTimeString().slice(0,5):"";
 const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STN={faturar:"Pronto para faturar",separando:"Separando",fechado:"Fechado",alterado:"Fechado · alterado",alterando:"Alterando",rascunho:"Rascunho"};
-const rotSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?(fat?"Alterado · Pronto para faturar":"Pronto para faturar"):(STN[st]||"Rascunho");
+const STN={faturar:"Fechado",separando:"Separando",fechado:"Fechado",alterado:"Fechado · alterado",alterando:"Alterando",rascunho:"Rascunho"};
+const rotSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?(fat?"Fechado · alterado":"Fechado"):(STN[st]||"Rascunho");
 const clsSt=(st,fat)=>(st==="faturar"||(st==="alterado"&&fat))?"faturar":(st==="alterado"?"fechado":(st||"rascunho"));
 function ehSup(){return !!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||"")&&fbDb)}
 const ehAdm=()=>!!(perfil&&/^(developer|admin)$/.test(perfil.papel||""));
@@ -1507,7 +1502,7 @@ function supDocs(){const hj=hojeISO(),dia=sup.modo==="dia",[a,b]=supRng();
         if(sup.pronto[lk]&&a&&x.id.startsWith("p_")&&x.ini&&!a.ini)supAviso(x,k,"visita")});
       sup.pronto[lk]=true;supRender();if(sup.det&&sup.docs[sup.det]&&$("sdt").classList.contains("on"))supDetalhe(sup.det,true)},()=>{})}))}
 function nomeV(uid){const v=sup.vend[uid]||{};return v.nome||v.email||"Vendedor"}
-function supAviso(x,k,tipo){const t=tipo==="faturar"?"Pronto para faturar · "+nomeV(x.uid)+" · "+x.cliente+" · "+(x.ped||0)+" un.":tipo==="visita"?"Visita iniciada · "+nomeV(x.uid)+" · "+x.cliente:"Pedido fechado · "+nomeV(x.uid)+" · "+x.cliente+" · "+(x.ped||0)+" un.";
+function supAviso(x,k,tipo){const t=tipo==="faturar"?"Pedido fechado · "+nomeV(x.uid)+" · "+x.cliente+" · "+(x.ped||0)+" un.":tipo==="visita"?"Visita iniciada · "+nomeV(x.uid)+" · "+x.cliente:"Pedido fechado · "+nomeV(x.uid)+" · "+x.cliente+" · "+(x.ped||0)+" un.";
   sup.novo=k;if(!avisosOn())return;
   const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,6000);
   try{navigator.vibrate&&navigator.vibrate(150)}catch(e){}
@@ -1552,7 +1547,7 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;if(!ehSup()){B.inne
   if(ADM)h+="<div class='dk'><div><small>Pedidos fechados</small><b>"+fech.length+"</b><span>"+fech.reduce((a,x)=>a+x.ped,0)+" un. "+(CMP?cmpTxt(at.un,ant.un):"")+"</span></div><div><small>Lojas atendidas</small><b>"+new Set(T.filter(x=>x.ini||(x.ped||0)>0).map(x=>norm(x.cliente||""))).size+"</b><span>"+T.filter(x=>x.ini).length+" visitas "+(CMP?cmpTxt(at.vis,ant.vis):"")+"</span></div><div><small>Troca / pedido</small><b"+(pct(tro,un)>10?" class='rd'":"")+">"+pct(tro,un)+"%</b><span>"+tro+" de "+un+" un.</span></div><div><small>Entregas</small><b>"+entregues.length+"/"+fech.length+"</b><span>"+emRota.length+" em rota · "+semRota.length+" sem rota</span></div></div>";
   if(CMP&&ADM)h+="<p class='msg' style='margin:-4px 2px 0;font-size:12px'>Setas: "+esc(rotAnt)+" (unidades e visitas). Período anterior: "+ant.fech+" fechados · "+ant.un+" un. · "+ant.vis+" visitas.</p>";
   h+="<div class='dc'><b>Alertas</b>"+(al.length?al.map((a,ai)=>"<div class='da dal' data-al='"+ai+"' role='button' tabindex='0'><span>"+a[0]+"</span><div><b>"+esc(a[1])+" ›</b>"+"<small>"+esc(a[2])+(a[3]&&a[3].length>6?" … e mais "+(a[3].length-6):"")+" · toque para ver "+(a[4]?"o histórico":"os pedidos")+"</small>"+"</div></div>").join(""):"<p class='msg' style='margin:4px 0 0'>Nenhum alerta "+esc(per)+".</p>")+"</div>";
-  h+="<div class='dc'><b>Ranking da equipe</b>"+(rk.length?"<table class='tx'><tr><th>Nome</th><th class='n'>Visitas</th><th class='n'>Fechados</th><th class='n'>Un.</th><th class='n'>% troca</th><th class='n'>Mês / meta</th></tr>"+rk.map(([u,v])=>"<tr><td>"+esc(nomeV(u).split(" ").slice(0,2).join(" "))+(v.agora?"<br><small class='on'>● em visita · "+esc(v.agora)+"</small>":"")+"</td><td class='n'>"+v.vis+"</td><td class='n'>"+v.fech+(v.ras?"<small> +"+v.ras+" aberto</small>":"")+"</td><td class='n'><b>"+v.un+"</b></td><td class='n"+(pct(v.tro,v.un)>10?" rd":"")+"'>"+(v.un?pct(v.tro,v.un)+"%":"—")+"</td><td class='n'>"+metaCel(u,mesU[u]||0)+"</td></tr>").join("")+"</table>":"<p class='msg' style='margin:4px 0 0'>Sem movimento "+esc(per)+".</p>")+"</div>";
+  h+="<div class='dc'><b>Ranking da equipe</b>"+(rk.length?"<div style='overflow-x:auto;margin:0 -4px'><table class='tx' style='min-width:100%'><tr><th>Nome</th><th class='n'>Visitas</th><th class='n'>Fechados</th><th class='n'>Un.</th><th class='n'>% troca</th><th class='n'>Mês / meta</th></tr>"+rk.map(([u,v])=>"<tr><td>"+esc(nomeV(u).split(" ").slice(0,2).join(" "))+(v.agora?"<br><small class='on'>● em visita · "+esc(v.agora)+"</small>":"")+"</td><td class='n'>"+v.vis+"</td><td class='n'>"+v.fech+(v.ras?"<small> +"+v.ras+" aberto</small>":"")+"</td><td class='n'><b>"+v.un+"</b></td><td class='n"+(pct(v.tro,v.un)>10?" rd":"")+"'>"+(v.un?pct(v.tro,v.un)+"%":"—")+"</td><td class='n'>"+metaCel(u,mesU[u]||0)+"</td></tr>").join("")+"</table></div>":"<p class='msg' style='margin:4px 0 0'>Sem movimento "+esc(per)+".</p>")+"</div>";
   if(top.length){const mx=top[0][1];h+="<div class='dc'><b>Produtos mais pedidos</b>"+top.map(([n,q])=>"<div class='db'><span>"+esc(n)+"</span><i><em style='width:"+Math.round(q/mx*100)+"%'></em></i><b>"+q+"</b></div>").join("")+(topT.length?"<b style='display:block;margin-top:10px'>Mais trocados</b>"+topT.map(([n,q])=>"<div class='db t'><span>"+esc(n)+"</span><b>"+q+"</b></div>").join(""):"")+"</div>"}
   {const pd=sup.prodD||hj,pr=sup.prod||{},it=pr.itens||{},PD={};Object.values(sup.docs).filter(x=>x.id.startsWith("p_")&&x.data===pd&&x.status&&x.status!=="rascunho"&&(x.ped||0)>0).forEach(x=>{let e=null;try{e=JSON.parse(x.j)}catch(_){}if(e)Object.entries(e.pedido||{}).forEach(([n,q])=>{if(q>0)PD[n]=(PD[n]||0)+q})});
    const ns=ITENS.filter(n=>PD[n]>0||(it[n]&&(typeof it[n].p==="number"||typeof it[n].e==="number")));
@@ -1572,16 +1567,6 @@ function metaCel(u,un){const m=+(((sup.vend[u]||{}).meta)||0);if(!m)return un+" 
 function metasAbrir(){const U0=Object.keys(sup.vend).filter(u=>vende(sup.vend[u])&&(sup.vend[u]||{}).ativo!==false).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   const C=$("mtc");C.innerHTML=U0.map(u=>"<label class='rr'><span class='t'>"+esc(nomeV(u))+" · "+esc(rotP((sup.vend[u]||{}).papel))+"</span><input type='number' inputmode='numeric' min='0' data-u='"+u+"' value='"+(+((sup.vend[u]||{}).meta||0)||"")+"' placeholder='un./mês' style='width:110px'></label>").join("")||"<p class='vazio'>Nenhum vendedor ativo.</p>";
   $("mtm").textContent="Meta de unidades pedidas no mês para cada pessoa. Deixe em branco para não ter meta.";$("mt").classList.add("on")}
-function mapaAbrir(T){const P=T.filter(x=>typeof x.la==="number"&&typeof x.lo==="number");$("mpm").textContent=P.length?P.length+(P.length===1?" visita com localização":" visitas com localização"):"Nenhuma visita com localização neste período. A localização é registrada quando o vendedor toca em Iniciar visita (a partir desta versão).";
-  $("mp").classList.add("on");const box=$("mpc");box.innerHTML="";if(!P.length)return;
-  const lista="<div class='tl' style='margin-top:8px'>"+P.slice().sort((a,b)=>(a.data+(a.ini||"")).localeCompare(b.data+(b.ini||""))).map((x,i)=>"<a class='tr' target='_blank' rel='noopener' href='https://www.google.com/maps?q="+x.la+","+x.lo+"'><span class='tt'>"+(i+1)+"</span><span class='tn'><b>"+esc(x.cliente||"")+"</b><small>"+esc(nomeV(x.uid))+" · "+esc(dBR(x.data).slice(0,5))+" "+esc(x.ini||"")+"</small></span><span class='tq'>📍</span></a>").join("")+"</div>";
-  const div=document.createElement("div");div.id="mpmap";div.style.cssText="height:55vh;border-radius:12px;border:1px solid var(--line)";box.appendChild(div);box.insertAdjacentHTML("beforeend",lista);
-  const go=()=>{try{const L=window.L,m=L.map(div);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(m);const b=[];
-    const cores={};let ci=0;const pal=["#1f4fa8","#c0392b","#1a8f4c","#b26a00","#7b3fa0","#0e7c86"];
-    P.forEach(x=>{const c=cores[x.uid]=cores[x.uid]||pal[ci++%pal.length];L.circleMarker([x.la,x.lo],{radius:8,color:"#fff",weight:2,fillColor:c,fillOpacity:.95}).addTo(m).bindPopup("<b>"+esc(x.cliente||"")+"</b><br>"+esc(nomeV(x.uid))+" · "+esc(x.ini||""));b.push([x.la,x.lo])});
-    if(b.length===1)m.setView(b[0],15);else m.fitBounds(b,{padding:[30,30]})}catch(e){div.innerHTML="<p class='msg' style='padding:10px'>Não consegui desenhar o mapa. Use a lista abaixo.</p>"}};
-  if(window.L)go();else{const l=document.createElement("link");l.rel="stylesheet";l.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(l);
-    carregaScript("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js").then(go).catch(()=>{div.innerHTML="<p class='msg' style='padding:10px'>Sem internet para carregar o mapa. Use a lista abaixo.</p>"})}}
 async function resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU){const b=$("dirrs"),r0=b.textContent;b.textContent="Gerando…";
   try{try{await document.fonts.load("800 28px Archivo")}catch(_){}const logo=await carregaImg(LOGO).catch(()=>null);
     const W=1000,M=40,FT="Archivo,sans-serif",linhas=[];const pct=(a,b)=>b?Math.round(a/b*100):0;
@@ -1945,9 +1930,9 @@ function vhRender(){const q=norm($("vhq").value||""),L=$("vhl");L.innerHTML="";l
     const r=document.createElement("button");r.className="tr";
     r.innerHTML="<span class='tt'>"+esc(dBR(x.data||"").slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc([VH.uid?"":nomeV(x.uid),x.ini?"Visita "+x.ini+(x.fim?"–"+x.fim:""):""].filter(Boolean).join(" · "))+"</small></span><span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+(x.ped?clsSt(x.status,x.fat):"sempedido")+"'>"+esc(st)+"</span></span>";
     r.onclick=()=>{OCX=null;supDetalhe(x.uid+"/"+x.id)};L.appendChild(r)})}
-$("spmn").onclick=e=>{e.stopPropagation();const d=$("spmd");d.hidden=!d.hidden;if(!d.hidden){const r=$("spmn").getBoundingClientRect();if(r.left+230>innerWidth-8){d.style.left="auto";d.style.right="0"}else{d.style.left="0";d.style.right="auto"}}$("spmn").setAttribute("aria-expanded",!d.hidden)};
+$("spmn").onclick=e=>{e.stopPropagation();const d=$("spmd");d.hidden=!d.hidden;if(!d.hidden){const r=$("spmn").getBoundingClientRect();const w=Math.min(260,innerWidth-16);d.style.right="auto";d.style.left=Math.round(Math.max(8-r.left,Math.min(0,innerWidth-8-r.left-w)))+"px"}$("spmn").setAttribute("aria-expanded",!d.hidden)};
 document.addEventListener("click",e=>{const d=$("spmd");if(d&&!d.hidden&&!e.target.closest("#spmn")){d.hidden=true;$("spmn").setAttribute("aria-expanded","false")}});
-$("vhx").onclick=()=>$("vh").classList.remove("on");$("mtx").onclick=()=>$("mt").classList.remove("on");$("mpx").onclick=()=>{$("mp").classList.remove("on");$("mpc").innerHTML=""};
+$("vhx").onclick=()=>$("vh").classList.remove("on");$("mtx").onclick=()=>$("mt").classList.remove("on");
 $("mts").onclick=async()=>{const b=$("mts"),m=$("mtr");b.disabled=true;m.textContent="Salvando…";let ok=0,er=0;
   for(const i of [...document.querySelectorAll("#mtc input[data-u]")]){const u=i.dataset.u,v=Math.max(0,parseInt(i.value)||0);if(v===(+((sup.vend[u]||{}).meta)||0))continue;
     try{await fbDb.collection("vendedores").doc(u).set({meta:v},{merge:true});ok++}catch(e){er++}}
@@ -1958,7 +1943,7 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.
   $("sdtt").textContent=e.cliente+" · "+dBR(e.data);ocMarca($("sdoc"),"Ocorrência",(sup.ent||{})[k.replace("/","_")]);
   const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0));
   let h="<p class='msg' style='margin:0 0 8px'><b>"+esc(nomeV(x.uid))+"</b> · "+esc(STN[e.status]||"Rascunho")+(e.fechadoEm?" em "+new Date(e.fechadoEm).toLocaleString("pt-BR").slice(0,17):"")+
-    (v.ini?"<br>Visita "+esc(v.ini)+(v.fim?"–"+esc(v.fim):" (em andamento)"):"")+(v.geo?" · <a target='_blank' rel='noopener' href='https://www.google.com/maps?q="+v.geo.la+","+v.geo.lo+"'>📍 ver no mapa</a>":"")+(e.comprador?"<br>Comprador: "+esc(e.comprador):"")+(e.endereco?"<br>"+esc(e.endereco):"")+"</p>";
+    (v.ini?"<br>Visita "+esc(v.ini)+(v.fim?"–"+esc(v.fim):" (em andamento)"):"")+(e.comprador?"<br>Comprador: "+esc(e.comprador):"")+(e.endereco?"<br>"+esc(e.endereco):"")+"</p>";
   if(v.ctt||v.exp||v.vp)h+="<p class='msg' style='margin:0 0 8px'>"+(v.ctt?"Contato: "+esc(v.ctt).replace(/\n/g,", ")+"<br>":"")+(v.exp?"Exposição: "+esc(v.exp)+"<br>":"")+(v.vp?"Validade e precificação: "+esc(v.vp)+"<br>":"")+"</p>";
   h+=linhas.length?"<table class='tx'><tr><th>Item</th><th class='n'>Pedido</th><th class='n'>Troca</th></tr>"+linhas.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+(e.pedido[n]||"")+"</td><td class='n'>"+(e.troca[n]||"")+"</td></tr>").join("")+
     "<tr><td><b>Total</b></td><td class='n'><b>"+soma(e.pedido)+"</b></td><td class='n'><b>"+soma(e.troca)+"</b></td></tr></table>":"<p class='vazio'>Sem itens lançados.</p>";
@@ -2265,7 +2250,7 @@ function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const
   document.body.classList.toggle("trv",trv);
   CAMPOS.forEach(i=>{const el=$(i);if(el)el.readOnly=trv});$("data").readOnly=trv;trancaCli();
   const fe=ok&&stPed!=="rascunho"&&stPed!=="alterando";
-  const tx=$("edtx");if(tx)tx.textContent=entFin&&ok?"Entrega finalizada pelo motorista. Só o faturamento pode reabrir.":entRota&&ok?"Em rota: o motorista já saiu da empresa com este pedido.":stPed==="alterado"&&ok?"Pedido fechado e alterado depois: a fábrica e o faturamento veem o aviso.":fe?"Pedido fechado. Se mudar algo, fica marcado como alterado.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
+  const tx=$("edtx");if(tx)tx.textContent=entFin&&ok?"Entrega finalizada pelo motorista: o pedido está travado.":entRota&&ok?"Em rota: o motorista já saiu da empresa com este pedido.":stPed==="alterado"&&ok?"Pedido fechado e alterado depois: a fábrica e a supervisão veem o aviso.":fe?"Pedido fechado. Se mudar algo, fica marcado como alterado.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
   if(entFin&&ok){b.className="on";b.textContent="✅ Entregue";return}
   if(entRota&&ok){b.className="sep";b.textContent="🚚 Em rota";return}
   if(fe){b.className="fec";b.textContent=stPed==="alterado"?"✓ Fechado · alterado":"✓ Pedido fechado";return}
@@ -2465,12 +2450,6 @@ $("rsj").onclick=async()=>{
   abrirPrev("Resumo do dia pronto (A4 paisagem). Salve o PDF para imprimir.");
 };
 const hmsg=t=>{$("hmsg").textContent=t;$("hmsg").hidden=false};
-async function baixar(blob,nome,ok){
-  let dl=null;try{dl=window.claude?await claude.use("downloads"):null}catch(e){}
-  if(dl){try{await dl.save({filename:nome,data:blob});hmsg(ok)}catch(e){hmsg(e&&e.code==="declined"?"Salvamento cancelado.":"Não foi possível salvar o arquivo.")}return}
-  try{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);hmsg(ok)}
-  catch(e){hmsg("Não foi possível salvar o arquivo aqui.")}
-}
 $("hfx").onclick=()=>$("hs").classList.remove("on");
 $("data").addEventListener("input",salvar);
 
@@ -2522,12 +2501,6 @@ function cabecalho(x,W,P,logo,tit,campos,dTxt){
 }
 const rotDoc=p=>p==="supervisor"?"Supervisor":(p==="promotor"||p==="developer")?"Promotor":"Vendedor";
 let docVend=null;
-function linhaVend(x,W,P){
-  const v=docVend||{nome:perfil&&perfil.nome,papel:perfil&&perfil.papel};
-  const n=U((v&&v.nome)||"").trim().split(/\s+/)[0]||"";if(!n)return;
-  x.save();x.textAlign="right";x.fillStyle=AZ;x.font="800 21px "+FT;
-  x.fillText(n,W-P,298);x.restore();
-}
 function caixasDe(o){let cx=0;const fr=[];ITENS.forEach(n=>{const k=CX[n],v=o[n]||0;if(!k||v<=0)return;cx+=Math.floor(v/k);if(v%k)fr.push([n,v%k])});return{cx,fr}}
 function blocoCaixas(x,o,P,tw,y,so){const {cx,fr}=caixasDe(o),h=62+fr.length*34;if(so)return h;
   x.fillStyle="#f1f5fc";rr(x,P,y+14,tw,h-14,14);x.fill();x.strokeStyle=AZ;x.lineWidth=2;rr(x,P,y+14,tw,h-14,14);x.stroke();
@@ -3341,10 +3314,6 @@ async function mdFotosPend(uid,p){try{const sn=await fbDb.collection("vendedores
 const mdPendL={u:{},v:{}};
 function mdPend(){motoristas().forEach(u=>{if(mdPendL.u[u])return;
   mdPendL.u[u]=fbDb.collection("vendedores/"+u+"/docs").doc("m_pend").onSnapshot(sn=>{mdPendL.v[u]=sn.exists?((sn.data()||{}).l||{}):{};mdRender()},()=>{})})}
-async function mdFoto(uid,sid){$("mdm").textContent="Abrindo foto…";
-  try{const sn=await fbDb.collection("vendedores/"+uid+"/fotos").doc(sup.dia+"_"+sid).get();
-    if(sn.exists&&(sn.data()||{}).j){verFotos([sn.data().j],0);$("mdm").textContent=""}else $("mdm").textContent="Foto não encontrada."}
-  catch(e){$("mdm").textContent="Não consegui abrir a foto ("+(e.code||e.message)+")."}}
 function mdAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("mdm").textContent="";$("md").classList.add("on");mdLiga();mdRender()}
 $("spen").onclick=mdAbrir;$("mdx").onclick=()=>$("md").classList.remove("on");
 const mdMove=d=>{sup.dia=d;supDocs();supRender();mdLiga();mdRender()};
@@ -3386,7 +3355,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="171";
+const VER="172";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
