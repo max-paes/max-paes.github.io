@@ -1481,7 +1481,7 @@ function carregaScript(src){return new Promise((ok,er)=>{const s=document.create
 const CHAVES_APP=()=>{const l=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^maxpaes:|^mpv:/.test(k))l.push(k)}}catch(e){}return l};
 // ===== Painel do supervisor =====
 const HIST_DIAS=60;const supRng=()=>{const hj=hojeISO(),d=sup.dia||hj;return sup.modo==="dia"?[d,d]:sup.modo==="semana"?[semDe(d),addD(semDe(d),6)]:[addD(hj,-HIST_DIAS+1),hj]};
-const sup={vend:{},docs:{},lst:{},ini:"",dia:"",modo:"tudo",filtro:"",pronto:{},uv:null,det:null};
+const sup={mot:{},vend:{},docs:{},lst:{},ini:"",dia:"",modo:"tudo",filtro:"",pronto:{},uv:null,det:null};
 const addD=(iso,n)=>{const t=new Date(iso+"T12:00:00");t.setDate(t.getDate()+n);return isoD(t)};
 const semDe=iso=>{const t=new Date(iso+"T12:00:00");return addD(iso,-((t.getDay()+6)%7))};
 const hhDe=ms=>ms?new Date(ms).toTimeString().slice(0,5):"";
@@ -1495,7 +1495,12 @@ function supAbrir(){if(!ehSup())return;if(!sup.dia)sup.dia=hojeISO();$("sp").cla
 function supLiga(){
   if(!sup.uv)sup.uv=fbDb.collection("vendedores").onSnapshot(sn=>{const vv={};sn.docs.forEach(d=>{vv[d.id]=d.data()||{}});sup.vend=vv;supDocs();supRender()},e=>{$("spm").textContent="Sem permissão para ver os vendedores. Confira se sua conta está marcada como supervisor no Firebase."});
   supDocs()}
-function supDocs(){const hj=hojeISO(),dia=sup.modo==="dia",[a,b]=supRng();
+function supMotivos(){Object.keys(sup.vend).filter(u=>vende(sup.vend[u])).forEach(uid=>{const lk="cfg|"+uid;if(sup.lst[lk])return;
+  sup.lst[lk]=fbDb.collection("vendedores/"+uid+"/docs").doc("cfg").onSnapshot(sn=>{try{const j=JSON.parse((sn.data()||{}).j||"{}");sup.mot[uid]=j.motivos||{}}catch(_){}supRender();try{if($("vh").classList.contains("on"))vhRender()}catch(_){}},()=>{})})}
+/* status de visita sem pedido igual ao da agenda (Abastecido, Sem pedido · Boleto em aberto…) */
+function stSemPed(uid,data,cli){const meu=fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===uid,M=((meu?motivos:sup.mot[uid])||{})[data]||{};
+  let m=M[norm(cli||"")];if(m===undefined)try{m=M[norm(canon(cli||""))]}catch(_){}return m&&m!==OUTRO_DIA?rotSP(m):"Sem pedido"}
+function supDocs(){try{supMotivos()}catch(_){}const hj=hojeISO(),dia=sup.modo==="dia",[a,b]=supRng();
   const rs=[[a,b]];if(hj<a||hj>b)rs.push([hj,hj]);const key=rs.map(r=>r.join("_")).join("|");
   if(key!==sup.ini){Object.values(sup.lst).forEach(f=>f());sup.lst={};sup.docs={};sup.pronto={};sup.ini=key}
   {const pd=dia?sup.dia:hj,lk="prod|"+pd;if(!sup.lst[lk]){sup.prod=null;sup.prodD=pd;sup.lst[lk]=fbDb.collection("producao").doc(pd).onSnapshot(sn=>{sup.prod=sn.exists?(sn.data()||{}):{};sup.prodD=pd;supRender()},()=>{sup.prod={erro:1};supRender()})}}
@@ -1637,7 +1642,7 @@ function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!per
   const ord=L.slice().sort((a,b)=>(b.data+(b.ini||hhDe(b.ts))).localeCompare(a.data+(a.ini||hhDe(a.ts))));
   if(!ord.length)T.innerHTML='<div class="vazio">Nenhuma visita ou pedido '+(dia?"neste dia":tudo?"nos últimos "+HIST_DIAS+" dias":"nesta semana")+".</div>";
   ord.forEach(x=>{const r=document.createElement("button");r.className="tr"+(sup.novo===x.uid+"/"+x.id?" novo":"");
-    const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),en=(sup.ent||{})[x.uid+"_"+x.id]||{},noc=ocLista(en).filter(o=>!o.sis).length,st=(x.ped?rotSt(x.status,x.fat):"Sem pedido")+(en.fin?" · ✅ Entregue":en.rota?" · 🚚 Em rota":"")+(noc?" · 📝 "+noc:"")+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
+    const hora=x.ini?(x.ini+(x.fim?"–"+x.fim:"")):hhDe(x.ts),en=(sup.ent||{})[x.uid+"_"+x.id]||{},noc=ocLista(en).filter(o=>!o.sis).length,st=(x.ped?rotSt(x.status,x.fat):stSemPed(x.uid,x.data,x.cliente))+(en.fin?" · ✅ Entregue":en.rota?" · 🚚 Em rota":"")+(noc?" · 📝 "+noc:"")+(x.ini&&!x.fim&&x.data===hj?" · em visita":"");
     const fiN=ehAdm()?fiPend(e=>fiDoCard(e,x)).length:0;
     r.innerHTML="<span class='tt'>"+esc(dia?(x.ini||hhDe(x.ts)):dBR(x.data).slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc(nomeV(x.uid))+" · "+esc(hora)+(fiN?" · <span class='fim'>⏳ fotos</span>":"")+"</small></span>"+
       "<span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+(x.ped?clsSt(x.status,x.fat):"sempedido")+"'>"+esc(st)+"</span></span>";
@@ -1744,7 +1749,7 @@ function rlTabs(R){const L={};R.es.forEach(e=>{const k=norm(e.cliente||"");if(!k
   const LL=Object.values(L).map(o=>({...o,vend:[...o.vs].join(", ")})).sort((a,b)=>b.un-a.un||a.n.localeCompare(b.n,"pt-BR"));
   const mn=t=>{const m=/^(\d\d):(\d\d)$/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
   const VV=R.es.filter(e=>(e.visita&&e.visita.ini)||soma(e.pedido)>0||soma(e.troca)>0).sort((a,b)=>((b.data||"")+((b.visita||{}).ini||"")).localeCompare((a.data||"")+((a.visita||{}).ini||""))).slice(0,400).map(e=>{const v=e.visita||{},a=mn(v.ini),b=mn(v.fim);
-    return {d:e.data||"",c:e.cliente||"",vend:nomeV(e.uid).split(" ")[0],st:soma(e.pedido)>0?rotSt(e.status,e.fat):"Sem pedido",hr:v.ini?(v.ini+(v.fim?"–"+v.fim:"")):"",du:a!==null&&b!==null&&b>=a?b-a:null,p:soma(e.pedido),t:soma(e.troca)}});
+    return {d:e.data||"",c:e.cliente||"",vend:nomeV(e.uid).split(" ")[0],st:soma(e.pedido)>0?rotSt(e.status,e.fat):stSemPed(e.uid,e.data,e.cliente),hr:v.ini?(v.ini+(v.fim?"–"+v.fim:"")):"",du:a!==null&&b!==null&&b>=a?b-a:null,p:soma(e.pedido),t:soma(e.troca)}});
   return {LL,VV}}
 function pdfMulti(pg){const enc=new TextEncoder(),parts=[],offs=[];let len=0;const add=b=>{const u=typeof b==="string"?enc.encode(b):b;parts.push(u);len+=u.length};
   const n=pg.length,kids=pg.map((_,i)=>(3+i*3)+" 0 R").join(" ");add("%PDF-1.4\n");
@@ -1943,7 +1948,7 @@ async function vhAbrir(uid){VH.uid=uid;VH.L=[];$("vht").textContent="Histórico 
   catch(e){$("vhm").textContent="Não consegui carregar o histórico ("+(e.code||e.message)+")."}}
 function vhRender(){const q=norm($("vhq").value||""),L=$("vhl");L.innerHTML="";let mes="";
   VH.L.filter(x=>!q||norm(x.cliente||"").includes(q)).forEach(x=>{const m=(x.data||"").slice(0,7);if(m&&m!==mes){mes=m;const h=document.createElement("div");h.className="hmes";h.textContent=MESES[+m.slice(5,7)-1]+" "+m.slice(0,4);L.appendChild(h)}
-    const en=(sup.ent||{})[x.uid+"_"+x.id]||{},st=(x.ped?rotSt(x.status,x.fat):"Sem pedido")+(en.fin?" · ✅ Entregue":en.rota?" · 🚚 Em rota":"");
+    const en=(sup.ent||{})[x.uid+"_"+x.id]||{},st=(x.ped?rotSt(x.status,x.fat):stSemPed(x.uid,x.data,x.cliente))+(en.fin?" · ✅ Entregue":en.rota?" · 🚚 Em rota":"");
     const r=document.createElement("button");r.className="tr";
     r.innerHTML="<span class='tt'>"+esc(dBR(x.data||"").slice(0,5))+"</span><span class='tn'><b>"+esc(x.cliente||"(sem loja)")+"</b><small>"+esc([VH.uid?"":nomeV(x.uid),x.ini?"Visita "+x.ini+(x.fim?"–"+x.fim:""):""].filter(Boolean).join(" · "))+"</small></span><span class='tq'>"+(x.ped?"<b>"+x.ped+"</b> ped.":"")+(x.tro?" · "+x.tro+" troca":"")+"<br><span class='hst "+(x.ped?clsSt(x.status,x.fat):"sempedido")+"'>"+esc(st)+"</span></span>";
     r.onclick=()=>{OCX=null;supDetalhe(x.uid+"/"+x.id)};L.appendChild(r)})}
@@ -3372,7 +3377,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="173";
+const VER="174";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
