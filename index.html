@@ -394,6 +394,7 @@ body.trv #edbar{border-color:#0b7a75}
 .fvn{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.15);color:#fff;font-size:34px}.fvn[hidden]{display:none}#fvp{left:8px}#fvn{right:8px}
 #cam{z-index:70;background:#000;padding:0}.camw{position:fixed;inset:0;display:flex;flex-direction:column}#camv,#camp{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}#camp{height:auto;max-height:100%;margin:auto}
 .camtop{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 22px;background:linear-gradient(rgba(0,0,0,.55),transparent);color:#fff}
+#camnat{border:0;border-radius:22px;background:rgba(0,0,0,.45);color:#fff;font:800 13px Archivo,sans-serif;padding:10px 12px}
 #camf{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font:700 22px Archivo,sans-serif;padding:0}#camm{font:800 15px Archivo,sans-serif;background:rgba(0,0,0,.45);border-radius:20px;padding:6px 12px}#camm:empty{display:none}
 .camc{position:absolute;left:0;right:0;bottom:0;display:flex;gap:40px;align-items:center;justify-content:center;padding:26px 14px calc(26px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.55))}
 #camt{width:78px;height:78px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 5px rgba(0,0,0,.35),0 0 0 9px #fff;padding:0}#camt:active{transform:scale(.92)}
@@ -577,7 +578,7 @@ body:has(#cam.on) #vcb{display:none!important}
 </div></div>
 <div class="ov" id="cam" role="dialog" aria-modal="true" aria-label="Câmera"><div class="camw">
   <video id="camv" playsinline muted autoplay></video><canvas id="camp" hidden></canvas>
-  <div class="camtop"><button id="camf" aria-label="Fechar câmera">✕</button><span id="camm"></span></div>
+  <div class="camtop"><button id="camf" aria-label="Fechar câmera">✕</button><span id="camm"></span><button id="camnat" aria-label="Usar a câmera do celular">📱 Câmera do celular</button></div>
   <div class="camc"><button id="camx2" hidden aria-label="Descartar foto">✕</button><button id="camr" hidden aria-label="Girar foto">⟳</button><button id="camt" aria-label="Tirar foto"></button><button id="camok" hidden aria-label="Usar foto">✓</button></div>
 </div></div>
 <div id="fv" hidden role="dialog" aria-modal="true" aria-label="Foto em tela cheia"><div id="fvs"><img id="fvi" alt="Foto" draggable="false"></div>
@@ -1233,8 +1234,8 @@ function camGiro(v){if(!(v.videoHeight>v.videoWidth))return 0;const x=CAM.gx,y=C
 function camDesenha(src,sw,sh,giro,c){const m=4096,k=Math.min(1,m/Math.max(sw,sh)),w=Math.round(sw*k),h=Math.round(sh*k),q=Math.abs(giro)===90;
   c.width=q?h:w;c.height=q?w:h;const x=c.getContext("2d");x.save();x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(src,-w/2,-h/2,w,h);x.restore()}
 async function camAbrir(max,fn,falha){if(max<=0)return;if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
-  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.blob=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
-  try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:2560},height:{ideal:1920},aspectRatio:{ideal:4/3}},audio:false});
+  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.falha=falha;CAM.blob=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
+  try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:2560},height:{ideal:1920},aspectRatio:{ideal:4/3},resizeMode:{ideal:"none"}},audio:false});
     try{const tk=CAM.st.getVideoTracks()[0],cp=tk&&tk.getCapabilities&&tk.getCapabilities();if(cp&&cp.zoom&&typeof cp.zoom.min==="number")tk.applyConstraints({advanced:[{zoom:cp.zoom.min}]}).catch(()=>{})}catch(_){}
     const v=$("camv");v.srcObject=CAM.st;await v.play().catch(()=>{});$("camm").textContent=camTxt()}
   catch(e){camFecha();falha()}}
@@ -1248,6 +1249,7 @@ $("camok").onclick=async()=>{const bp=CAM.bp;if(!bp)return;CAM.bp=null;CAM.n++;c
   if(CAM.n>=CAM.max){camFecha()}else{camModo("vivo");$("camm").textContent=camTxt()}
   try{const b=await bp;if(!b)return;await fn(new File([b],"foto.jpg",{type:"image/jpeg"}))}catch(e){diag(e,"camera")}};
 $("camf").onclick=camFecha;
+$("camnat").onclick=()=>{const f=CAM.falha;camFecha();if(f)f()};
 function salvaNoCel(f,base){try{const t=new Date(),nm=("MaxPaes_"+(base||"foto")+"_"+isoD(t)+"_"+String(t.getHours()).padStart(2,"0")+"-"+String(t.getMinutes()).padStart(2,"0")+"-"+String(t.getSeconds()).padStart(2,"0")).replace(/[^\w\-]+/g,"_")+".jpg",u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=nm;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000)}catch(e){}}
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 function enviaOe(){const uid=visUid(),cli=U($("cliente").value.trim()),dt=$("data").value;if(!uid||!cli||!dt)return;
@@ -3376,7 +3378,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="166";
+const VER="167";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
