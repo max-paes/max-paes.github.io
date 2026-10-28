@@ -648,6 +648,10 @@ body:has(#cam.on) #vcb{display:none!important}
     <div class="sgb"><button id="sgl">Limpar</button><button id="sgc">Cancelar</button><button id="sgs">Salvar</button></div></div>
 </div></div>
 <script>
+/* link de recuperação: max-paes.pages.dev/?limpar=1 apaga a cópia guardada no celular e abre a versão da internet (os dados continuam) */
+if(/[?&]limpar=/.test(location.search)){(async()=>{try{const rs=await navigator.serviceWorker.getRegistrations();for(const r of rs)await r.unregister()}catch(e){}try{for(const k of await caches.keys())await caches.delete(k)}catch(e){}location.replace(location.pathname)})()}
+</script>
+<script>
 let ultSenha="",pendEntrada=null,bloqueio=false,stPed="rascunho",eraFat=false,snapFat=null,fechEm=0,perfil=null,fbAuth=null,fbDb=null,nomePend="",lgModo="entrar",unsub=null;
 (function(){var t="claro";try{t=localStorage.getItem("mpv:tema")||"claro"}catch(e){}if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-theme",t==="claro"?"light":"dark")})();
 const ITEM_REN={"BOLACHA ÁGUA E SAL 250g":"BOLACHA ÁGUA E SAL 300g"};
@@ -3381,7 +3385,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="169";
+const VER="170";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
