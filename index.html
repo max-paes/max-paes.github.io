@@ -1234,7 +1234,8 @@ function camDesenha(src,sw,sh,giro,c){const m=4096,k=Math.min(1,m/Math.max(sw,sh
   c.width=q?h:w;c.height=q?w:h;const x=c.getContext("2d");x.save();x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(src,-w/2,-h/2,w,h);x.restore()}
 async function camAbrir(max,fn,falha){if(max<=0)return;if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
   CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.blob=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
-  try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:2560},height:{ideal:1440}},audio:false});
+  try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:2560},height:{ideal:1920},aspectRatio:{ideal:4/3}},audio:false});
+    try{const tk=CAM.st.getVideoTracks()[0],cp=tk&&tk.getCapabilities&&tk.getCapabilities();if(cp&&cp.zoom&&typeof cp.zoom.min==="number")tk.applyConstraints({advanced:[{zoom:cp.zoom.min}]}).catch(()=>{})}catch(_){}
     const v=$("camv");v.srcObject=CAM.st;await v.play().catch(()=>{});$("camm").textContent=camTxt()}
   catch(e){camFecha();falha()}}
 const camTxt=()=>CAM.n?"✓ "+CAM.n+(CAM.max<900?"/"+CAM.max:(CAM.n===1?" foto":" fotos")):"";
@@ -3375,7 +3376,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="165";
+const VER="166";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
