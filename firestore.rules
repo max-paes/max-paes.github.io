@@ -64,7 +64,7 @@ service cloud.firestore {
     }
 
     // Entrega e ocorrência de cada pedido: todos os usuários ativos leem e acrescentam;
-    // só o motorista finaliza e só o faturamento reabre (o developer pode os dois)
+    // só o motorista finaliza; faturamento, supervisor e diretor reabrem (o developer pode os dois)
     match /entrega/{id} {
       allow read: if logado() && ativo();
       allow create: if logado() && ativo()
@@ -73,7 +73,7 @@ service cloud.firestore {
       allow update: if logado() && ativo()
                     && (request.resource.data.get('fin', false) == resource.data.get('fin', false)
                         || (request.resource.data.get('fin', false) == true && perfil(request.auth.uid).papel in ['motorista', 'developer'])
-                        || (request.resource.data.get('fin', false) == false && perfil(request.auth.uid).papel in ['faturamento', 'developer']));
+                        || (request.resource.data.get('fin', false) == false && perfil(request.auth.uid).papel in ['faturamento', 'supervisor', 'admin', 'developer']));
     }
 
     // Registro da produção: a produção (e a diretoria) lança produzido e entregue ao estoque; a equipe lê

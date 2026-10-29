@@ -2447,7 +2447,7 @@ function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const
   b.className="";b.textContent="Fechar pedido"}
 const fatAviso=(t)=>{const b=$("fat");b.textContent=t;clearTimeout(b._t);b._t=setTimeout(pintaFat,2200)};
 $("fat").onclick=()=>{
-  if(entFin){fatAviso("Só o faturamento reabre");return}
+  if(entFin){fatAviso("Entrega finalizada: só a supervisão reabre");return}
   if(entRota){fatAviso("Já saiu para entrega");return}
   if(curId&&stPed!=="rascunho"&&stPed!=="alterando"){fatAviso("Já está fechado");return}
   if(!$("cliente").value.trim()){fatAviso("Escolha a loja");try{$("cliente").focus()}catch(e){}return}
@@ -3087,7 +3087,7 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
       const ge=document.createElement("div");ge.className="mb";
       const bo=document.createElement("button");bo.className="sec"+(it.filter(x=>!x.sis).length?" ocb":"");bo.textContent="📝 Ocorrência"+(it.filter(x=>!x.sis).length?" ("+it.filter(x=>!x.sis).length+")":"");bo.onclick=()=>{OCX="motorista";ocAbrir(k,meta,s.cliente)};
       const bfz=document.createElement("button");
-      if(od.fin){bfz.className="on";bfz.textContent="✅ Entrega finalizada"+(od.finEm?" "+new Date(od.finEm).toTimeString().slice(0,5):"");bfz.onclick=()=>{bfz.textContent="Só o faturamento reabre";setTimeout(motRender,2000)}}
+      if(od.fin){bfz.className="on";bfz.textContent="✅ Entrega finalizada"+(od.finEm?" "+new Date(od.finEm).toTimeString().slice(0,5):"");bfz.onclick=()=>{bfz.textContent="Só a supervisão reabre";setTimeout(motRender,2000)}}
       else{bfz.className="big";bfz.textContent="✅ Finalizar entrega";bfz.onclick=async()=>{if(bfz.dataset.c!=="1"){bfz.dataset.c="1";bfz.textContent="Finalizar? Toque de novo";setTimeout(()=>{if(bfz.dataset.c==="1")motRender()},3000);return}
         bfz.disabled=true;try{await ocFin(k,meta,true)}catch(e){$("motm").textContent="Não foi possível finalizar ("+(e.code||e.message)+")."}}}
       ge.append(bo,bfz);c._ge=ge}
@@ -3158,7 +3158,8 @@ $("motr").onclick=()=>{mot.dia="";motAbrir()};
 // ===== Entrega e ocorrência (por pedido) =====
 const ocRef=k=>fbDb.collection("entrega").doc(k);
 const podeFin=()=>!!(perfil&&/^(motorista|developer)$/.test(perfil.papel||""));
-const podeReab=()=>!!(perfil&&(perfil.papelReal==="developer"||(/^(faturamento|developer)$/.test(perfil.papel||"")&&/^(faturamento|developer)$/.test(perfil.papelReal||perfil.papel||""))));
+/* reabrem entrega finalizada: faturamento, supervisor e diretor (a regra do banco confere a função real) */
+const podeReab=()=>!!(perfil&&(perfil.papelReal==="developer"||(/^(faturamento|supervisor|admin|developer)$/.test(perfil.papel||"")&&/^(faturamento|supervisor|admin|developer)$/.test(perfil.papelReal||perfil.papel||""))));
 const ocL={};
 function ocOuve(k,fn){let o=ocL[k];if(!o){o=ocL[k]={data:null,subs:new Set()};
     o.un=ocRef(k).onSnapshot(sn=>{o.data=sn.exists?(sn.data()||{}):{};o.subs.forEach(f=>{try{f(o.data)}catch(e){}})},()=>{o.data=o.data||{};o.subs.forEach(f=>{try{f(o.data)}catch(e){}})})}
