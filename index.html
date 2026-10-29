@@ -90,7 +90,7 @@ header .vnd:empty{display:none}
 .dc{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px}.dc>b{display:block;margin-bottom:6px}
 .da{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}.da>span{font-size:18px}.da small{display:block;color:var(--mute);font-size:12px}
 .db{display:grid;grid-template-columns:minmax(0,1fr) 30% 44px;gap:8px;align-items:center;padding:3px 0;font-size:13px}.db.t{grid-template-columns:minmax(0,1fr) 44px}.db span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.db i{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.db em{display:block;height:100%;background:var(--brand)}.db b{text-align:right}.ucg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ucg button{min-height:52px;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);border-radius:12px;font:800 16px Archivo,sans-serif}
-#ucv{z-index:96}#ucb{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:94;display:flex;align-items:center;gap:10px;background:#b26a00;color:#fff;border-radius:16px;padding:8px 8px 8px 14px;box-shadow:0 6px 20px rgba(0,0,0,.3);font:800 14px Archivo,sans-serif}#ucb[hidden]{display:none}#ucb span{flex:1;min-width:0}#ucb button{border:0;border-radius:12px;background:#fff;color:#7a4a00;font:800 14px Archivo,sans-serif;padding:10px 12px;min-height:44px;white-space:nowrap}.lcf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 8px}.lcf.f4{grid-template-columns:repeat(2,minmax(0,1fr))}.lcf button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px!important;padding-right:4px!important;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);border-radius:999px;padding:6px 10px;font:700 12.5px Archivo,sans-serif;min-height:36px}.lcf button[aria-pressed="true"]{background:var(--brand);color:var(--on)}.db.ln{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.db.ln span{white-space:normal;overflow:visible}.db.ln strong{display:block;font-size:14px}.db.ln small{display:block;font-size:12.5px;color:var(--mute);line-height:1.45}.db.ln>b{white-space:nowrap;padding-top:1px}
+#ucv{z-index:96}body:has(#vcb:not([hidden])) #ucb{bottom:calc(132px + env(safe-area-inset-bottom,0px))}#ucb{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:94;display:flex;align-items:center;gap:10px;background:#b26a00;color:#fff;border-radius:16px;padding:8px 8px 8px 14px;box-shadow:0 6px 20px rgba(0,0,0,.3);font:800 14px Archivo,sans-serif}#ucb[hidden]{display:none}#ucb span{flex:1;min-width:0}#ucb button{border:0;border-radius:12px;background:#fff;color:#7a4a00;font:800 14px Archivo,sans-serif;padding:10px 12px;min-height:44px;white-space:nowrap}.lcf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 8px}.lcf.f4{grid-template-columns:repeat(2,minmax(0,1fr))}.lcf button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px!important;padding-right:4px!important;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);border-radius:999px;padding:6px 10px;font:700 12.5px Archivo,sans-serif;min-height:36px}.lcf button[aria-pressed="true"]{background:var(--brand);color:var(--on)}.db.ln{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.db.ln span{white-space:normal;overflow:visible}.db.ln strong{display:block;font-size:14px}.db.ln small{display:block;font-size:12.5px;color:var(--mute);line-height:1.45}.db.ln>b{white-space:nowrap;padding-top:1px}
 .rd{color:#b3261e!important}.dc small.on{color:#1a8f4c;font-weight:700}
 .cfgb{min-width:44px;font-size:18px!important;padding-left:10px!important;padding-right:10px!important}
 .cfs{border-top:1px solid var(--line);padding:12px 0}.cfs>small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-bottom:6px}
@@ -561,7 +561,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 <div class="ov" id="ucv" role="dialog" aria-modal="true" aria-labelledby="uct"><div class="box" style="max-width:420px">
   <div class="hhead"><b id="uct">Usar o app como</b><button id="ucx">Fechar</button></div>
   <p class="msg" style="margin:0 2px 10px">Abre a tela de cada função com os seus acessos de diretor. Para voltar, toque em “↩ Voltar a Diretor”.</p>
-  <div class="ucg"><button data-uc="vendedor">Vendedor</button><button data-uc="promotor">Promotor</button><button data-uc="supervisor">Supervisor</button><button data-uc="faturamento">Faturamento</button><button data-uc="expedicao">Expedição</button><button data-uc="producao">Produção</button></div>
+  <div class="ucg"><button data-uc="vendedor">Vendedor</button><button data-uc="promotor">Promotor</button><button data-uc="supervisor">Supervisor</button><button data-uc="faturamento">Faturamento</button><button data-uc="expedicao">Expedição</button><button data-uc="producao">Produção</button><button data-uc="motorista">Motorista</button></div>
 </div></div>
 <div id="ucb" hidden role="status"><span id="ucbt"></span><button id="ucbv">↩ Voltar a Diretor</button></div>
 <div class="ov" id="vh"><div class="box">
@@ -1758,7 +1758,7 @@ async function resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU){const b=$("dirrs"),
     const blob=await new Promise(z=>c2.toBlob(z,"image/jpeg",0.92));ultimo={blob,nome:"resumo-diretor-"+sup.dia+".jpg",url:c2.toDataURL("image/jpeg",0.92)};abrirPrev("Resumo do diretor pronto. Salve ou envie no WhatsApp.")}
   catch(e){diag(e,"resumo")}finally{b.textContent=r0}}
 const quemTxt=()=>perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"";
-function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spuc").hidden=!(dv&&perfil.papelReal==="admin");$("spfp").hidden=$("spfe").hidden=!ehSup();$("spmn").hidden=![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
+function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spuc").hidden=!(dv&&podeUC());$("spfp").hidden=$("spfe").hidden=!ehSup();$("spmn").hidden=![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
   const d=sup.dia,hj=hojeISO(),[s0,s1]=supRng(),dia=sup.modo==="dia",tudo=sup.modo==="tudo";
   $("spd").textContent=tudo?"Histórico · últimos "+HIST_DIAS+" dias":dia?(d===hj?"Hoje · ":["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][new Date(d+"T12:00:00").getDay()]+" · ")+dBR(d):dBR(s0)+" a "+dBR(s1);
   $("smd").setAttribute("aria-pressed",dia);$("sms").setAttribute("aria-pressed",sup.modo==="semana");$("smt").setAttribute("aria-pressed",tudo);$("spsem").hidden=sup.modo!=="semana";
@@ -2192,14 +2192,15 @@ async function vcUsuarios(f){if(!fbDb)return;if(vcU&&!(f&&Date.now()-vcU>15000))
     L.forEach(u=>{const o=document.createElement("option");o.value="u:"+u.uid;o.textContent=u.n.split(" ").slice(0,2).join(" ")+" · "+rotPDev(u.p).toLowerCase();og.appendChild(o)});
     const sv=$("vcs").value;$("vcs").querySelectorAll("optgroup").forEach(x=>x.remove());$("vcs").appendChild(og);$("vcs").value=ESP?"u:"+ESP.uid:sv}catch(e){vcU=null}}
 /* diretor: usar o app como outra função (só nesta sessão; os acessos continuam os de diretor) */
-const UC_ROT={vendedor:"Vendedor",promotor:"Promotor",supervisor:"Supervisor",faturamento:"Faturamento",expedicao:"Expedição",producao:"Produção"};
-function usarComo(p){if(!perfil||perfil.papelReal!=="admin")return;if(p!=="admin"&&!UC_ROT[p])return;
-  perfil.papel=p;try{fabDesliga()}catch(_){}try{motDesliga()}catch(_){}sup.modo="tudo";$("ucv").classList.remove("on");$("sp").classList.remove("on");
-  mostraVendedor();supPronto();if(p==="supervisor"||p==="admin")supAbrir();ucBarra();window.scrollTo(0,0)}
-function ucBarra(){const on=!!perfil&&perfil.papelReal==="admin"&&perfil.papel!=="admin";$("ucb").hidden=!on;if(on)$("ucbt").textContent="👁 Usando como "+(UC_ROT[perfil.papel]||perfil.papel)}
+const UC_ROT={vendedor:"Vendedor",promotor:"Promotor",supervisor:"Supervisor",faturamento:"Faturamento",expedicao:"Expedição",producao:"Produção",motorista:"Motorista"};
+const podeUC=()=>!!perfil&&(perfil.papelReal==="admin"||ehDev());
+function usarComo(p){if(!podeUC())return;const base=perfil.ucBase||"admin";if(p!==base&&!UC_ROT[p])return;
+  if(p===base)perfil.ucBase=null;else if(!perfil.ucBase)perfil.ucBase=perfil.papel||"admin";perfil.papel=p;try{fabDesliga()}catch(_){}try{motDesliga()}catch(_){}sup.modo="tudo";$("ucv").classList.remove("on");$("sp").classList.remove("on");
+  mostraVendedor();supPronto();if(p==="supervisor"||p==="admin")supAbrir();ucBarra();try{vcPinta()}catch(_){}window.scrollTo(0,0)}
+function ucBarra(){const on=!!perfil&&!!perfil.ucBase&&perfil.papel!==perfil.ucBase;$("ucb").hidden=!on;if(on)$("ucbt").textContent="👁 Usando como "+(UC_ROT[perfil.papel]||perfil.papel)}
 $("spuc").onclick=()=>{$("spmd").hidden=true;$("ucv").classList.add("on")};$("ucx").onclick=()=>$("ucv").classList.remove("on");
-document.querySelectorAll("#ucv [data-uc]").forEach(b=>b.onclick=()=>usarComo(b.dataset.uc));$("ucbv").onclick=()=>usarComo("admin");
-function verComo(p){if(!ehDev())return;
+document.querySelectorAll("#ucv [data-uc]").forEach(b=>b.onclick=()=>usarComo(b.dataset.uc));$("ucbv").onclick=()=>usarComo((perfil&&perfil.ucBase)||"admin");
+function verComo(p){if(!ehDev())return;try{if(perfil)perfil.ucBase=null;$("ucb").hidden=true;$("ucv").classList.remove("on")}catch(_){}
   if(p&&p.startsWith("u:")){espelhar(p.slice(2));return}
   if(ESP){location.reload();return}
   perfil.papel=p;fabDesliga();sup.admIni=0;sup.modo="tudo";try{localStorage.setItem("mpv:tela","")}catch(e){}
@@ -3545,7 +3546,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="185";
+const VER="186";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
