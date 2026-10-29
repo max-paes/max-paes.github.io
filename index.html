@@ -558,6 +558,7 @@ body:has(#cam.on) #vcb{display:none!important}
 </div></div>
 <div class="ov" id="vh"><div class="box">
   <div class="hhead"><b id="vht">Histórico</b><button id="vhx">Fechar</button></div>
+  <button id="vhlib" class="fich2" hidden style="width:100%;margin:4px 0 6px">✓ Liberar todas</button>
   <input id="vhq" type="search" placeholder="Buscar cliente no histórico" autocomplete="off" style="margin:4px 0 8px">
   <div id="vhl"></div><p class="msg" id="vhm" style="margin:6px 2px 0"></p>
 </div></div>
@@ -1609,6 +1610,9 @@ function fiChip(){const b=$("fiav");if(!b)return;const P=ehAdm()?fiPend():[];b.h
       const L=[];await Promise.all(Object.keys(G).map(async k=>{let x=sup.docs[k];if(!x){const [u,pid]=k.split("/");try{const sn=await fbDb.collection("vendedores/"+u+"/docs").doc(pid).get();if(sn.exists){x={...(sn.data()||{}),uid:u,id:pid};sup.docs[k]=x}}catch(_){}}
         if(x)L.push(x);else G[k].forEach(e=>semP.push(e))}));
       alertaAbrir("⏳ Pedidos com fotos aguardando visualização",L);
+      {const lb=$("vhlib"),n=fiPend().length;lb.hidden=!n;lb.dataset.c="";lb.textContent="✓ Liberar todas ("+n+(n===1?" foto)":" fotos)");
+       lb.onclick=()=>{const P2=fiPend();if(!P2.length){lb.hidden=true;return}if(lb.dataset.c!=="1"){lb.dataset.c="1";lb.textContent="Confirmar: liberar "+P2.length+(P2.length===1?" foto?":" fotos?");setTimeout(()=>{if(lb.dataset.c==="1"){lb.dataset.c="";lb.textContent="✓ Liberar todas ("+fiPend().length+")"}},4000);return}
+         lb.dataset.c="";fiMarca(P2.map(e=>({u:e.u,f:e.f})),true);lb.hidden=true;$("vhm").textContent="✓ "+P2.length+(P2.length===1?" foto liberada.":" fotos liberadas.")+" Elas são apagadas em "+FOTO_DIAS+" dias.";try{fiChip()}catch(_){}}}
       $("vhm").textContent=(L.length?"Toque no pedido para ver as fotos.":"Nenhum pedido.")+(semP.length?" Mais "+semP.length+(semP.length===1?" foto de entrega":" fotos de entrega")+": veja em Entregas.":"")}
     catch(e){diag(e,"fotosAviso")}finally{b.textContent=t0}}}
 const DH={k:"",t:0,docs:[],carr:false};
@@ -2075,8 +2079,8 @@ $("rlj").onclick=async()=>{const R=rlCalc();if(!R||!(R.ped.length||R.tro.length)
   catch(e){$("rlm").textContent="Não foi possível gerar a imagem."}
   b.textContent="Gerar imagem"};
 const VH={uid:"",L:[]};
-function alertaAbrir(tit,L){VH.uid="";VH.L=L.slice().sort((a,b)=>(b.data||"").localeCompare(a.data||"")||(b.ts||0)-(a.ts||0));$("vht").textContent=tit;$("vhq").value="";$("vhm").textContent=VH.L.length?"Toque no pedido para abrir.":"Nenhum pedido.";$("vh").classList.add("on");vhRender()}
-async function vhAbrir(uid){VH.uid=uid;VH.L=[];$("vht").textContent="Histórico · "+nomeV(uid);$("vhq").value="";$("vhm").textContent="Carregando…";$("vhl").innerHTML="";$("vh").classList.add("on");
+function alertaAbrir(tit,L){$("vhlib").hidden=true;VH.uid="";VH.L=L.slice().sort((a,b)=>(b.data||"").localeCompare(a.data||"")||(b.ts||0)-(a.ts||0));$("vht").textContent=tit;$("vhq").value="";$("vhm").textContent=VH.L.length?"Toque no pedido para abrir.":"Nenhum pedido.";$("vh").classList.add("on");vhRender()}
+async function vhAbrir(uid){$("vhlib").hidden=true;VH.uid=uid;VH.L=[];$("vht").textContent="Histórico · "+nomeV(uid);$("vhq").value="";$("vhm").textContent="Carregando…";$("vhl").innerHTML="";$("vh").classList.add("on");
   try{const sn=await fbDb.collection("vendedores/"+uid+"/docs").where("data",">=",addD(hojeISO(),-90)).get();if(VH.uid!==uid)return;sup.hv=sup.hv||{};
     VH.L=sn.docs.filter(d=>d.id.startsWith("p_")).map(d=>{const x={...(d.data()||{}),uid,id:d.id};sup.hv[uid+"/"+d.id]=x;return x}).sort((a,b)=>(b.data||"").localeCompare(a.data||"")||(b.ts||0)-(a.ts||0));
     $("vhm").textContent=VH.L.length?"":"Nenhum pedido nos últimos 90 dias.";vhRender()}
@@ -3512,7 +3516,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="182";
+const VER="183";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
