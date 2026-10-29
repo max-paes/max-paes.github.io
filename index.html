@@ -858,7 +858,7 @@ const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","S
 const AG_PADRAO={1:[],2:[],3:[],4:[],5:[],6:[]};
 let rota=null,agDia=1,agEdit=false,agNota="";
 function normAg(a){const o={};for(let d=1;d<=6;d++)o[d]=(a&&Array.isArray(a[d])?a[d]:[]).filter(x=>x&&typeof x.nome==="string"&&x.nome.trim()).map(x=>({nome:U(x.nome).trim(),bairro:U(x.bairro).trim()}));return o}
-const OUTRO_DIA="__pedido";const motL=m=>m==="Gôndolas cheias"?"Abastecido":m==="Produtos no estoque"?"Abastecido com estoque":(m||"");const VD="Visitado por Dilson";const rotSP=m=>m===VD?VD:/^Abastecido/.test(motL(m))?motL(m):"Sem pedido"+(m?" · "+motL(m):"");const MKEY="maxpaes:motivos:v1",MOTIVOS=["Comprador ausente","Abastecido","Abastecido com estoque","Boleto em aberto","Outro"];let motivos={},horas={},agMot=null;const HRKEY="maxpaes:horas:v1";
+const OUTRO_DIA="__pedido";const motL=m=>m==="Gôndolas cheias"?"Abastecido":m==="Produtos no estoque"?"Abastecido com estoque":(m||"");const VD="Visitado por Dilson";const rotSP=m=>m===VD?VD:/^Abastecido/.test(motL(m))?motL(m):"Sem pedido"+(m?" · "+motL(m):"");const MKEY="maxpaes:motivos:v1",MOTIVOS=["Comprador ausente","Abastecido","Abastecido com estoque","Boleto em aberto","Loja fechada (inventário)","Outro"];let motivos={},horas={},agMot=null;const HRKEY="maxpaes:horas:v1";
 const VKEY="maxpaes:visitas:v1",MIGKEY="maxpaes:agenda:mig";let visitas={};
 function carregarAg(){try{const a=JSON.parse(localStorage.getItem(AGKEY)||"null");rota=a?normAg(a):normAg(AG_PADRAO)}catch(e){rota=normAg(AG_PADRAO)}
   let mig=0;try{mig=+(localStorage.getItem(MIGKEY)||0)}catch(e){}
@@ -3534,7 +3534,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="191";
+const VER="192";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
