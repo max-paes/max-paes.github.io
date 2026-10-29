@@ -1690,14 +1690,13 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
     h+=ddSec("risco","Lojas em risco",rH)}
   // lojas que mais compram, com filtro de ticket médio (diretor)
   if(ADM){const LC={};fech.forEach(x=>{const k=norm(canon(x.cliente||""));if(!k)return;const o=LC[k]=LC[k]||{c:x.cliente,n:0,u:0,r:0};o.n++;o.u+=x.ped||0;if(tab)o.r+=valTab((itensDe(x)||{}).pedido,tab)});
-    const st=sup.lc||(sup.lc={o:"tot",f:"all"});const FX={all:()=>true,a:o=>o.tu<50,b:o=>o.tu>=50&&o.tu<150,c:o=>o.tu>=150};
+    const st=sup.lc||(sup.lc={o:"tot",f:"all"});st.f="all";const FX={all:()=>true,a:o=>o.tu<50,b:o=>o.tu>=50&&o.tu<150,c:o=>o.tu>=150};
     let L=Object.values(LC).map(o=>({...o,tu:o.n?o.u/o.n:0,tr:o.n&&tab?o.r/o.n:0})).filter(FX[st.f]||FX.all);
     L.sort(st.o==="tm"?(a,b)=>b.tu-a.tu:st.o==="tmm"?(a,b)=>a.tu-b.tu:(a,b)=>b.u-a.u);
     const ch=(attr,v,t,cur)=>"<button type='button' data-"+attr+"='"+v+"' aria-pressed='"+(cur===v)+"'>"+t+"</button>";
-    let lH="<div class='lcf' role='group' aria-label='Ordenar'>"+ch("lco","tot","Mais compram",st.o)+ch("lco","tm","Maior ticket",st.o)+ch("lco","tmm","Menor ticket",st.o)+"</div>"+
-      "<div class='lcf f4' role='group' aria-label='Faixa de ticket médio'>"+ch("lcf","all","Todas",st.f)+ch("lcf","a","Até 50 un.",st.f)+ch("lcf","b","50 a 150 un.",st.f)+ch("lcf","c","Acima de 150 un.",st.f)+"</div>";
+    let lH="<div class='lcf' role='group' aria-label='Ordenar'>"+ch("lco","tot","Mais compram",st.o)+ch("lco","tm","Maior ticket",st.o)+ch("lco","tmm","Menor ticket",st.o)+"</div>";
     lH+=L.length?L.slice(0,10).map((o,i)=>"<div class='db ln'><span><strong>"+(i+1)+". "+esc(o.c)+"</strong><small>Pedidos fechados: "+o.n+" · Total: "+o.u+" un."+(tab?" ("+esc(brl(o.r))+")":"")+"</small><small>Ticket médio: "+Math.round(o.tu)+" un. por pedido"+(tab?" · "+esc(brl(o.tr)):"")+"</small></span><b>"+(st.o==="tot"?o.u+" un.":Math.round(o.tu)+" un.")+"</b></div>").join("")+(L.length>10?"<p class='msg' style='margin:6px 0 0;font-size:12px'>Mostrando 10 de "+L.length+" lojas.</p>":"")
-      :"<p class='msg' style='margin:4px 0 0'>Nenhuma loja nessa faixa "+esc(per)+".</p>";
+      :"<p class='msg' style='margin:4px 0 0'>Nenhum pedido fechado "+esc(per)+".</p>";
     h+=ddSec("lc","Lojas que mais compram",lH)}
   // troca por loja
   {const TL={};T.forEach(x=>{const k=norm(x.cliente||"");if(!k)return;const o=TL[k]=TL[k]||{c:x.cliente,t:0,p:0,r:0};o.t+=x.tro||0;o.p+=x.ped||0;if(tab)o.r+=valTab((itensDe(x)||{}).troca,tab)});
@@ -1718,7 +1717,7 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
   h+="<div class='acts dcw'><button id='dirrs'>🧾 Resumo (JPG)</button>"+(ADM?"<button id='dirmt'>🎯 Definir metas do mês</button>":"")+"</div>";
   h+="</div>";B.innerHTML=h;
   document.querySelectorAll("#sp details.dd").forEach(d=>d.addEventListener("toggle",()=>{DDS[d.dataset.k]=d.open}));
-  B.querySelectorAll("[data-lco]").forEach(b=>b.onclick=()=>{sup.lc.o=b.dataset.lco;DDS.lc=true;supRender()});B.querySelectorAll("[data-lcf]").forEach(b=>b.onclick=()=>{sup.lc.f=b.dataset.lcf;DDS.lc=true;supRender()});
+  B.querySelectorAll("[data-lco]").forEach(b=>b.onclick=()=>{sup.lc.o=b.dataset.lco;DDS.lc=true;supRender()});
   document.querySelectorAll("#sp .dal").forEach(el=>{const vai=()=>{const a=al[+el.dataset.al];if(!a)return;OCX=null;if(a[4]){vhAbrir(a[4]);return}if(a[3])alertaAbrir(a[0]+" "+a[1],a[3])};el.onclick=vai;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();vai()}}});
   $("dirrs").onclick=()=>resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU);if($("dirmt"))$("dirmt").onclick=metasAbrir}
 function metaCel(u,un){const m=+(((sup.vend[u]||{}).meta)||0);if(!m)return un+" un.";const p=Math.round(un/m*100);return "<b"+(p>=100?" style='color:#1a8f4c'":"")+">"+p+"%</b><small> "+un+"/"+m+(p>=100?" · meta batida":"")+"</small><i class='mb' aria-hidden='true' style='background:linear-gradient(90deg,"+(p>=100?"#1a8f4c":"var(--brand)")+" "+Math.min(100,p)+"%,var(--line) "+Math.min(100,p)+"%)'></i>"}
@@ -3513,7 +3512,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="181";
+const VER="182";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
