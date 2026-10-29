@@ -202,7 +202,8 @@ html[data-fs="1"] body{zoom:1.12}html[data-fs="2"] body{zoom:1.25}html[data-fs="
 #fsx{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:6;padding:10px 16px;border-radius:10px;border:0;background:rgba(0,0,0,.7);color:#fff;font:800 15px Archivo,sans-serif}
 [hidden]{display:none!important}
 .hcfg{margin-left:auto;flex:none;width:44px;height:44px;border-radius:12px;border:2px solid var(--on);background:transparent;color:var(--on);font-size:20px;line-height:1;padding:0!important;display:flex;align-items:center;justify-content:center}
-#hbtn,#abtn,#sbtn{padding:10px 14px;border-radius:10px;border:2px solid var(--on);background:transparent;color:var(--on);font:800 14px Archivo,sans-serif}
+#hbtn,#abtn,#sbtn,#ucm{padding:10px 14px;border-radius:10px;border:2px solid var(--on);background:transparent;color:var(--on);font:800 14px Archivo,sans-serif}
+#ucm{background:var(--on);color:var(--brand)}
 .spb{justify-content:flex-start}.spb b{margin-right:auto}.spb button.m{padding:6px 10px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:inherit;font:700 12.5px Archivo,sans-serif}
 .spb.ok{border-color:#0b7a75;background:rgba(11,122,117,.08)}
 .ed{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;background:var(--hit);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:13px}
@@ -1408,7 +1409,7 @@ async function espelhar(uid){if(!ehDev()||!fbDb)return;
   nv.pend=new Set();nv.cfg=false;nv.db=fbDb;nv.uid=uid;
   limparTudo();$("sp").classList.remove("on");mostraVendedor();supPronto();escuta();
   nv.pend=new Set();nv.cfg=false;vcPinta();
-  aviso("Você está na conta de "+ESP.nome+" ("+rotP(ESP.papel)+"), ao vivo e só vendo: nada é gravado. Para agir como ela, toque em 🔒 Só ver. Para sair, escolha Developer.")}
+  aviso("Você está na conta de "+ESP.nome+" ("+rotP(ESP.papel)+"), ao vivo e só vendo: nada é gravado. Para agir como ela, toque em 🔒 Só ver."+(ESP.papel==="admin"?" Para sair: ⚙ Configurações.":" Para sair, escolha Developer."))}
 function espGrava(){if(!ESP)return;const g=$("vcg");
   if(ESP.grava){ESP.grava=false;nv.pend=new Set();nv.cfg=false;vcPinta();aviso("De volta ao modo só ver.");return}
   if(g.dataset.c!=="1"){g.dataset.c="1";g.textContent="Gravar como "+(ESP.nome.split(" ")[0]||"ela")+"? Toque de novo";setTimeout(()=>{g.dataset.c="";vcPinta()},3000);return}
@@ -3552,7 +3553,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="188";
+const VER="189";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
