@@ -89,7 +89,7 @@ header .vnd:empty{display:none}
 .dk>div{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px}.dk small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}.dk b{display:block;font-size:24px;margin:2px 0}.dk span{font-size:12px;color:var(--mute)}
 .dc{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px}.dc>b{display:block;margin-bottom:6px}
 .da{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}.da>span{font-size:18px}.da small{display:block;color:var(--mute);font-size:12px}
-.db{display:grid;grid-template-columns:minmax(0,1fr) 30% 44px;gap:8px;align-items:center;padding:3px 0;font-size:13px}.db.t{grid-template-columns:minmax(0,1fr) 44px}.db span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.db i{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.db em{display:block;height:100%;background:var(--brand)}.db b{text-align:right}
+.db{display:grid;grid-template-columns:minmax(0,1fr) 30% 44px;gap:8px;align-items:center;padding:3px 0;font-size:13px}.db.t{grid-template-columns:minmax(0,1fr) 44px}.db span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.db i{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.db em{display:block;height:100%;background:var(--brand)}.db b{text-align:right}.lcf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 8px}.lcf.f4{grid-template-columns:repeat(2,minmax(0,1fr))}.lcf button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px!important;padding-right:4px!important;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);border-radius:999px;padding:6px 10px;font:700 12.5px Archivo,sans-serif;min-height:36px}.lcf button[aria-pressed="true"]{background:var(--brand);color:var(--on)}.db.ln{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.db.ln span{white-space:normal;overflow:visible}.db.ln strong{display:block;font-size:14px}.db.ln small{display:block;font-size:12.5px;color:var(--mute);line-height:1.45}.db.ln>b{white-space:nowrap;padding-top:1px}
 .rd{color:#b3261e!important}.dc small.on{color:#1a8f4c;font-weight:700}
 .cfgb{min-width:44px;font-size:18px!important;padding-left:10px!important;padding-right:10px!important}
 .cfs{border-top:1px solid var(--line);padding:12px 0}.cfs>small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-bottom:6px}
@@ -1685,13 +1685,24 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
     const cai=Object.keys(p30).filter(k=>u30[k]!==undefined&&u30[k]<p30[k]*0.7).map(k=>({k,c:ult[k].c,a:p30[k],b:u30[k]})).sort((x,y)=>(y.a-y.b)-(x.a-x.b)).slice(0,5);
     let rH="";if(!DH.k)rH="<p class='msg' style='margin:4px 0 0'>Carregando os últimos 60 dias…</p>";
     else if(!sem.length&&!cai.length)rH="<p class='msg' style='margin:4px 0 0'>Nenhuma loja em risco nos últimos 60 dias.</p>";
-    else{if(sem.length)rH+="<small class='ddt'>Sem pedido há 15 dias ou mais</small>"+sem.map(o=>"<div class='db t'><span>"+esc(o.c)+"<small><br>último pedido "+esc(dBR(o.d).slice(0,5))+" · última visita "+esc(o.v?dBR(o.v).slice(0,5)+(o.v>o.d?" (sem pedido)":""):"—")+" · "+esc(nomeV(o.u).split(" ")[0])+"</small></span><b style='white-space:nowrap'"+(o.n>=30?" class='rd'":"")+">"+o.n+" dias</b></div>").join("");
-      if(cai.length)rH+="<small class='ddt'>Mais caíram (últimos 30 dias × 30 dias antes)</small>"+cai.map(o=>"<div class='db t'><span>"+esc(o.c)+"<small> · "+o.a+" → "+o.b+" un.</small></span><b class='rd'>caiu "+Math.round((o.a-o.b)/o.a*100)+"%</b></div>").join("")}
+    else{if(sem.length)rH+="<small class='ddt'>Sem pedido há 15 dias ou mais</small>"+sem.map(o=>"<div class='db ln'><span><strong>"+esc(o.c)+"</strong><small>Último pedido: "+esc(dBR(o.d).slice(0,5))+"</small><small>Última visita: "+esc(o.v?dBR(o.v).slice(0,5)+(o.v>o.d?" (sem pedido)":""):"—")+"</small><small>Vendedor: "+esc(nomeV(o.u).split(" ")[0])+"</small></span><b"+(o.n>=30?" class='rd'":"")+">"+o.n+" dias</b></div>").join("");
+      if(cai.length)rH+="<small class='ddt'>Mais caíram (últimos 30 dias × 30 dias antes)</small>"+cai.map(o=>"<div class='db ln'><span><strong>"+esc(o.c)+"</strong><small>30 dias antes: "+o.a+" un.</small><small>Últimos 30 dias: "+o.b+" un.</small></span><b class='rd'>caiu "+Math.round((o.a-o.b)/o.a*100)+"%</b></div>").join("")}
     h+=ddSec("risco","Lojas em risco",rH)}
+  // lojas que mais compram, com filtro de ticket médio (diretor)
+  if(ADM){const LC={};fech.forEach(x=>{const k=norm(canon(x.cliente||""));if(!k)return;const o=LC[k]=LC[k]||{c:x.cliente,n:0,u:0,r:0};o.n++;o.u+=x.ped||0;if(tab)o.r+=valTab((itensDe(x)||{}).pedido,tab)});
+    const st=sup.lc||(sup.lc={o:"tot",f:"all"});const FX={all:()=>true,a:o=>o.tu<50,b:o=>o.tu>=50&&o.tu<150,c:o=>o.tu>=150};
+    let L=Object.values(LC).map(o=>({...o,tu:o.n?o.u/o.n:0,tr:o.n&&tab?o.r/o.n:0})).filter(FX[st.f]||FX.all);
+    L.sort(st.o==="tm"?(a,b)=>b.tu-a.tu:st.o==="tmm"?(a,b)=>a.tu-b.tu:(a,b)=>b.u-a.u);
+    const ch=(attr,v,t,cur)=>"<button type='button' data-"+attr+"='"+v+"' aria-pressed='"+(cur===v)+"'>"+t+"</button>";
+    let lH="<div class='lcf' role='group' aria-label='Ordenar'>"+ch("lco","tot","Mais compram",st.o)+ch("lco","tm","Maior ticket",st.o)+ch("lco","tmm","Menor ticket",st.o)+"</div>"+
+      "<div class='lcf f4' role='group' aria-label='Faixa de ticket médio'>"+ch("lcf","all","Todas",st.f)+ch("lcf","a","Até 50 un.",st.f)+ch("lcf","b","50 a 150 un.",st.f)+ch("lcf","c","Acima de 150 un.",st.f)+"</div>";
+    lH+=L.length?L.slice(0,10).map((o,i)=>"<div class='db ln'><span><strong>"+(i+1)+". "+esc(o.c)+"</strong><small>Pedidos fechados: "+o.n+" · Total: "+o.u+" un."+(tab?" ("+esc(brl(o.r))+")":"")+"</small><small>Ticket médio: "+Math.round(o.tu)+" un. por pedido"+(tab?" · "+esc(brl(o.tr)):"")+"</small></span><b>"+(st.o==="tot"?o.u+" un.":Math.round(o.tu)+" un.")+"</b></div>").join("")+(L.length>10?"<p class='msg' style='margin:6px 0 0;font-size:12px'>Mostrando 10 de "+L.length+" lojas.</p>":"")
+      :"<p class='msg' style='margin:4px 0 0'>Nenhuma loja nessa faixa "+esc(per)+".</p>";
+    h+=ddSec("lc","Lojas que mais compram",lH)}
   // troca por loja
   {const TL={};T.forEach(x=>{const k=norm(x.cliente||"");if(!k)return;const o=TL[k]=TL[k]||{c:x.cliente,t:0,p:0,r:0};o.t+=x.tro||0;o.p+=x.ped||0;if(tab)o.r+=valTab((itensDe(x)||{}).troca,tab)});
    const tl=Object.values(TL).filter(o=>o.t>0).sort((a,b)=>b.t-a.t).slice(0,5);
-   if(tl.length)h+=ddSec("trl","Lojas com mais troca",tl.map(o=>"<div class='db t'><span>"+esc(o.c)+"<small> · "+(o.p?pct(o.t,o.p)+"% do pedido":"sem pedido")+(tab?" · "+esc(brl(o.r)):"")+"</small></span><b"+(o.p&&pct(o.t,o.p)>10?" class='rd'":"")+">"+o.t+" un.</b></div>").join(""))}
+   if(tl.length)h+=ddSec("trl","Lojas com mais troca",tl.map(o=>"<div class='db ln'><span><strong>"+esc(o.c)+"</strong><small>"+(o.p?pct(o.t,o.p)+"% do pedido ("+o.p+" un.)":"sem pedido no período")+"</small>"+(tab?"<small>Valor da troca: "+esc(brl(o.r))+"</small>":"")+"</span><b"+(o.p&&pct(o.t,o.p)>10?" class='rd'":"")+">"+o.t+" un.</b></div>").join(""))}
   if(top.length){const mx=top[0][1];h+=ddSec("pr","Produtos mais pedidos",top.map(([n,q])=>"<div class='db'><span>"+esc(n)+"</span><i aria-hidden='true'><em style='width:"+Math.round(q/mx*100)+"%'></em></i><b>"+q+(tab&&tab[n]>0?"<small> · "+esc(brl(q*tab[n]))+"</small>":"")+"</b></div>").join("")+(topT.length?"<b style='display:block;margin-top:10px'>Mais trocados</b>"+topT.map(([n,q])=>"<div class='db t'><span>"+esc(n)+"</span><b>"+q+"</b></div>").join(""):""))}
   {const pd0=sup.prodD||hj,dias=ADM?[pd0,addD(pd0,-1)]:[pd0],vistos=new Set(),fontes=Object.values(sup.docs).concat(HD||[]);
    const tabProd=(pd,pr)=>{const it=pr.itens||{},PD={};fontes.forEach(x=>{const k=x.uid+"/"+x.id;if(!x.id||!x.id.startsWith("p_")||x.data!==pd||!x.status||x.status==="rascunho"||!(x.ped>0)||vistos.has(pd+k))return;const e=itensDe(x);if(!e)return;vistos.add(pd+k);Object.entries(e.pedido||{}).forEach(([n,q])=>{if(q>0)PD[n]=(PD[n]||0)+q})});
@@ -1707,6 +1718,7 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
   h+="<div class='acts dcw'><button id='dirrs'>🧾 Resumo (JPG)</button>"+(ADM?"<button id='dirmt'>🎯 Definir metas do mês</button>":"")+"</div>";
   h+="</div>";B.innerHTML=h;
   document.querySelectorAll("#sp details.dd").forEach(d=>d.addEventListener("toggle",()=>{DDS[d.dataset.k]=d.open}));
+  B.querySelectorAll("[data-lco]").forEach(b=>b.onclick=()=>{sup.lc.o=b.dataset.lco;DDS.lc=true;supRender()});B.querySelectorAll("[data-lcf]").forEach(b=>b.onclick=()=>{sup.lc.f=b.dataset.lcf;DDS.lc=true;supRender()});
   document.querySelectorAll("#sp .dal").forEach(el=>{const vai=()=>{const a=al[+el.dataset.al];if(!a)return;OCX=null;if(a[4]){vhAbrir(a[4]);return}if(a[3])alertaAbrir(a[0]+" "+a[1],a[3])};el.onclick=vai;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();vai()}}});
   $("dirrs").onclick=()=>resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU);if($("dirmt"))$("dirmt").onclick=metasAbrir}
 function metaCel(u,un){const m=+(((sup.vend[u]||{}).meta)||0);if(!m)return un+" un.";const p=Math.round(un/m*100);return "<b"+(p>=100?" style='color:#1a8f4c'":"")+">"+p+"%</b><small> "+un+"/"+m+(p>=100?" · meta batida":"")+"</small><i class='mb' aria-hidden='true' style='background:linear-gradient(90deg,"+(p>=100?"#1a8f4c":"var(--brand)")+" "+Math.min(100,p)+"%,var(--line) "+Math.min(100,p)+"%)'></i>"}
@@ -3501,7 +3513,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="180";
+const VER="181";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
