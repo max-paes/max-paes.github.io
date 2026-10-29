@@ -105,7 +105,7 @@ em.cmp{font-style:normal;font-weight:800;color:#1a8f4c;margin-left:4px}em.cmp.rd
 details.dd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:36px}details.dd>summary::-webkit-details-marker{display:none}
 details.dd>summary::after{content:"▾";font-size:18px;color:var(--mute);transition:transform .15s}details.dd:not([open])>summary::after{transform:rotate(-90deg)}details.dd>summary b{margin:0}
 .ddt{display:block;font-size:12px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.03em;margin:8px 0 4px}
-.mb{display:block;height:6px;border-radius:3px;background:var(--line);margin-top:4px;overflow:hidden;min-width:60px}.mb em{display:block;height:100%;background:var(--brand)}.mb em.ok{background:#1a8f4c}
+.mtb{display:block;height:6px;border-radius:3px;background:var(--line);margin-top:4px;overflow:hidden;min-width:60px}
 @media (min-width:720px){#sp .dir{grid-template-columns:1fr 1fr}#sp .dir>.dcw{grid-column:1/-1}}
 #sp .ctl button{min-height:44px;min-width:44px}
 html[data-fs="1"] body{zoom:1.12}html[data-fs="2"] body{zoom:1.25}html[data-fs="1"] :is(#fv,#cam,#sg){zoom:.893}html[data-fs="2"] :is(#fv,#cam,#sg){zoom:.8}
@@ -1732,7 +1732,7 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
   B.querySelectorAll("[data-lco]").forEach(b=>b.onclick=()=>{sup.lc.o=b.dataset.lco;DDS.lc=true;supRender()});
   document.querySelectorAll("#sp .dal").forEach(el=>{const vai=()=>{const a=al[+el.dataset.al];if(!a)return;OCX=null;if(a[4]){vhAbrir(a[4]);return}if(a[3])alertaAbrir(a[0]+" "+a[1],a[3])};el.onclick=vai;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();vai()}}});
   $("dirrs").onclick=()=>resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU);if($("dirmt"))$("dirmt").onclick=metasAbrir}
-function metaCel(u,un){const m=+(((sup.vend[u]||{}).meta)||0);if(!m)return un+" un.";const p=Math.round(un/m*100);return "<b"+(p>=100?" style='color:#1a8f4c'":"")+">"+p+"%</b><small> "+un+"/"+m+(p>=100?" · meta batida":"")+"</small><i class='mb' aria-hidden='true' style='background:linear-gradient(90deg,"+(p>=100?"#1a8f4c":"var(--brand)")+" "+Math.min(100,p)+"%,var(--line) "+Math.min(100,p)+"%)'></i>"}
+function metaCel(u,un){const m=+(((sup.vend[u]||{}).meta)||0);if(!m)return un+" un.";const p=Math.round(un/m*100);return "<b"+(p>=100?" style='color:#1a8f4c'":"")+">"+p+"%</b><small> "+un+"/"+m+(p>=100?" · meta batida":"")+"</small><i class='mtb' aria-hidden='true' style='background:linear-gradient(90deg,"+(p>=100?"#1a8f4c":"var(--brand)")+" "+Math.min(100,p)+"%,var(--line) "+Math.min(100,p)+"%)'></i>"}
 function metasAbrir(){const U0=Object.keys(sup.vend).filter(u=>vende(sup.vend[u])&&(sup.vend[u]||{}).ativo!==false).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
   const C=$("mtc");C.innerHTML=U0.map(u=>"<label class='rr'><span class='t'>"+esc(nomeV(u))+" · "+esc(rotP((sup.vend[u]||{}).papel))+"</span><input type='number' inputmode='numeric' min='0' data-u='"+u+"' value='"+(+((sup.vend[u]||{}).meta||0)||"")+"' placeholder='un./mês' style='width:110px'></label>").join("")||"<p class='vazio'>Nenhum vendedor ativo.</p>";
   $("mtm").textContent="Meta de unidades pedidas no mês para cada pessoa. Deixe em branco para não ter meta.";$("mt").classList.add("on")}
@@ -3070,7 +3070,7 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   const g0=document.createElement("div");g0.className="mb";
   g0.appendChild(motBtn("▶ Saída da empresa (início da rota)",reg.ini,()=>{motGrava({ini:Date.now()});motRota(LST,true)},()=>{motGrava({ini:0});motRota(LST,false)},"big"));
   c0.appendChild(g0);C.appendChild(c0);
-  if(!LST.length){const v=document.createElement("div");v.className="vazio";v.textContent="O supervisor ainda não montou a sua rota de hoje. Toque em Atualizar daqui a pouco ou acrescente uma loja abaixo.";C.appendChild(v)}
+  if(!LST.length){const v=document.createElement("div");v.className="vazio";v.textContent="Monte a sua rota de hoje: puxe os pedidos separados abaixo ou acrescente uma loja pela pesquisa.";C.appendChild(v)}
   LST.forEach((s,i)=>{const r=PP[s.id]||{},c=card(r.s?"ok":"");
     c.innerHTML=(!reg.ini&&LST.length>1?"<span class='mvo'><button data-mv='-1' aria-label='Subir'>▲</button><button data-mv='1' aria-label='Descer'>▼</button></span>":"")+"<h3>"+(i+1)+". "+esc(s.cliente||"Loja")+"</h3><span class='ms'>"+esc([s.extra&&!s.ref?"Loja extra":"",s.ped&&!s.ref?s.ped+" un.":"",s.ob||""].filter(Boolean).join(" · "))+(r.c&&r.s?(" · "+fmtMin(minEnt(r.c,r.s))+" na loja"):"")+"</span>";
     c.querySelectorAll(".mvo button").forEach(b=>b.onclick=ev=>{ev.stopPropagation();motMove(i,+b.dataset.mv)});
@@ -3546,7 +3546,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="186";
+const VER="187";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
