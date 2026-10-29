@@ -406,7 +406,10 @@ body.trv #edbar{border-color:#0b7a75}
 .fvn{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.15);color:#fff;font-size:34px}.fvn[hidden]{display:none}#fvp{left:8px}#fvn{right:8px}
 #cam{z-index:70;background:#000;padding:0}.camw{position:fixed;inset:0;display:flex;flex-direction:column}#camv,#camp{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}#camp{height:auto;max-height:100%;margin:auto}
 .camtop{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 22px;background:linear-gradient(rgba(0,0,0,.55),transparent);color:#fff}
-#camnat{border:0;border-radius:22px;background:rgba(0,0,0,.45);color:#fff;font:800 13px Archivo,sans-serif;padding:10px 12px}
+.camop{display:flex;gap:8px}.camop button{border:0;border-radius:22px;background:rgba(0,0,0,.45);color:#fff;font:800 14px Archivo,sans-serif;padding:10px 12px;min-height:44px;min-width:44px}.camop button[hidden]{display:none}#camfl[aria-pressed="true"]{background:#f5c518;color:#111}
+#camz{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);background:rgba(0,0,0,.55);color:#fff;font:800 22px Archivo,sans-serif;padding:8px 16px;border-radius:20px;pointer-events:none}#camz[hidden],#camfo[hidden]{display:none}
+#camfo{position:absolute;width:70px;height:70px;margin:-35px 0 0 -35px;border:2px solid #f5c518;border-radius:50%;pointer-events:none;transition:transform .25s}
+#camv{touch-action:none}
 #camf{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font:700 22px Archivo,sans-serif;padding:0}#camm{font:800 15px Archivo,sans-serif;background:rgba(0,0,0,.45);border-radius:20px;padding:6px 12px}#camm:empty{display:none}
 .camc{position:absolute;left:0;right:0;bottom:0;display:flex;gap:40px;align-items:center;justify-content:center;padding:26px 14px calc(26px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.55))}
 #camt{width:78px;height:78px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 5px rgba(0,0,0,.35),0 0 0 9px #fff;padding:0}#camt:active{transform:scale(.92)}
@@ -590,7 +593,8 @@ body:has(#cam.on) #vcb{display:none!important}
 </div></div>
 <div class="ov" id="cam" role="dialog" aria-modal="true" aria-label="Câmera"><div class="camw">
   <video id="camv" playsinline muted autoplay></video><canvas id="camp" hidden></canvas>
-  <div class="camtop"><button id="camf" aria-label="Fechar câmera">✕</button><span id="camm"></span><button id="camnat" aria-label="Usar a câmera do celular">📱 Câmera do celular</button></div>
+  <div class="camtop"><button id="camf" aria-label="Fechar câmera">✕</button><span id="camm"></span><span class="camop"><button id="camfl" hidden aria-label="Flash desligado" aria-pressed="false">⚡</button><button id="camln" hidden aria-label="Trocar lente">🔁 Lente</button></span></div>
+  <span id="camz" hidden></span><span id="camfo" hidden></span>
   <div class="camc"><button id="camx2" hidden aria-label="Descartar foto">✕</button><button id="camr" hidden aria-label="Girar foto">⟳</button><button id="camt" aria-label="Tirar foto"></button><button id="camok" hidden aria-label="Usar foto">✓</button></div>
 </div></div>
 <div id="fv" hidden role="dialog" aria-modal="true" aria-label="Foto em tela cheia"><div id="fvs"><img id="fvi" alt="Foto" draggable="false"></div>
@@ -1262,23 +1266,71 @@ function camSensor(e){const g=e.accelerationIncludingGravity;if(!g||g.x==null)re
 function camGiro(v){if(!(v.videoHeight>v.videoWidth))return 0;const x=CAM.gx,y=CAM.gy;if(Math.abs(x)<4||Math.abs(x)<Math.abs(y)+1)return 0;let r=x>0?-90:90;if(/iPhone|iPad|iPod/.test(navigator.userAgent))r=-r;return r}
 function camDesenha(src,sw,sh,giro,c){const m=4096,k=Math.min(1,m/Math.max(sw,sh)),w=Math.round(sw*k),h=Math.round(sh*k),q=Math.abs(giro)===90;
   c.width=q?h:w;c.height=q?w:h;const x=c.getContext("2d");x.save();x.translate(c.width/2,c.height/2);x.rotate(giro*Math.PI/180);x.drawImage(src,-w/2,-h/2,w,h);x.restore()}
+/* câmera do app: foto do sensor em resolução máxima (ImageCapture), troca de lente, flash, zoom com dois dedos e toque para focar */
+const camEspera=ms=>new Promise(z=>setTimeout(z,ms));
+async function camLiga(devId){try{(CAM.st&&CAM.st.getTracks()||[]).forEach(t=>t.stop())}catch(_){}
+  const base={width:{ideal:2560},height:{ideal:1920},aspectRatio:{ideal:4/3},resizeMode:{ideal:"none"}};
+  let st=null;if(devId){try{st=await navigator.mediaDevices.getUserMedia({video:{...base,deviceId:{exact:devId}},audio:false})}catch(_){st=null}}
+  if(!st)st=await navigator.mediaDevices.getUserMedia({video:{...base,facingMode:{ideal:"environment"}},audio:false});
+  CAM.st=st;const tk=st.getVideoTracks()[0];CAM.tk=tk;CAM.fl=false;CAM.cap={};try{CAM.cap=tk.getCapabilities?tk.getCapabilities():{}}catch(_){}
+  const adv={};if(CAM.cap.zoom&&typeof CAM.cap.zoom.min==="number")adv.zoom=CAM.cap.zoom.min;if((CAM.cap.focusMode||[]).includes("continuous"))adv.focusMode="continuous";
+  if(Object.keys(adv).length)tk.applyConstraints({advanced:[adv]}).catch(()=>{});CAM.z=adv.zoom||1;
+  CAM.ic=null;try{if(window.ImageCapture)CAM.ic=new ImageCapture(tk)}catch(_){CAM.ic=null}
+  try{CAM.dev=(tk.getSettings&&tk.getSettings().deviceId)||devId||""}catch(_){CAM.dev=devId||""}
+  const v=$("camv");v.srcObject=st;await v.play().catch(()=>{});camBotoes()}
+function camBotoes(){const fl=$("camfl");fl.hidden=!CAM.cap.torch;fl.setAttribute("aria-pressed",CAM.fl?"true":"false");fl.setAttribute("aria-label",CAM.fl?"Flash ligado":"Flash desligado");
+  $("camln").hidden=!(CAM.devs&&CAM.devs.length>1);if(CAM.devs&&CAM.devs.length>1){const i=Math.max(0,CAM.devs.indexOf(CAM.dev));$("camln").textContent="🔁 Lente "+(i+1)+"/"+CAM.devs.length}}
+async function camLentes(){try{const L=await navigator.mediaDevices.enumerateDevices();const vs=L.filter(d=>d.kind==="videoinput");
+  const tras=vs.filter(d=>!/front|frontal|user|selfie/i.test(d.label||""));CAM.devs=(tras.length?tras:vs).map(d=>d.deviceId).filter(Boolean)}catch(_){CAM.devs=[]}camBotoes()}
 async function camAbrir(max,fn,falha){if(max<=0)return;if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
-  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.falha=falha;CAM.blob=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
-  try{CAM.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:2560},height:{ideal:1920},aspectRatio:{ideal:4/3},resizeMode:{ideal:"none"}},audio:false});
-    try{const tk=CAM.st.getVideoTracks()[0],cp=tk&&tk.getCapabilities&&tk.getCapabilities();if(cp&&cp.zoom&&typeof cp.zoom.min==="number")tk.applyConstraints({advanced:[{zoom:cp.zoom.min}]}).catch(()=>{})}catch(_){}
-    const v=$("camv");v.srcObject=CAM.st;await v.play().catch(()=>{});$("camm").textContent=camTxt()}
+  CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.falha=falha;CAM.bp=null;CAM.S=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
+  try{let pref="";try{pref=localStorage.getItem("mpv:camdev")||""}catch(_){}await camLiga(pref);$("camm").textContent=camTxt();camLentes()}
   catch(e){camFecha();falha()}}
 const camTxt=()=>CAM.n?"✓ "+CAM.n+(CAM.max<900?"/"+CAM.max:(CAM.n===1?" foto":" fotos")):"";
-function camModo(m){$("camv").hidden=m!=="vivo";$("camp").hidden=m==="vivo";$("camt").hidden=m!=="vivo";$("camx2").hidden=m==="vivo";$("camok").hidden=m==="vivo";$("camr").hidden=m==="vivo"}
-function camFecha(){try{window.removeEventListener("devicemotion",camSensor)}catch(_){}try{(CAM.st&&CAM.st.getTracks()||[]).forEach(t=>t.stop())}catch(_){}CAM.st=null;try{$("camv").srcObject=null}catch(_){}$("cam").classList.remove("on")}
-$("camt").onclick=()=>{const v=$("camv");if(!v.videoWidth)return;const c=$("camp");camDesenha(v,v.videoWidth,v.videoHeight,camGiro(v),c);camModo("prev");CAM.bp=new Promise(z=>c.toBlob(z,"image/jpeg",0.92))};
-$("camr").onclick=()=>{const c=$("camp"),t=document.createElement("canvas");t.width=c.width;t.height=c.height;t.getContext("2d").drawImage(c,0,0);const o=document.createElement("canvas");o.width=t.height;o.height=t.width;const x=o.getContext("2d");x.translate(o.width/2,o.height/2);x.rotate(Math.PI/2);x.drawImage(t,-t.width/2,-t.height/2);c.width=o.width;c.height=o.height;c.getContext("2d").drawImage(o,0,0);CAM.bp=new Promise(z=>c.toBlob(z,"image/jpeg",0.92))};
-$("camx2").onclick=()=>{CAM.bp=null;camModo("vivo");$("camm").textContent=camTxt()};
-$("camok").onclick=async()=>{const bp=CAM.bp;if(!bp)return;CAM.bp=null;CAM.n++;const fn=CAM.fn;
+function camModo(m){$("camv").hidden=m!=="vivo";$("camp").hidden=m==="vivo";$("camt").hidden=m!=="vivo";$("camx2").hidden=m==="vivo";$("camok").hidden=m==="vivo";$("camr").hidden=m==="vivo";$("camz").hidden=true;$("camfo").hidden=true}
+function camFecha(){try{window.removeEventListener("devicemotion",camSensor)}catch(_){}try{if(CAM.fl&&CAM.tk)CAM.tk.applyConstraints({advanced:[{torch:false}]}).catch(()=>{})}catch(_){}
+  try{(CAM.st&&CAM.st.getTracks()||[]).forEach(t=>t.stop())}catch(_){}CAM.st=null;CAM.tk=null;CAM.ic=null;CAM.fl=false;try{$("camv").srcObject=null}catch(_){}$("cam").classList.remove("on")}
+/* miniatura em tons de cinza para descobrir em que posição a foto do sensor veio, comparando com o quadro da tela */
+function camMini(src,sw,sh,giro){const n=24,c=document.createElement("canvas");c.width=n;c.height=n;const x=c.getContext("2d");x.translate(n/2,n/2);x.rotate(giro*Math.PI/180);const q=Math.abs(giro)%180===90;x.drawImage(src,-(q?n:n)/2,-(q?n:n)/2,n,n);
+  const d=x.getImageData(0,0,n,n).data,o=new Float32Array(n*n);for(let i=0;i<n*n;i++)o[i]=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;return o}
+const camDif=(a,b)=>{let s=0;for(let i=0;i<a.length;i++){const d=a[i]-b[i];s+=d*d}return s};
+async function camAlta(S){try{const bl=await Promise.race([CAM.ic.takePhoto(),camEspera(6000).then(()=>null)]);if(!bl||!bl.size)return null;
+    const bm=await createImageBitmap(bl);const fRet=S.fh>S.fw,pRet=bm.height>bm.width;let r0=0;
+    if(fRet!==pRet){const a=camMini(bm,bm.width,bm.height,90),b=camMini(bm,bm.width,bm.height,-90);r0=camDif(a,S.mini)<=camDif(b,S.mini)?90:-90}
+    else{const a=camMini(bm,bm.width,bm.height,0),b=camMini(bm,bm.width,bm.height,180);r0=camDif(a,S.mini)<=camDif(b,S.mini)?0:180}
+    return {bm,r0}}catch(e){return null}}
+async function camBlob(bm,ang){ang=((ang%360)+360)%360;const m=4096,k=Math.min(1,m/Math.max(bm.width,bm.height)),w=Math.round(bm.width*k),h=Math.round(bm.height*k),q=ang%180===90;
+  const c=document.createElement("canvas");c.width=q?h:w;c.height=q?w:h;const x=c.getContext("2d");x.translate(c.width/2,c.height/2);x.rotate(ang*Math.PI/180);x.drawImage(bm,-w/2,-h/2,w,h);
+  return await new Promise(z=>c.toBlob(z,"image/jpeg",0.92))}
+$("camt").onclick=()=>{const v=$("camv");if(!v.videoWidth)return;const c=$("camp"),g=camGiro(v);
+  const S={fw:v.videoWidth,fh:v.videoHeight,giro:g,rot:0,mini:camMini(v,v.videoWidth,v.videoHeight,0),hi:null};CAM.S=S;
+  if(CAM.ic)S.hi=camAlta(S);
+  camDesenha(v,v.videoWidth,v.videoHeight,g,c);camModo("prev");CAM.bp=new Promise(z=>c.toBlob(z,"image/jpeg",0.92))};
+$("camr").onclick=()=>{const c=$("camp"),t=document.createElement("canvas");t.width=c.width;t.height=c.height;t.getContext("2d").drawImage(c,0,0);const o=document.createElement("canvas");o.width=t.height;o.height=t.width;const x=o.getContext("2d");x.translate(o.width/2,o.height/2);x.rotate(Math.PI/2);x.drawImage(t,-t.width/2,-t.height/2);c.width=o.width;c.height=o.height;c.getContext("2d").drawImage(o,0,0);if(CAM.S)CAM.S.rot++;CAM.bp=new Promise(z=>c.toBlob(z,"image/jpeg",0.92))};
+$("camx2").onclick=()=>{CAM.bp=null;CAM.S=null;camModo("vivo");$("camm").textContent=camTxt()};
+$("camok").onclick=async()=>{const bp=CAM.bp,S=CAM.S;if(!bp)return;CAM.bp=null;CAM.S=null;CAM.n++;const fn=CAM.fn;
   if(CAM.n>=CAM.max){camFecha()}else{camModo("vivo");$("camm").textContent=camTxt()}
-  try{const b=await bp;if(!b)return;await fn(new File([b],"foto.jpg",{type:"image/jpeg"}))}catch(e){diag(e,"camera")}};
+  try{let b=null;if(S&&S.hi){const a=await S.hi;if(a)b=await camBlob(a.bm,a.r0+S.giro+S.rot*90);try{a&&a.bm.close&&a.bm.close()}catch(_){}}
+    if(!b)b=await bp;if(!b)return;await fn(new File([b],"foto.jpg",{type:"image/jpeg"}))}catch(e){diag(e,"camera")}};
 $("camf").onclick=camFecha;
-$("camnat").onclick=()=>{const f=CAM.falha;camFecha();if(f)f()};
+$("camfl").onclick=()=>{if(!CAM.tk)return;const on=!CAM.fl;CAM.tk.applyConstraints({advanced:[{torch:on}]}).then(()=>{CAM.fl=on;camBotoes()}).catch(()=>{})};
+$("camln").onclick=async()=>{if(!CAM.devs||CAM.devs.length<2)return;const i=CAM.devs.indexOf(CAM.dev),nx=CAM.devs[(i+1)%CAM.devs.length];try{await camLiga(nx);try{localStorage.setItem("mpv:camdev",CAM.dev||nx)}catch(_){}}catch(e){try{await camLiga("")}catch(_){}}};
+/* zoom com dois dedos e toque para focar */
+{const v=$("camv"),P=new Map();let pin=null,tapT=0,tapXY=null,zt=null,zPend=null;
+ const mostraZ=()=>{const e=$("camz"),mn=(CAM.cap.zoom&&CAM.cap.zoom.min)||1;e.textContent=(CAM.z/mn).toFixed(1)+"x";e.hidden=false;clearTimeout(zt);zt=setTimeout(()=>e.hidden=true,900)};
+ const aplicaZ=z=>{zPend=z;if(aplicaZ.on)return;aplicaZ.on=true;requestAnimationFrame(()=>{aplicaZ.on=false;if(CAM.tk&&zPend!=null)CAM.tk.applyConstraints({advanced:[{zoom:zPend}]}).catch(()=>{})})};
+ v.addEventListener("pointerdown",e=>{P.set(e.pointerId,{x:e.clientX,y:e.clientY});if(P.size===2&&CAM.cap.zoom){const [a,b]=[...P.values()];pin={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:CAM.z}}if(P.size===1){tapT=Date.now();tapXY={x:e.clientX,y:e.clientY}}else tapXY=null});
+ v.addEventListener("pointermove",e=>{if(!P.has(e.pointerId))return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});if(tapXY&&Math.hypot(e.clientX-tapXY.x,e.clientY-tapXY.y)>12)tapXY=null;
+   if(pin&&P.size===2&&CAM.cap.zoom){const [a,b]=[...P.values()],z0=CAM.cap.zoom,nz=Math.min(z0.max,Math.max(z0.min,pin.z*(Math.hypot(a.x-b.x,a.y-b.y)/pin.d)));CAM.z=nz;aplicaZ(nz);mostraZ()}});
+ const fim=e=>{const eraTap=P.size===1&&tapXY&&Date.now()-tapT<350;P.delete(e.pointerId);if(P.size<2)pin=null;
+   if(eraTap&&CAM.tk){const r=v.getBoundingClientRect(),vw=v.videoWidth||1,vh=v.videoHeight||1,k=Math.min(r.width/vw,r.height/vh),dw=vw*k,dh=vh*k,ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2,
+       px=(tapXY.x-ox)/dw,py=(tapXY.y-oy)/dh;if(px<0||px>1||py<0||py>1)return;
+     const fo=$("camfo"),cr=$("cam").querySelector(".camw").getBoundingClientRect(),zz=(cr.width/($("cam").querySelector(".camw").offsetWidth||cr.width))||1;fo.style.left=((tapXY.x-cr.left)/zz)+"px";fo.style.top=((tapXY.y-cr.top)/zz)+"px";fo.hidden=false;fo.style.transform="scale(1.25)";setTimeout(()=>fo.style.transform="scale(1)",30);setTimeout(()=>fo.hidden=true,1100);
+     const fm=CAM.cap.focusMode||[],adv={};let sup={};try{sup=navigator.mediaDevices.getSupportedConstraints()}catch(_){}
+     if(sup.pointsOfInterest)adv.pointsOfInterest=[{x:px,y:py}];if(fm.includes("single-shot"))adv.focusMode="single-shot";
+     if(Object.keys(adv).length)CAM.tk.applyConstraints({advanced:[adv]}).then(()=>{if(fm.includes("continuous"))setTimeout(()=>{if(CAM.tk)CAM.tk.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{})},2500)}).catch(()=>{})}
+   tapXY=null};
+ v.addEventListener("pointerup",fim);v.addEventListener("pointercancel",e=>{P.delete(e.pointerId);pin=null;tapXY=null})}
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 async function copiaTexto(t){
   let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
@@ -3433,7 +3485,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="175";
+const VER="176";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
