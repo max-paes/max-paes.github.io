@@ -82,7 +82,7 @@ header .vnd:empty{display:none}
 #lgm{min-height:20px;margin:12px 0 0;font-size:14px;color:#b3261e}
 #lgm.ok{color:#1a8f4c}
 #sp{padding:0;background:var(--bg);z-index:20}
-#sp .sw{max-width:1180px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 30px}
+#sp .sw{max-width:1180px;margin:0 auto;padding:0 14px 30px}
 #sp .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
 #sp .stop h2{margin:0;font-size:19px;flex:1 1 auto}
 .dir{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-bottom:12px}.dir>*{min-width:0}.dc{overflow-x:auto}.dk{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
@@ -348,7 +348,7 @@ body.trv #edbar{border-color:#0b7a75}
 #vcg{font:800 12px Archivo,sans-serif;border-radius:999px;border:0;padding:5px 10px;background:#374151;color:#fff;white-space:nowrap}
 #vcg.on{background:#c0392b}
 #vcb.on{background:#b26a00}
-#fab .sw{max-width:760px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 40px}
+#fab .sw{max-width:760px;margin:0 auto;padding:0 14px 40px}
 #fab .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
 #fab .stop h2{margin:0;font-size:19px;flex:1 1 auto}
 #fab .stop button{border:1.5px solid currentColor;background:transparent;color:inherit;border-radius:9px;padding:7px 11px;font:700 14px Archivo,sans-serif}
@@ -361,10 +361,12 @@ body.trv #edbar{border-color:#0b7a75}
 #fab .xa button,#fab .fbt{padding:8px 11px;border-radius:9px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 13px Archivo,sans-serif}
 #fab .xa button.on{background:#1a8a4a;border-color:#1a8a4a;color:#fff}
 #fab details{margin-top:6px;font-size:13px}#fab summary{cursor:pointer;color:var(--mute)}
-#mot .sw{max-width:640px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 40px}
+#mot .sw{max-width:640px;margin:0 auto;padding:0 14px 40px}
 #mot .stop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--brand);color:var(--on);margin:0 -14px 12px;padding:12px 14px;position:sticky;top:0;z-index:2}
 #mot .stop h2{margin:0;font-size:19px;flex:1 1 auto}
 #sp .stop h2,#fab .stop h2,#mot .stop h2{flex:1 1 calc(100% - 70px)}
+/* cabeçalho colado no topo: sem faixa clara acima ao rolar */
+:is(#sp,#fab,#mot) .stop{padding-top:calc(12px + env(safe-area-inset-top,0px))}
 /* botões do cabeçalho: segunda linha distribuída na largura toda */
 :is(#sp,#fab,#mot) .stop>button:not(.cfgb),:is(#sp,#fab,#mot) .stop>.mn{flex:1 1 0;min-width:0}
 :is(#sp,#fab,#mot) .stop>.mn>button{width:100%}
@@ -3498,7 +3500,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="178";
+const VER="179";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
