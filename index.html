@@ -512,6 +512,7 @@ body:has(#cam.on) #vcb{display:none!important}
   <p class="msg" id="spm" style="margin:0 2px 10px"></p>
   <div class="fiw"><button id="fiav" class="fich" hidden></button><button id="fitd" class="fich2" hidden>✓ Marcar todas como vistas</button></div>
   <div id="spal"></div>
+  <div class="sh" id="spkt">Painel</div>
   <div class="kp" id="spk"></div>
   <div id="spdir"></div>
   <div class="sh">Equipe de vendas</div><div class="vg" id="spv"></div>
@@ -3500,7 +3501,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="179";
+const VER="180";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
