@@ -602,7 +602,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 </div></div>
 <div class="ov" id="cfgv" role="dialog" aria-modal="true" aria-labelledby="cfgt"><div class="box">
   <div class="hhead"><b id="cfgt">Configurações</b><button id="cfgx">Fechar</button></div>
-  <div class="cfs"><small>Conta</small><p id="cfq" class="cfn"></p><div class="acts"><button id="cfsen">Mudar senha</button><button id="cfsair">Sair da conta</button></div></div>
+  <div class="cfs"><small>Conta</small><p id="cfq" class="cfn"></p><div class="acts"><button id="cfsen">Mudar senha</button><button id="cfsair">Sair da conta</button></div><button id="cfout" class="sec" hidden style="width:100%;margin-top:8px">📵 Sair dos outros aparelhos</button><p class="msg" id="cfoutm" style="margin:6px 2px 0"></p></div>
   <div class="cfs" id="cfga" hidden><small>Acessos</small><div id="cfgah"></div></div>
   <div class="cfs"><small>Tamanho do texto</small><div class="seg" id="cffs"><button data-f="0">Normal</button><button data-f="1">Grande</button><button data-f="2">Muito grande</button></div></div>
   <div class="cfs"><small>Tema</small><div class="seg" id="cftema"><button data-t="claro">☀️ Claro</button><button data-t="escuro">🌙 Escuro</button><button data-t="auto">Automático</button></div></div>
@@ -1557,11 +1557,11 @@ $("lgb").onclick=async()=>{const b=$("lgb"),nome=U($("lgn").value).trim(),em=$("
       lgMsg(lgModo==="mudar"&&e&&/credential|wrong-password/.test(e.code||"")?"Senha atual incorreta.":erroTxt(e))}finally{b.disabled=false}return}
   if(!em||!se){lgMsg("Preencha e-mail e senha.");return}
   b.disabled=true;lgMsg("Entrando…",true);
-  try{ultSenha=se;await fbAuth.signInWithEmailAndPassword(em,se)}
+  try{ultSenha=se;lsS("mpv:logEm",String(Date.now()));await fbAuth.signInWithEmailAndPassword(em,se)}
   catch(e){lgMsg(erroTxt(e))}finally{b.disabled=false}};
 ["lgn","lge","lgs","lgs2","lgs3"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")$("lgb").click()}));
 $("sair").onclick=async()=>{const b=$("sair");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair da conta"},3000);return}
-  if(tSalvar)salvar();await enviaNuvem();await liberaDisp();try{localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}if(unsub){unsub();unsub=null}supDesliga();nv.db=null;perfil=null;mostraVendedor();$("hs").classList.remove("on");try{await fbAuth.signOut()}catch(e){}};
+  if(tSalvar)salvar();await enviaNuvem();await liberaDisp();try{localStorage.removeItem("mpv:logEm");localStorage.removeItem("mpv:nome");localStorage.removeItem("mpv:papel");localStorage.removeItem("mpv:papelReal")}catch(e){}if(unsub){unsub();unsub=null}supDesliga();nv.db=null;perfil=null;mostraVendedor();$("hs").classList.remove("on");try{await fbAuth.signOut()}catch(e){}};
 function carregaScript(src){return new Promise((ok,er)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=er;document.head.appendChild(s)})}
 const CHAVES_APP=()=>{const l=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^maxpaes:|^mpv:/.test(k))l.push(k)}}catch(e){}return l};
 // ===== Painel do supervisor =====
@@ -2246,7 +2246,7 @@ async function entrou(u){
     if(dp&&dp!==meu&&!troca){barra("Esta conta já está aberta em outro aparelho"+(perfil.dispNome?" ("+perfil.dispNome+")":"")+". Saia da conta nele ou peça para liberar.");return}
     if(!dp||troca){try{await pref.set({disp:meu,dispNome:dispNome(),dispEm:Date.now(),dispHost:location.host},{merge:true});perfil.disp=meu;perfil.dispHost=location.host}catch(e){barra("Não deu para registrar este aparelho. Tente de novo.");return}}
   }
-  pref.set({ultimoAcesso:Date.now(),visto:Date.now()},{merge:true}).catch(()=>{});presencaIni();
+  pref.set({ultimoAcesso:Date.now(),visto:Date.now()},{merge:true}).catch(()=>{});presencaIni();try{sessVigia(u.uid)}catch(_){}
   lsS("mpv:nome",perfil.nome);lsS("mpv:papel",perfil.papel||"vendedor");lsS("mpv:papelReal",perfil.papelReal||"vendedor");try{mostraVendedor()}catch(e){diag(e,"mostraVendedor")}try{vcPinta()}catch(e){}
   const seguir=async()=>{nv.db=fbDb;nv.uid=u.uid;supPronto();
     const ev=perfil.papelReal==="developer"?String(devEst().vc||""):"";if(perfil.papelReal==="developer"&&!ev.startsWith("u:"))devTela();
@@ -3545,7 +3545,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="184";
+const VER="185";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -3564,7 +3564,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127
 }
 async function swNovo(w){let v="";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(r.ok)v=(await r.text()).trim()}catch(e){}
   if(v&&v===VER){try{w.postMessage({tipo:"atualizar"})}catch(e){}return}mostraAtt(w)}
-function cfgAbrir(){try{const dv=ehDev()&&!!perfil&&perfil.papel==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID;$("cfga").hidden=!dv;
+function cfgAbrir(){try{$("cfout").hidden=!(perfil&&perfil.papelReal==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser);$("cfoutm").textContent=""}catch(_){}try{const dv=ehDev()&&!!perfil&&perfil.papel==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID;$("cfga").hidden=!dv;
   if(dv){const g=$("sgv");if(g&&g.parentElement!==$("cfgah"))$("cfgah").appendChild(g);g.hidden=false;if(fbDb&&!sup.uv)supLiga();supGerencia()}}catch(e){diag(e,"cfgAcessos")}$("cfq").textContent=perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"Sem conta conectada";$("cfsen").hidden=!(fbAuth&&perfil);$("cfsair").hidden=!fbAuth;
   $("cfv").textContent="Versão 1.0 · em desenvolvimento";$("cfdev").hidden=!(ehDev()&&!(typeof ESP!=="undefined"&&ESP));$("cfdc").innerHTML="";$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
 document.querySelectorAll(".cfgb").forEach(b=>b.onclick=cfgAbrir);$("cfgx").onclick=()=>$("cfgv").classList.remove("on");
@@ -3574,6 +3574,15 @@ function aplicaFs(){let f="0";try{f=localStorage.getItem("mpv:fs")||"0"}catch(e)
   document.querySelectorAll("#cffs button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.f===f))}
 document.querySelectorAll("#cffs button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("mpv:fs",b.dataset.f)}catch(e){}aplicaFs()});aplicaFs();
 $("cfsen").onclick=()=>{$("cfgv").classList.remove("on");mostraLogin("mudar")};
+/* sair dos outros aparelhos: os aparelhos que entraram antes deste momento saem sozinhos; este continua */
+$("cfout").onclick=async()=>{const b=$("cfout"),m=$("cfoutm");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar: desconectar os outros aparelhos?";setTimeout(()=>{if(b.dataset.c==="1"){b.dataset.c="";b.textContent="📵 Sair dos outros aparelhos"}},4000);return}
+  b.dataset.c="";b.textContent="📵 Sair dos outros aparelhos";const u=fbAuth&&fbAuth.currentUser;if(!u||!fbDb){m.textContent="Conecte à internet para fazer isso.";return}
+  try{const t=Date.now();lsS("mpv:logEm",String(t));await fbDb.collection("vendedores").doc(u.uid).set({sairAntes:t,sairMantem:dispId(),sairNome:dispNome()},{merge:true});m.textContent="✓ Pronto. Os outros aparelhos saem da conta assim que estiverem conectados. Só este continua."}
+  catch(e){m.textContent="Não deu certo: "+(e.code||e.message)}};
+let sessU=null;
+function sessVigia(uid){if(sessU){sessU();sessU=null}if(!fbDb||!uid||(typeof ESP!=="undefined"&&ESP))return;
+  sessU=fbDb.collection("vendedores").doc(uid).onSnapshot(sn=>{const d=(sn&&sn.data&&sn.data())||{},meu=+(lsG("mpv:logEm")||0);
+    if(d.sairAntes&&d.sairAntes>meu&&d.sairMantem!==dispId()){if(sessU){sessU();sessU=null}const s0=$("sair");s0.dataset.c="1";Promise.resolve(s0.onclick()).finally(()=>setTimeout(()=>{try{lgMsg("Sua conta foi desconectada deste aparelho. Entre de novo se precisar.")}catch(_){}},600))}},()=>{})}
 $("cfsair").onclick=()=>{const b=$("cfsair");if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar saída?";setTimeout(()=>{b.dataset.c="";b.textContent="Sair da conta"},3000);return}
   b.dataset.c="";b.textContent="Sair da conta";$("cfgv").classList.remove("on");document.querySelectorAll(".ov.on").forEach(o=>o.classList.remove("on"));const s0=$("sair");s0.dataset.c="1";s0.onclick()};
 $("cfre").onclick=async()=>{const t=$("cfrt").value.trim(),m=$("cfrm");if(!t){m.textContent="Escreva o que aconteceu antes de enviar.";return}
