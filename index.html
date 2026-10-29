@@ -89,7 +89,8 @@ header .vnd:empty{display:none}
 .dk>div{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px}.dk small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}.dk b{display:block;font-size:24px;margin:2px 0}.dk span{font-size:12px;color:var(--mute)}
 .dc{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px}.dc>b{display:block;margin-bottom:6px}
 .da{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}.da>span{font-size:18px}.da small{display:block;color:var(--mute);font-size:12px}
-.db{display:grid;grid-template-columns:minmax(0,1fr) 30% 44px;gap:8px;align-items:center;padding:3px 0;font-size:13px}.db.t{grid-template-columns:minmax(0,1fr) 44px}.db span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.db i{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.db em{display:block;height:100%;background:var(--brand)}.db b{text-align:right}.lcf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 8px}.lcf.f4{grid-template-columns:repeat(2,minmax(0,1fr))}.lcf button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px!important;padding-right:4px!important;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);border-radius:999px;padding:6px 10px;font:700 12.5px Archivo,sans-serif;min-height:36px}.lcf button[aria-pressed="true"]{background:var(--brand);color:var(--on)}.db.ln{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.db.ln span{white-space:normal;overflow:visible}.db.ln strong{display:block;font-size:14px}.db.ln small{display:block;font-size:12.5px;color:var(--mute);line-height:1.45}.db.ln>b{white-space:nowrap;padding-top:1px}
+.db{display:grid;grid-template-columns:minmax(0,1fr) 30% 44px;gap:8px;align-items:center;padding:3px 0;font-size:13px}.db.t{grid-template-columns:minmax(0,1fr) 44px}.db span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.db i{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.db em{display:block;height:100%;background:var(--brand)}.db b{text-align:right}.ucg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ucg button{min-height:52px;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);border-radius:12px;font:800 16px Archivo,sans-serif}
+#ucv{z-index:96}#ucb{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:94;display:flex;align-items:center;gap:10px;background:#b26a00;color:#fff;border-radius:16px;padding:8px 8px 8px 14px;box-shadow:0 6px 20px rgba(0,0,0,.3);font:800 14px Archivo,sans-serif}#ucb[hidden]{display:none}#ucb span{flex:1;min-width:0}#ucb button{border:0;border-radius:12px;background:#fff;color:#7a4a00;font:800 14px Archivo,sans-serif;padding:10px 12px;min-height:44px;white-space:nowrap}.lcf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 8px}.lcf.f4{grid-template-columns:repeat(2,minmax(0,1fr))}.lcf button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px!important;padding-right:4px!important;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);border-radius:999px;padding:6px 10px;font:700 12.5px Archivo,sans-serif;min-height:36px}.lcf button[aria-pressed="true"]{background:var(--brand);color:var(--on)}.db.ln{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.db.ln span{white-space:normal;overflow:visible}.db.ln strong{display:block;font-size:14px}.db.ln small{display:block;font-size:12.5px;color:var(--mute);line-height:1.45}.db.ln>b{white-space:nowrap;padding-top:1px}
 .rd{color:#b3261e!important}.dc small.on{color:#1a8f4c;font-weight:700}
 .cfgb{min-width:44px;font-size:18px!important;padding-left:10px!important;padding-right:10px!important}
 .cfs{border-top:1px solid var(--line);padding:12px 0}.cfs>small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-bottom:6px}
@@ -426,7 +427,7 @@ body.trv #edbar{border-color:#0b7a75}
 #camr{width:54px;height:54px;border-radius:50%;border:0;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff;color:#fff;font:800 26px Archivo,sans-serif;padding:0}#camr[hidden]{display:none}
 #camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
 #vh,#mt{z-index:30}#cfgv{z-index:48}
-body:has(#cam.on) #vcb{display:none!important}
+body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none!important}body:has(#ucb:not([hidden])) main{padding-bottom:150px}
 .ocl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .oci{border-left:3px solid var(--brand);padding:4px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}.oce{display:block;margin:4px 0 0;padding:3px 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--brand)}.oci small{display:block;color:var(--mute);font-size:12px;font-weight:700}
 .ocst{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:800;font-size:13px}.ocst.fin{background:#1a8a4a;color:#fff}.ocst.ab{background:var(--hit);border:1px solid var(--line)}
@@ -506,7 +507,7 @@ body:has(#cam.on) #vcb{display:none!important}
   <div class="lgl"><button id="lgc">Cancelar</button><button id="lgr">Esqueci a senha</button></div>
 </div></div>
 <div class="ov" id="sp" role="dialog" aria-modal="true" aria-labelledby="spt"><div class="sw">
-  <div class="stop"><h2 id="spt" class="hlg"><img class="slogo" alt="Max Pães"><span><small class="quem" id="spq"></small></span></h2><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="spr">Relatórios</button><button id="spen">Entregas</button><span class="mn"><button id="spmn" aria-expanded="false">☰ Mais</button><div id="spmd" class="mnd" hidden><button id="spfp" hidden>Produção</button><button id="spfe" hidden>Expedição</button><button id="sprt" hidden>Rota do motorista</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button></div></span></div>
+  <div class="stop"><h2 id="spt" class="hlg"><img class="slogo" alt="Max Pães"><span><small class="quem" id="spq"></small></span></h2><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="spr">Relatórios</button><button id="spen">Entregas</button><span class="mn"><button id="spmn" aria-expanded="false">☰ Mais</button><div id="spmd" class="mnd" hidden><button id="spfp" hidden>Produção</button><button id="spfe" hidden>Expedição</button><button id="sprt" hidden>Rota do motorista</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button><button id="spuc" hidden>Usar como…</button></div></span></div>
   <div class="ctl"><div class="ctl1"><button id="spa" aria-label="Dia anterior">◀</button><span class="dl" id="spd" aria-live="polite"></span><button id="spn" aria-label="Próximo dia">▶</button></div>
     <div class="ctl2"><button id="sph">Hoje</button><button id="smt" aria-pressed="true">Histórico</button><button id="smd" aria-pressed="false">Dia</button><button id="sms" aria-pressed="false">Semana</button></div></div>
   <p class="msg" id="spm" style="margin:0 2px 10px"></p>
@@ -516,6 +517,7 @@ body:has(#cam.on) #vcb{display:none!important}
   <div class="kp" id="spk"></div>
   <div id="spdir"></div>
   <div class="sh">Equipe de vendas</div><div class="vg" id="spv"></div>
+  <div class="sh" id="spmot">Motoristas</div><div class="vg" id="spmv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
       <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option><option value="supervisor">Supervisor</option><option value="admin">Diretor</option></select></label>
@@ -556,6 +558,12 @@ body:has(#cam.on) #vcb{display:none!important}
   <div class="hhead"><b>Metas do mês</b><button id="mtx">Fechar</button></div><p class="msg" id="mtm" style="margin:0 2px 8px"></p><div id="mtc"></div>
   <div class="acts" style="margin-top:10px"><button id="mts">Salvar metas</button></div><p class="msg" id="mtr" style="margin:6px 2px 0"></p>
 </div></div>
+<div class="ov" id="ucv" role="dialog" aria-modal="true" aria-labelledby="uct"><div class="box" style="max-width:420px">
+  <div class="hhead"><b id="uct">Usar o app como</b><button id="ucx">Fechar</button></div>
+  <p class="msg" style="margin:0 2px 10px">Abre a tela de cada função com os seus acessos de diretor. Para voltar, toque em “↩ Voltar a Diretor”.</p>
+  <div class="ucg"><button data-uc="vendedor">Vendedor</button><button data-uc="promotor">Promotor</button><button data-uc="supervisor">Supervisor</button><button data-uc="faturamento">Faturamento</button><button data-uc="expedicao">Expedição</button><button data-uc="producao">Produção</button></div>
+</div></div>
+<div id="ucb" hidden role="status"><span id="ucbt"></span><button id="ucbv">↩ Voltar a Diretor</button></div>
 <div class="ov" id="vh"><div class="box">
   <div class="hhead"><b id="vht">Histórico</b><button id="vhx">Fechar</button></div>
   <button id="vhlib" class="fich2" hidden style="width:100%;margin:4px 0 6px">✓ Liberar todas</button>
@@ -1475,7 +1483,7 @@ function aplicaAcesso(){const dono=false;/* gôndola retirada de todos os usuár
   const sp=!!(perfil&&/^(supervisor|developer|admin)$/.test(perfil.papel||""));$("rsb").style.display=sp?"":"none";
   const vz=!!(perfil&&(perfil.papel==="promotor"||perfil.papel==="developer"));$("vbar").style.display=vz?"":"none";$("t-visita").style.display=vz?"":"none";
   if((mode==="gondola"&&!dono)||(mode==="visita"&&!vz&&perfil)){mode="pedido";render()}}
-const NAO_VENDE=/^(motorista|producao|expedicao|faturamento|admin)$/,vende=v=>!NAO_VENDE.test((v||{}).papel||"");
+const NAO_VENDE=/^(motorista|producao|expedicao|faturamento|admin)$/,vende=v=>!NAO_VENDE.test((v||{}).papel||"")||((v||{}).papel==="admin"&&(v||{}).vendeu===true);
 const rotPDev=p=>p==="developer"?"Developer":rotP(p);
 const abaPro=()=>!!perfil&&/^(promotor|developer)$/.test(perfil.papel||"");const rotAbaEnt=()=>abaPro()?"Ocorrência":"Entrega";
 const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Promotor":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
@@ -1750,7 +1758,7 @@ async function resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU){const b=$("dirrs"),
     const blob=await new Promise(z=>c2.toBlob(z,"image/jpeg",0.92));ultimo={blob,nome:"resumo-diretor-"+sup.dia+".jpg",url:c2.toDataURL("image/jpeg",0.92)};abrirPrev("Resumo do diretor pronto. Salve ou envie no WhatsApp.")}
   catch(e){diag(e,"resumo")}finally{b.textContent=r0}}
 const quemTxt=()=>perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"";
-function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spfp").hidden=$("spfe").hidden=!ehSup();$("spmn").hidden=![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
+function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spuc").hidden=!(dv&&perfil.papelReal==="admin");$("spfp").hidden=$("spfe").hidden=!ehSup();$("spmn").hidden=![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
   const d=sup.dia,hj=hojeISO(),[s0,s1]=supRng(),dia=sup.modo==="dia",tudo=sup.modo==="tudo";
   $("spd").textContent=tudo?"Histórico · últimos "+HIST_DIAS+" dias":dia?(d===hj?"Hoje · ":["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][new Date(d+"T12:00:00").getDay()]+" · ")+dBR(d):dBR(s0)+" a "+dBR(s1);
   $("smd").setAttribute("aria-pressed",dia);$("sms").setAttribute("aria-pressed",sup.modo==="semana");$("smt").setAttribute("aria-pressed",tudo);$("spsem").hidden=sup.modo!=="semana";
@@ -1776,6 +1784,18 @@ function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!per
     const pu=mine.reduce((a,x)=>a+(x.ped||0),0),tu=mine.reduce((a,x)=>a+(x.tro||0),0);
     b.innerHTML="<b>"+esc(nomeV(uid))+" · "+rotP(v.papel).toLowerCase()+"</b><span class='vs"+(ab?" on":"")+"'>"+esc(st)+"</span><span class='vn'><span><b>"+mine.filter(x=>x.ini).length+"</b> visitas</span><span><b>"+mine.filter(x=>x.status!=="rascunho").length+"</b> fechados</span><span><b>"+pu+"</b> un.</span><span><b>"+tu+"</b> troca</span></span>";
     b.onclick=()=>vhAbrir(uid);V.appendChild(b)});
+  // ---- motoristas: cards com produtividade no período ----
+  {const M=$("spmv"),mots=Object.keys(sup.vend).filter(u=>(sup.vend[u]||{}).papel==="motorista"&&(sup.vend[u]||{}).ativo!==false).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR"));
+   $("spmot").hidden=M.hidden=!mots.length;M.innerHTML="";const [e0,e1]=sup.etr||[0,0],EN=Object.values(sup.ent||{});
+   mots.forEach(uid=>{const v=sup.vend[uid]||{},nm=U(v.nome||""),D=Object.values(sup.docs).filter(x=>x.uid===uid&&x.id&&x.id.startsWith("m_")&&x.data>=s0&&x.data<=s1);
+     let par=0,tm=0,tn=0,fot=0,dur=0,dn=0;D.forEach(x=>{if(x.ini&&x.fim&&x.fim>x.ini){dur+=(x.fim-x.ini)/60000;dn++}Object.values(x.p||{}).forEach(q=>{if(!q)return;if(q.c){par++;if(q.s&&q.s>q.c){tm+=(q.s-q.c)/60000;tn++}}Object.values(q.fo||{}).forEach(L=>{if(Array.isArray(L))fot+=L.length})})});
+     const fin=EN.filter(e=>e.fin&&U(e.finPor||"")===nm&&(e.finEm||0)>=e0&&(e.finEm||0)<=e1).length,ocs=EN.reduce((a,e)=>a+Object.values(e.oc||{}).filter(o=>o&&!o.sis&&o.uid===uid&&(o.ts||0)>=e0&&(o.ts||0)<=e1).length,0);
+     const hjD=D.find(x=>x.data===hj),rotas=D.filter(x=>x.ini).length,ult=D.filter(x=>x.ini).map(x=>x.data).sort().pop()||"";
+     const stt=hjD&&hjD.ini&&!hjD.fim?"● Em rota desde "+hhDe(hjD.ini):hjD&&hjD.ini&&hjD.fim?"Rota de hoje: "+hhDe(hjD.ini)+"–"+hhDe(hjD.fim):v.ultimoAcesso?"Último acesso "+new Date(v.ultimoAcesso).toLocaleDateString("pt-BR")+" "+hhDe(v.ultimoAcesso):"Ainda não usou o app";
+     const b=document.createElement("button");b.className="vc";b.setAttribute("aria-label",nm+", motorista. "+rotas+" rotas, "+par+" paradas, "+fin+" entregas finalizadas");
+     b.innerHTML="<b>"+esc(nm)+" · motorista</b><span class='vs"+(hjD&&hjD.ini&&!hjD.fim?" on":"")+"'>"+esc(stt)+"</span><span class='vn'><span><b>"+rotas+"</b> "+(rotas===1?"rota":"rotas")+"</span><span><b>"+par+"</b> paradas</span><span><b>"+fin+"</b> entregas</span><span><b>"+(tn?Math.round(tm/tn):"—")+"</b> min/parada</span></span>"+
+       "<span class='vn'><span><b>"+(dn?fmtMin(Math.round(dur/dn)):"—")+"</b> por rota</span><span><b>"+fot+"</b> fotos</span><span><b>"+ocs+"</b> ocorrências</span></span>";
+     b.onclick=()=>{if(ult)sup.dia=ult;mdAbrir()};M.appendChild(b)})}
   $("spl").textContent="Visitas e pedidos"+(sup.filtro?" · "+nomeV(sup.filtro)+" (toque no card de novo para ver todos)":"");
   const T=$("spt2");T.innerHTML="";
   const ord=L.slice().sort((a,b)=>(b.data+(b.ini||hhDe(b.ts))).localeCompare(a.data+(a.ini||hhDe(a.ts))));
@@ -2171,6 +2191,14 @@ async function vcUsuarios(f){if(!fbDb)return;if(vcU&&!(f&&Date.now()-vcU>15000))
     const og=document.createElement("optgroup");og.label="Usuários reais (ao vivo)";
     L.forEach(u=>{const o=document.createElement("option");o.value="u:"+u.uid;o.textContent=u.n.split(" ").slice(0,2).join(" ")+" · "+rotPDev(u.p).toLowerCase();og.appendChild(o)});
     const sv=$("vcs").value;$("vcs").querySelectorAll("optgroup").forEach(x=>x.remove());$("vcs").appendChild(og);$("vcs").value=ESP?"u:"+ESP.uid:sv}catch(e){vcU=null}}
+/* diretor: usar o app como outra função (só nesta sessão; os acessos continuam os de diretor) */
+const UC_ROT={vendedor:"Vendedor",promotor:"Promotor",supervisor:"Supervisor",faturamento:"Faturamento",expedicao:"Expedição",producao:"Produção"};
+function usarComo(p){if(!perfil||perfil.papelReal!=="admin")return;if(p!=="admin"&&!UC_ROT[p])return;
+  perfil.papel=p;try{fabDesliga()}catch(_){}try{motDesliga()}catch(_){}sup.modo="tudo";$("ucv").classList.remove("on");$("sp").classList.remove("on");
+  mostraVendedor();supPronto();if(p==="supervisor"||p==="admin")supAbrir();ucBarra();window.scrollTo(0,0)}
+function ucBarra(){const on=!!perfil&&perfil.papelReal==="admin"&&perfil.papel!=="admin";$("ucb").hidden=!on;if(on)$("ucbt").textContent="👁 Usando como "+(UC_ROT[perfil.papel]||perfil.papel)}
+$("spuc").onclick=()=>{$("spmd").hidden=true;$("ucv").classList.add("on")};$("ucx").onclick=()=>$("ucv").classList.remove("on");
+document.querySelectorAll("#ucv [data-uc]").forEach(b=>b.onclick=()=>usarComo(b.dataset.uc));$("ucbv").onclick=()=>usarComo("admin");
 function verComo(p){if(!ehDev())return;
   if(p&&p.startsWith("u:")){espelhar(p.slice(2));return}
   if(ESP){location.reload();return}
@@ -2423,6 +2451,7 @@ $("fat").onclick=()=>{
   if(curId&&stPed!=="rascunho"&&stPed!=="alterando"){fatAviso("Já está fechado");return}
   if(!$("cliente").value.trim()){fatAviso("Escolha a loja");try{$("cliente").focus()}catch(e){}return}
   if(!(soma(state.pedido)>0||soma(state.troca)>0)){fatAviso("Lance os itens");return}
+  try{if(perfil&&perfil.papelReal==="admin"&&!perfil.vendeu&&fbDb&&fbAuth&&fbAuth.currentUser){perfil.vendeu=true;fbDb.collection("vendedores").doc(fbAuth.currentUser.uid).set({vendeu:true},{merge:true}).catch(()=>{})}}catch(_){}
   if(!curId)salvar();
   if(!curId){fatAviso("Lance os itens");return}
   stPed=(stPed==="alterando"&&snapFat&&assinaCt()!==snapFat)?"alterado":"fechado";snapFat=null;fechEm=Date.now();
@@ -2883,7 +2912,7 @@ if(curId){const e=hist.find(h=>h.id===curId);if(e){$("data").value=e.data||$("da
 aplicaAcesso();render();
 iniciaNuvem();
 /* Botão voltar do celular: fecha a tela aberta / volta uma página; na home exige duplo toque para sair */
-const OVS=[["fs","fsx"],["ov","fch"],["sg",null],["gf","gfx"],["sdt","sdx"],["rl","rlx"],["ag","agx"],["hs","hfx"],["sp","spx"]];
+const OVS=[["ucv","ucx"],["fs","fsx"],["ov","fch"],["sg",null],["gf","gfx"],["sdt","sdx"],["rl","rlx"],["ag","agx"],["hs","hfx"],["sp","spx"]];
 function ovAberto(id){const e=$(id);return !!e&&e.classList.contains("on")}
 function telaAtual(){for(const id of ["rl","ag","hs","sp"]){if(ovAberto(id))return id}return ""}
 function voltaUm(){
@@ -3128,7 +3157,7 @@ $("motr").onclick=()=>{mot.dia="";motAbrir()};
 // ===== Entrega e ocorrência (por pedido) =====
 const ocRef=k=>fbDb.collection("entrega").doc(k);
 const podeFin=()=>!!(perfil&&/^(motorista|developer)$/.test(perfil.papel||""));
-const podeReab=()=>!!(perfil&&(/^(faturamento|developer)$/.test(perfil.papel||"")||perfil.papelReal==="developer"));
+const podeReab=()=>!!(perfil&&(perfil.papelReal==="developer"||(/^(faturamento|developer)$/.test(perfil.papel||"")&&/^(faturamento|developer)$/.test(perfil.papelReal||perfil.papel||""))));
 const ocL={};
 function ocOuve(k,fn){let o=ocL[k];if(!o){o=ocL[k]={data:null,subs:new Set()};
     o.un=ocRef(k).onSnapshot(sn=>{o.data=sn.exists?(sn.data()||{}):{};o.subs.forEach(f=>{try{f(o.data)}catch(e){}})},()=>{o.data=o.data||{};o.subs.forEach(f=>{try{f(o.data)}catch(e){}})})}
@@ -3516,7 +3545,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="183";
+const VER="184";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
