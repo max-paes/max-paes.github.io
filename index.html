@@ -1304,7 +1304,9 @@ function camBotoes(){const fl=$("camfl");fl.hidden=!CAM.cap.torch;fl.setAttribut
   $("camln").hidden=!(CAM.devs&&CAM.devs.length>1);if(CAM.devs&&CAM.devs.length>1){const i=Math.max(0,CAM.devs.indexOf(CAM.dev));$("camln").textContent="🔁 Lente "+(i+1)+"/"+CAM.devs.length}}
 async function camLentes(){try{const L=await navigator.mediaDevices.enumerateDevices();const vs=L.filter(d=>d.kind==="videoinput");
   const tras=vs.filter(d=>!/front|frontal|user|selfie/i.test(d.label||""));CAM.devs=(tras.length?tras:vs).map(d=>d.deviceId).filter(Boolean)}catch(_){CAM.devs=[]}camBotoes()}
-async function camAbrir(max,fn,falha){if(max<=0)return;if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
+/* fotos pela câmera do próprio celular (formato original, qualidade máxima); a câmera interna fica desligada */
+const CAM_APP=false;
+async function camAbrir(max,fn,falha){if(max<=0)return;if(!CAM_APP){falha();return}if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){falha();return}
   CAM.max=max;CAM.n=0;CAM.fn=fn;CAM.falha=falha;CAM.bp=null;CAM.S=null;CAM.gx=0;CAM.gy=9.8;try{window.addEventListener("devicemotion",camSensor)}catch(_){}camModo("vivo");$("cam").classList.add("on");$("camm").textContent="";
   try{let pref="";try{pref=localStorage.getItem("mpv:camdev")||""}catch(_){}await camLiga(pref);$("camm").textContent=camTxt();camLentes()}
   catch(e){camFecha();falha()}}
@@ -3532,7 +3534,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="190";
+const VER="191";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
