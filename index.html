@@ -1271,17 +1271,22 @@ function visFotos(){const B=$("vfotos");if(!B)return;try{hqCarrega(visita.fo||[]
     w.appendChild(x);B.appendChild(w)});
   if(ids.length){const n=document.createElement("small");n.className="fin";n.textContent="As fotos são apagadas "+FOTO_DIAS+" dias depois que a direção as visualiza.";B.appendChild(n)}
   if(ids.length<999){const b=document.createElement("button");b.textContent="📷 Fotos da visita"+(ids.length?" ("+ids.length+")":"");b.onclick=()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);return}camAbrir(999-(visita.fo||[]).length,async f=>{await visFoto(f);visFotos();atualizaTxt()},()=>$("vfi").click())};B.appendChild(b)}}
-function visFoto(file){const uid=visUid();
-  return new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(file);
-    im.onload=()=>{URL.revokeObjectURL(u);const m=900,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-      c.getContext("2d").drawImage(im,0,0,c.width,c.height);let q=0.6,d=c.toDataURL("image/jpeg",q);while(d.length>420000&&q>0.3){q-=0.1;d=c.toDataURL("image/jpeg",q)}
-      if((visita.fo||[]).length>=999){ok();return}
-      const id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);vfoto[id]=d;visita.fo=(visita.fo||[]).concat([id]);
-      const reg={j:d,ts:Date.now(),data:$("data").value,cli:U($("cliente").value.trim()),p:curId?"p_"+curId:""};
-      if(uid&&navigator.onLine!==false){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:d,ts:reg.ts,data:reg.data,cli:reg.cli,tipo:"visita"}).catch(e=>{filaPut(id,reg)});fiReg(uid,"v_"+id,{t:"v",d:reg.data,c:reg.cli,p:reg.p})}
-      else filaPut(id,reg);
-      salvar();hqPut(id,file);ok(id)};
-    im.onerror=()=>{URL.revokeObjectURL(u);ok()};im.src=u})}
+/* foto aparece na hora (prévia direto do arquivo); a cópia leve é feita e enviada em segundo plano */
+function fotoLeve(file){return new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(file);im.decoding="async";
+  im.onload=()=>{URL.revokeObjectURL(u);const m=900,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height);let q=0.6,d=c.toDataURL("image/jpeg",q);while(d.length>420000&&q>0.3){q-=0.1;d=c.toDataURL("image/jpeg",q)}ok(d)};
+  im.onerror=()=>{URL.revokeObjectURL(u);ok("")};im.src=u})}
+function visFoto(file){const uid=visUid();if((visita.fo||[]).length>=999)return Promise.resolve();
+  const V=visita,id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36),pv=URL.createObjectURL(file);
+  const reg={ts:Date.now(),data:$("data").value,cli:U($("cliente").value.trim()),p:curId?"p_"+curId:""};
+  vfoto[id]=pv;V.fo=(V.fo||[]).concat([id]);hqPut(id,file);salvar();
+  setTimeout(()=>fotoLeve(file).then(d=>{if(!(V.fo||[]).includes(id)){URL.revokeObjectURL(pv);return}
+    if(!d){aviso("Não consegui ler essa foto.");return}
+    vfoto[id]=d;reg.j=d;
+    if(uid&&navigator.onLine!==false){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:d,ts:reg.ts,data:reg.data,cli:reg.cli,tipo:"visita"}).catch(e=>{filaPut(id,reg)});fiReg(uid,"v_"+id,{t:"v",d:reg.data,c:reg.cli,p:reg.p})}
+    else filaPut(id,reg);
+    if(visita===V)visFotos();setTimeout(()=>URL.revokeObjectURL(pv),3000)}),60);
+  return Promise.resolve(id)}
 const CAM={st:null,n:0,max:0,fn:null,blob:null,gx:0,gy:9.8};
 /* o app fica travado em retrato: lê a inclinação do celular para gravar a foto em paisagem quando ele está deitado */
 function camSensor(e){const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;CAM.gx=CAM.gx*.6+g.x*.4;CAM.gy=CAM.gy*.6+(g.y||0)*.4}
@@ -3006,16 +3011,14 @@ const fdoc=(sid,cat,id)=>mot.dia+"_"+sid+"_"+cat+"_"+id;
 function motPend(cli,sid,patch){const uid=fbAuth.currentUser.uid;
   return fbDb.collection("vendedores/"+uid+"/docs").doc("m_pend").set({tipo:"pend",ts:Date.now(),l:{[pkey(cli)]:{c:cli,d:mot.dia,s:sid,...patch}}},{merge:true}).catch(()=>{})}
 function motFoto(sid,cat,file){const uid=fbAuth.currentUser.uid;
-  return new Promise(ok=>{const im=new Image(),u=URL.createObjectURL(file);
-    im.onload=()=>{URL.revokeObjectURL(u);const m=900,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-      c.getContext("2d").drawImage(im,0,0,c.width,c.height);let q=0.6,d=c.toDataURL("image/jpeg",q);while(d.length>420000&&q>0.3){q-=0.1;d=c.toDataURL("image/jpeg",q)}
-      const ids=(((mot.reg.p||{})[sid]||{}).fo||{})[cat]||[];if(ids.length>=MAXF){$("motm").textContent="Limite de "+MAXF+" fotos.";ok();return}
-      const id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
-      mot.fotos[sid+"_"+cat+"_"+id]=d;
-      fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).set({j:d,ts:Date.now(),data:mot.dia,sid,cat}).catch(e=>{$("motm").textContent="Não consegui enviar a foto ("+(e.code||e.message)+")."});
-      fiReg(uid,fdoc(sid,cat,id),{t:"e",d:mot.dia,s:sid});
-      motP(sid,{fo:{[cat]:ids.concat([id])}});motRender();ok()};
-    im.onerror=()=>{URL.revokeObjectURL(u);$("motm").textContent="Não consegui ler essa foto.";ok()};im.src=u})}
+  const ids=(((mot.reg.p||{})[sid]||{}).fo||{})[cat]||[];if(ids.length>=MAXF){$("motm").textContent="Limite de "+MAXF+" fotos.";return Promise.resolve()}
+  const id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36),k=sid+"_"+cat+"_"+id,dia=mot.dia,pv=URL.createObjectURL(file);
+  mot.fotos[k]=pv;motP(sid,{fo:{[cat]:ids.concat([id])}});motRender();
+  setTimeout(()=>fotoLeve(file).then(d=>{if(!d){$("motm").textContent="Não consegui ler essa foto.";return}
+    if(mot.fotos[k]!==pv){URL.revokeObjectURL(pv);return}mot.fotos[k]=d;
+    fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).set({j:d,ts:Date.now(),data:dia,sid,cat}).catch(e=>{$("motm").textContent="Não consegui enviar a foto ("+(e.code||e.message)+")."});
+    fiReg(uid,fdoc(sid,cat,id),{t:"e",d:dia,s:sid});motRender();setTimeout(()=>URL.revokeObjectURL(pv),3000)}),60);
+  return Promise.resolve()}
 function motFotoTira(sid,cat,id){const uid=fbAuth.currentUser.uid,ids=((((mot.reg.p||{})[sid]||{}).fo||{})[cat]||[]).filter(x=>x!==id);
   fbDb.collection("vendedores/"+uid+"/fotos").doc(fdoc(sid,cat,id)).delete().catch(()=>{});fiTira(uid,fdoc(sid,cat,id));delete mot.fotos[sid+"_"+cat+"_"+id];try{const P=(mot.reg.p=mot.reg.p||{}),q=(P[sid]=P[sid]||{});q.fo={...(q.fo||{}),[cat]:ids}}catch(_){}motP(sid,{fo:{[cat]:ids}});motRender()}
 function motCarregaFoto(sid,cat,id){const k=sid+"_"+cat+"_"+id;if(mot.fotos[k]||mot.fq[k])return;mot.fq[k]=1;const uid=fbAuth.currentUser.uid;
@@ -3534,7 +3537,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="192";
+const VER="193";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
