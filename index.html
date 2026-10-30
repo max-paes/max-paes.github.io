@@ -1360,7 +1360,9 @@ $("camln").onclick=async()=>{if(!CAM.devs||CAM.devs.length<2)return;const i=CAM.
      if(Object.keys(adv).length)CAM.tk.applyConstraints({advanced:[adv]}).then(()=>{if(fm.includes("continuous"))setTimeout(()=>{if(CAM.tk)CAM.tk.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{})},2500)}).catch(()=>{})}
    tapXY=null};
  v.addEventListener("pointerup",fim);v.addEventListener("pointercancel",e=>{P.delete(e.pointerId);pin=null;tapXY=null})}
-$("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
+/* guarda o arquivo original da câmera (qualidade máxima) na galeria do celular, pasta Download */
+function salvaNoCel(f,base){try{const t=new Date(),nm=("MaxPaes_"+(base||"foto")+"_"+isoD(t)+"_"+String(t.getHours()).padStart(2,"0")+"-"+String(t.getMinutes()).padStart(2,"0")+"-"+String(t.getSeconds()).padStart(2,"0")+"_"+Math.floor(Math.random()*900+100)).replace(/[^\w\-]+/g,"_")+".jpg",u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=nm;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}catch(e){}}
+$("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";L.forEach(f=>salvaNoCel(f,U($("cliente").value.trim())));for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 async function copiaTexto(t){
   let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
   if(!ok){try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e){}}
@@ -3030,7 +3032,7 @@ function fotoBloco(sid,cat,r,rot){const ids=((r.fo||{})[cat])||[],b=document.cre
     x.onclick=()=>{if(!(FDEL.k===fk&&Date.now()-FDEL.t<4000)){FDEL.k=fk;FDEL.t=Date.now();x.textContent="Confirmar?";setTimeout(()=>{if(FDEL.k===fk&&x.isConnected)x.textContent="🗑 Excluir"},4000);return}FDEL.k="";w.remove();motFotoTira(sid,cat,id)};w.appendChild(x);b.appendChild(w)});
   if(ids.length<MAXF){const fb=document.createElement("button"),fi=document.createElement("input");fb.textContent="📷 "+(rot||"Fotos")+(ids.length?" ("+ids.length+")":"");
     fi.type="file";fi.accept="image/*";fi.setAttribute("capture","environment");fi.hidden=true;fb.onclick=()=>camAbrir(MAXF-ids.length,f=>motFoto(sid,cat,f),()=>fi.click());
-    fi.onchange=async()=>{const L=[...fi.files].slice(0,MAXF-ids.length);if(!L.length)return;fb.textContent="Enviando…";for(const f of L)await motFoto(sid,cat,f)};
+    fi.onchange=async()=>{const L=[...fi.files].slice(0,MAXF-ids.length);if(!L.length)return;L.forEach(f=>salvaNoCel(f,(r.c||"entrega")+"_"+(rot||cat)));fb.textContent="Enviando…";for(const f of L)await motFoto(sid,cat,f)};
     b.append(fb,fi)}
   return b}
 function motRota(LST,v){if(!fbDb)return;const n=(perfil&&perfil.nome)||"";
@@ -3537,7 +3539,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="193";
+const VER="194";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
