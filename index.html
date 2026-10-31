@@ -1782,7 +1782,7 @@ async function resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU){const b=$("dirrs"),
     const blob=await new Promise(z=>c2.toBlob(z,"image/jpeg",0.92));ultimo={blob,nome:"resumo-diretor-"+sup.dia+".jpg",url:c2.toDataURL("image/jpeg",0.92)};abrirPrev("Resumo do diretor pronto. Salve ou envie no WhatsApp.")}
   catch(e){diag(e,"resumo")}finally{b.textContent=r0}}
 const quemTxt=()=>perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"";
-function supRender(){if(!$("sp").classList.contains("on"))return;{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spuc").hidden=true;$("spfp").hidden=$("spfe").hidden=!ehSup();const um=ucModo();$("spmn").textContent=um?"Usar como":"☰ Mais";$("spmn").hidden=!um&&![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
+function supRender(){if(!$("sp").classList.contains("on")){try{if($("sgv").parentElement===$("cfgah"))supGerencia()}catch(_){}return}{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spuc").hidden=true;$("spfp").hidden=$("spfe").hidden=!ehSup();const um=ucModo();$("spmn").textContent=um?"Usar como":"☰ Mais";$("spmn").hidden=!um&&![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
   const d=sup.dia,hj=hojeISO(),[s0,s1]=supRng(),dia=sup.modo==="dia",tudo=sup.modo==="tudo";
   $("spd").textContent=tudo?"Histórico · últimos "+HIST_DIAS+" dias":dia?(d===hj?"Hoje · ":["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][new Date(d+"T12:00:00").getDay()]+" · ")+dBR(d):dBR(s0)+" a "+dBR(s1);
   $("smd").setAttribute("aria-pressed",dia);$("sms").setAttribute("aria-pressed",sup.modo==="semana");$("smt").setAttribute("aria-pressed",tudo);$("spsem").hidden=sup.modo!=="semana";
@@ -3571,7 +3571,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="197";
+const VER="198";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
