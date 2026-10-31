@@ -1419,7 +1419,7 @@ async function espelhar(uid){if(!ehDev()||!fbDb)return;
   nv.pend=new Set();nv.cfg=false;nv.db=fbDb;nv.uid=uid;
   limparTudo();$("sp").classList.remove("on");mostraVendedor();supPronto();escuta();
   nv.pend=new Set();nv.cfg=false;vcPinta();
-  aviso("Você está na conta de "+ESP.nome+" ("+rotP(ESP.papel)+"), ao vivo e só vendo: nada é gravado. Para agir como ela, toque em 🔒 Só ver."+(ESP.papel==="admin"?" Para sair: ⚙ Configurações.":" Para sair, escolha Developer."))}
+  aviso("Você está na conta de "+ESP.nome+" ("+rotP(ESP.papel)+"), ao vivo e só vendo: nada é gravado. Para agir como ela, toque em 🔒 Só ver. Para sair, escolha Developer.")}
 function espGrava(){if(!ESP)return;const g=$("vcg");
   if(ESP.grava){ESP.grava=false;nv.pend=new Set();nv.cfg=false;vcPinta();aviso("De volta ao modo só ver.");return}
   if(g.dataset.c!=="1"){g.dataset.c="1";g.textContent="Gravar como "+(ESP.nome.split(" ")[0]||"ela")+"? Toque de novo";setTimeout(()=>{g.dataset.c="";vcPinta()},3000);return}
@@ -2204,7 +2204,7 @@ function vcOv(){try{$("vcb").classList.toggle("ovh",$("sg").classList.contains("
 try{new MutationObserver(vcOv).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]})}catch(e){}
 function vcPos(){vcOv();try{const b=$("vcb");if(b.hidden)return;let y=8;const bar=document.querySelector(".bar");if(bar&&getComputedStyle(bar).display!=="none"&&bar.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-bar.getBoundingClientRect().top+8);const a=$("attb");if(a&&!a.hidden&&a.getBoundingClientRect().height>0)y=Math.max(y,window.innerHeight-a.getBoundingClientRect().top+8);b.style.bottom=y+"px"}catch(e){}}
 window.addEventListener("resize",vcPos);setInterval(()=>{vcPos();try{if(!$("vcb").hidden!==ehDev()&&typeof ESP!=="undefined"&&!ESP)vcPinta()}catch(e){}},2000);
-function vcPinta(){const b=$("vcb");const dirF=!!perfil&&(perfil.papel==="admin"||!!perfil.ucBase);b.hidden=!ehDev()||dirF;if(!ehDev()||dirF)return;setTimeout(vcPos,0);vcUsuarios();
+function vcPinta(){const b=$("vcb");b.hidden=!ehDev();if(!ehDev())return;setTimeout(vcPos,0);vcUsuarios();
   $("vcs").value=ESP?"u:"+ESP.uid:(perfil.papel||"developer");b.classList.toggle("on",!!ESP||perfil.papel!=="developer");
   const g=$("vcg");g.hidden=!ESP;if(ESP){g.className=ESP.grava?"on":"";g.textContent=ESP.grava?"✍ Gravando":"🔒 Só ver"}}
 let vcU=null;
@@ -3571,7 +3571,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="198";
+const VER="199";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
