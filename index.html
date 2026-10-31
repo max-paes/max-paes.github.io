@@ -559,6 +559,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   <div class="hhead"><b>Metas do mês</b><button id="mtx">Fechar</button></div><p class="msg" id="mtm" style="margin:0 2px 8px"></p><div id="mtc"></div>
   <div class="acts" style="margin-top:10px"><button id="mts">Salvar metas</button></div><p class="msg" id="mtr" style="margin:6px 2px 0"></p>
 </div></div>
+<div class="ov" id="cadv" role="dialog" aria-modal="true" aria-labelledby="cadt"><div class="box" style="max-width:520px"><h2 id="cadt">Cadastro das lojas</h2><p id="cadm" class="msg">Lendo as lojas de todos os usuários…</p><div id="cadl" style="max-height:60vh;overflow:auto"></div><div class="acts"><button id="cadf">Fechar</button></div></div></div>
 <div class="ov" id="ucv" role="dialog" aria-modal="true" aria-labelledby="uct"><div class="box" style="max-width:420px">
   <div class="hhead"><b id="uct">Usar o app como</b><button id="ucx">Fechar</button></div>
   <p class="msg" style="margin:0 2px 10px">Abre a tela de cada função com os seus acessos de diretor. Em todas elas este mesmo botão aparece no topo.</p>
@@ -603,7 +604,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 </div></div>
 <div class="ov" id="cfgv" role="dialog" aria-modal="true" aria-labelledby="cfgt"><div class="box">
   <div class="hhead"><b id="cfgt">Configurações</b><button id="cfgx">Fechar</button></div>
-  <div class="cfs"><small>Conta</small><p id="cfq" class="cfn"></p><div class="acts"><button id="cfsen">Mudar senha</button><button id="cfsair">Sair da conta</button></div><button id="cfout" class="sec" hidden style="width:100%;margin-top:8px">📵 Sair dos outros aparelhos</button><button id="cfdevv" class="sec" hidden style="width:100%;margin-top:8px">↩ Voltar a Developer</button><p class="msg" id="cfoutm" style="margin:6px 2px 0"></p></div>
+  <div class="cfs"><small>Conta</small><p id="cfq" class="cfn"></p><div class="acts"><button id="cfsen">Mudar senha</button><button id="cfsair">Sair da conta</button></div><button id="cfout" class="sec" hidden style="width:100%;margin-top:8px">📵 Sair dos outros aparelhos</button><button id="cfdevv" class="sec" hidden style="width:100%;margin-top:8px">↩ Voltar a Developer</button><button id="cfcad" class="sec" hidden style="width:100%;margin-top:8px">🏪 Conferir cadastro das lojas</button><p class="msg" id="cfoutm" style="margin:6px 2px 0"></p></div>
   <div class="cfs" id="cfga" hidden><small>Acessos</small><div id="cfgah"></div></div>
   <div class="cfs" id="cfavs" hidden><small>Avisos</small><button id="cfav" class="sec" style="width:100%"></button><p class="msg" id="cfavm" style="margin:6px 2px 0"></p></div>
   <div class="cfs"><small>Tamanho do texto</small><div class="seg" id="cffs"><button data-f="0">Normal</button><button data-f="1">Grande</button><button data-f="2">Muito grande</button></div></div>
@@ -1502,6 +1503,18 @@ const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="produca
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[];/* pedidos entregues pela empresa já aplicados; lista esvaziada para não recriar pedidos excluídos */
 const CLI_NOVOS=[["BOAMA","MARAPONGA"],["VOLTA A VIDA","LAGOA REDONDA"],["MANÁ SEDE","ALTO ALEGRE"],["MANÁ 1","MARACANAÚ"],["MANÁ 2","ITAITINGA"],["MANÁ 3","ITAITINGA"],["ANA RISORLANGE 01","BOM JARDIM"],["ANA RISORLANGE 02","BOM SUCESSO"],["ANA RISORLANGE 03","PARQUE DOIS IRMÃOS"],["COMPREMAX SARGENTO HERMÍNIO","SARGENTO HERMÍNIO"],["COMPREMAX MISTER HULL","MISTER HULL"],["COMPREMAX PINDORETAMA","PINDORETAMA"],["COMPREMAX PECÉM","PECÉM"],["COMPREMAX ICARAÍ","ICARAÍ"],["COMPREMAX METRÓPOLE (POSTO)","METRÓPOLE (POSTO)"],["COMPREMAX NOVA METRÓPOLE","NOVA METRÓPOLE"],["OFERTÃO MAX CANINDÉ","CANINDÉ"],["OFERTÃO MAX CAUCAIA","CAUCAIA"],["REAL BOX","QUINTINO CUNHA"],["AZEVEDO","VILA VELHA"],["NOVO BOX","CRISTO REDENTOR"],["SUPER FREITAS","AQUIRAZ"],["BEBETO","AQUIRAZ"],["MOBYDICK","ICARAÍ"],["SUPER DIKA","PLANALTO CAUCAIA"],["SUPER BARATÃO","CANINDÉ"],["SUPER MARTIN","CANINDÉ"],["PRADO 02","CAUCAIA"],["QUEIROZ","CAUCAIA"],["ERIVALDO","CONJUNTO CEARÁ 02"],["BRASILEIRO FILIAL","JARDIM CEARENSE"],["BRASILEIRO","RODOLFO TEÓFILO"],["CENTRAL BOX","NOVO MONDUBIM"],["PROGRESSO","MARACANAÚ"],["POPULAR JOSÉ WALTER","JOSÉ WALTER"],["POPULAR AIRTON SENA","AIRTON SENA"]];
+/* cadastro oficial dos clientes (razão social, CNPJ/CPF e endereço) — sai no documento do pedido e da troca */
+const CAD=[["AGUIAR MERCADINHO","C A FRANCA MERCADINHO","20.082.690/0001-82","RUA TEODORO DE CASTRO","2509","GRANJA LISBOA",["AGUIAR","AGUIAR SUPERMERCADO"]],["AURISTELA 01","MARIA AURISTELA NEVES DE MENEZES","35.086.396/0001-16","RUA SARGENTO BARBOSA","200","GRANJA LISBOA",["AURISTELA 1"]],["AURISTELA 02","MARIA AURISTELA NEVES DE MENEZES","35.086.396/0002-05","RUA CORONEL FABRICIANO","2085","GRANJA LISBOA",["AURISTELA 2"]],["COMERCIAL BOAMA DE ALIMENTOS LTDA","COMERCIAL BOAMA DE ALIMENTOS LTDA","42.221.951/0001-30","RUA FRANCISCO GLICÉRIO","1187","MARAPONGA",["BOAMA"]],["COMPRE MAX ICARAÍ","COMERCIAL DE ALIMENTOS SAN FRANCISCO LTDA","28.102.883/0005-93","AVENIDA CENTRAL","1369","ICARAÍ",["COMPREMAX ICARAÍ"]],["COMPRE MAX METRÓPOLE","COMERCIAL DE ALIMENTOS SAN FRANCISCO LTDA","28.102.883/0002-40","AVENIDA CONTORNO LESTE (CJ. METRÓPOLE)","137","ARIANÓPOLIS (JUREMA)",["COMPREMAX METRÓPOLE (POSTO)","COMPREMAX METRÓPOLE"]],["COMPRE MAX MISTER HULL","COMERCIAL DE ALIMENTOS SAN GERARDO LTDA","06.339.545/0002-94","AVENIDA MISTER HULL","5380","ANTÔNIO BEZERRA",["COMPREMAX MISTER HULL"]],["COMPRE MAX NOVA METRÓPOLE","COMERCIAL DE ALIMENTOS SAN FRANCISCO LTDA","28.102.883/0006-74","AVENIDA A","782","NOVA METRÓPOLE (JUREMA)",["COMPREMAX NOVA METRÓPOLE"]],["COMPRE MAX PECÉM","COMERCIAL DE ALIMENTOS SAN FRANCISCO LTDA","28.102.883/0001-60","RUA DONA BEATRIZ BRAGA","","PECÉM",["COMPREMAX PECÉM"]],["COMPRE MAX PINDORETAMA","COMERCIAL DE ALIMENTOS SAN GERARDO LTDA","06.339.545/0007-07","RUA FIRMINO CRISÓSTOMO","1959","CENTRO",["COMPREMAX PINDORETAMA"]],["COMPRE MAX SARGENTO HERMÍNIO","COMERCIAL DE ALIMENTOS SAN GERARDO LTDA","06.339.545/0001-03","AVENIDA SARGENTO HERMÍNIO SAMPAIO","4200","ANTÔNIO BEZERRA",["COMPREMAX SARGENTO HERMÍNIO"]],["FREITAS SUPERMERCADO LTDA","FREITAS SUPERMERCADO LTDA","73.770.067/0001-89","RUA TIBÚRCIO TARGINO","358","CENTRO",["SUPER FREITAS","FREITAS"]],["HORT MERCADO LJ 02","HORT MERCADO LTDA","61.899.554/0001-67","RUA QUINTINO CUNHA","1229","JARDIM AMÉRICA",["HORTI DAMAS"]],["HORT MERCADO LTDA","HORT MERCADO LTDA","61.899.554/0002-48","RUA HERIBALDO RODRIGUES","142","PARQUE POTIRA (JUREMA)",["HORTI POTIRA"]],["HOSPITAL IVV - INSTITUTO VOLTA VIDA","HOSPITAL IVV - INSTITUTO VOLTA VIDA LTDA","10.451.523/0001-08","RUA RAQUEL FLORÊNCIO","401","LAGOA REDONDA",["VOLTA A VIDA"]],["J K FRIOS","CARVALHO COMÉRCIO DE FRIOS LTDA","42.853.335/0001-00","AVENIDA JOSÉ TORRES","1128","GRANJA LISBOA",["JK FRIOS"]],["LEMOS SUPERMERCADO LTDA","LEMOS SUPERMERCADO LTDA","05.277.359/0001-24","RUA PRETRORIO","1749","ALTO ALEGRE II",["LEMOS"]],["MANÁ LOG 03","MR REFEIÇÕES CORPORATIVAS LTDA","08.931.350/0007-79","QUARTO ANEL VIÁRIO","3955","ANCURI",["MANÁ 3"]],["MANÁ REFEIÇÕES","MR REFEIÇÕES CORPORATIVAS LTDA","08.931.350/0001-83","TRAVESSA 15","1920","ALTO ALEGRE II",["MANÁ SEDE"]],["MANÁ REFEIÇÕES FILIAL","MR REFEIÇÕES CORPORATIVAS LTDA","08.931.350/0005-07","RODOVIA ANEL VIÁRIO","4902","BOA ESPERANÇA",["MANÁ 1"]],["MARBOX 03 RMC","SUPERMERCADO RMC LTDA","05.867.155/0002-24","AVENIDA SÃO VICENTE DE PAULA","1161","ARATURI (JUREMA)",[]],["MERCADINHO AZEVEDO VILA VELHA","MERCADINHO AZEVEDO LTDA ME","09.415.261/0001-47","AVENIDA MAJOR ASSIS","3044","VILA VELHA",["AZEVEDO"]],["MERCADINHO O LUIZ","DANIEL R DE HOLANDA","32.932.536/0001-31","RUA SANTA FILOMENA","807","HENRIQUE JORGE",["O LUIZ"]],["MERCADINHO QUEIROZ","SQ COMÉRCIO VAREJISTA DE ALIMENTOS LTDA","24.358.307/0001-27","RUA JOSÉ EMÍDIO DA ROCHA","881","GRILO",["QUEIROZ"]],["MERCANTIL CENTRAL BOX","CENTRAL BOX MERCADINHO LTDA","30.412.117/0001-43","RUA 101","21","NOVO MONDUBIM",["CENTRAL BOX"]],["MINI SUPER MARTIN","PAULO MARTINHO RICARDO VENANCIO","05.212.533/0001-50","RUA JOAQUIM MAGALHÃES","892","CENTRO",["SUPER MARTIN","MARTIN"]],["MORROS SUPERMERCADO","F LINCOLN F DE SALES","07.209.283/0001-25","RUA SENADOR ROBERT KENNEDY","209","BARRA DO CEARÁ",["MORROS"]],["NOVO BOX","MERCANTIL NOVO BOX LTDA","04.540.758/0001-73","RUA PASTEUR","715","CRISTO REDENTOR",[]],["OFERTÃO MAX CANINDÉ","COMERCIAL DE ALIMENTOS SAN FRANCISCO LTDA","28.102.883/0004-02","RUA LUCIANO MAGALHÃES","520","BELA VISTA",[]],["OFERTÃO MAX CAUCAIA","COMERCIAL DE ALIMENTOS SAN FRANCISCO LTDA","28.102.883/0003-21","RUA PRESIDENTE GETÚLIO VARGAS","8","CENTRO",[]],["PARENTE ATACADISTA LJ 02","V.P. PARENTE COMÉRCIO DE ALIMENTOS LTDA","53.202.563/0001-29","RUA CORONEL VIRGÍLIO NOGUEIRA","1546","GRANJA LISBOA",["PARENTE 2","PARENTE ATACADISTA 2"]],["PARENTE LJ 01","C & V PARENTE COMÉRCIO DE ALIMENTOS LTDA","37.678.087/0001-60","RUA CORONEL FABRICIANO","704","GRANJA PORTUGAL",["PARENTE 1","PARENTE ATACADISTA 1"]],["REAL BOX MERCADINHO","D & J COMERCIAL DE ALIMENTOS LTDA","09.392.115/0001-43","RUA PADRE PERDIGÃO SAMPAIO","435","QUINTINO CUNHA",["REAL BOX"]],["RIBAMAR","F M ROCHA DA SILVA LTDA","07.546.352/0001-96","RUA FRANCISCO GOMES DA SILVA","62","CAPUAN",[]],["SUPER ARAGÃO","COMERCIAL TREVO DA SORTE LTDA","48.029.434/0001-40","RUA MINERVA","39","GENIBAÚ",["ARAGÃO"]],["SUPER ARIMATÉIA","A MOREIRA DA SILVA MERCADORIAS LTDA","11.554.739/0001-61","RUA DO CAMPO","420","CAPUAN",["ARIMATÉIA"]],["SUPER BARATÃO","SUPER BARATÃO COMÉRCIO DE ALIMENTOS LTDA","42.798.657/0001-96","RUA JOSÉ VELOSO JUCÁ","2263","ALTO GUARAMIRANGA",[]],["SUPER DIKA","H & A COMÉRCIO EIRELI","27.847.157/0001-03","RUA VINTE E QUATRO DE JANEIRO","138","CIGANA",[]],["SUPER GODÔ","DANUSIO DE PAIVA FERREIRA","00.427.273/0001-17","RUA SANTA EFIGÊNIA","350","MESSEJANA",["GODÔ"]],["SUPER LONDRINA 2","MARIA DAS GRAÇAS RODRIGUES BARROSO","12.240.767/0001-77","AVENIDA GENIBAÚ","301","PARQUE GENIBAÚ",["LONDRINA","LONDRINA 2"]],["SUPER MASTER","E S M SERVIÇOS LTDA","61.265.893/0001-91","RUA 23 DE JUNHO","1332","GRANJA PORTUGAL",["SUPERMASTER"]],["SUPER MERCANTIL O BEBETO","ALBERTO SAVIO CAVALCANTE LOPES","036.042.713-80","AVENIDA SANTOS DUMONT","785","CENTRO",["BEBETO"]],["SUPERDOCA","DOCA COMÉRCIO DE PRODUTOS ALIMENTÍCIOS LTDA","15.258.788/0004-50","RUA DOUTOR PERGENTINO MAIA","458","MESSEJANA",[]],["SUPERMERCADO ANA RISORLANGE LJ 01","SUPERMERCADO ANA RISORLANGE LTDA","01.755.101/0001-35","RUA MARIA JÚLIA","980","BOM JARDIM",["ANA RISORLANGE 01"]],["SUPERMERCADO ANA RISORLANGE LJ 02","SUPERMERCADO ANA RISORLANGE LTDA","01.755.101/0003-05","RUA VERBENA","630","BONSUCESSO",["ANA RISORLANGE 02"]],["SUPERMERCADO ANA RISORLANGE LJ 03","SUPERMERCADO ANA RISORLANGE LTDA","01.755.101/0004-88","RUA BERNARDO MANUEL","8351","PARQUE DOIS IRMÃOS",["ANA RISORLANGE 03"]],["SUPERMERCADO BRASILEIRO FILIAL","GML COMÉRCIO VAREJISTA LTDA","29.760.432/0002-63","RUA MARIA JOSEFINA PESSOA","504","JARDIM CEARENSE",["BRASILEIRO FILIAL"]],["SUPERMERCADO BRASILEIRO MATRIZ","GML COMÉRCIO VAREJISTA LTDA","29.760.432/0001-82","RUA MONSENHOR FURTADO","1000","RODOLFO TEÓFILO",["BRASILEIRO","BRASILEIRO MATRIZ"]],["SUPERMERCADO ERIVALDO","SUPERMERCADO ERIVALDO LTDA","51.511.265/0001-95","RUA 311","59","CONJUNTO CEARÁ II",["ERIVALDO"]],["SUPERMERCADO MOBYDICK","F. PIMENTA COMÉRCIO DE ALIMENTOS LTDA","07.438.507/0001-70","AVENIDA CENTRAL","5450","ICARAÍ",["MOBYDICK"]],["SUPERMERCADO MOBYDICK NOVO","JOSÉ RAIMUNDO RIBEIRO RODRIGUES FILHO LTDA","68.163.654/0001-70","AVENIDA CENTRAL","5452","ICARAÍ",["MOBYDICK NOVO"]],["SUPERMERCADO PRADO","R T PRADO COMÉRCIO LTDA","25.526.957/0001-05","RUA SÃO MIGUEL","569","ITAMBÉ",["PRADO 02","PRADO"]],["SUPERMERCADO TELEFRANGO ACARAPE","SUPERMERCADO TELEFRANGO LTDA","09.517.617/0008-20","RUA HELLADIO VASCONCELOS FERREIRA","106","SÃO BENEDITO",["TELEFRANGO ACARAPE"]],["SUPERMERCADO TELEFRANGO CASTELÃO","SUPERMERCADO TELEFRANGO LTDA","09.517.617/0009-00","AVENIDA DOUTOR SILAS MUNGUBA","6161","BOA VISTA",["TELEFRANGO CASTELÃO"]],["SUPERMERCADO TELEFRANGO GRANJA PORTUGAL","SUPERMERCADO TELEFRANGO LTDA","09.517.617/0001-53","RUA VITAL BRASIL","2821","GRANJA PORTUGAL",["TELEFRANGO GRANJA PORTUGAL","TELEFRANGO GRANJA"]],["SUPERMERCADO TELEFRANGO JOÃO XXIII","SUPERMERCADO TELEFRANGO","09.517.617/0003-15","RUA JÚLIO BRAGA","1490","JOÃO XXIII",["TELEFRANGO JOÃO XXIII"]]];
+const CAD_STOP=new Set(["super","supermercado","mercadinho","mercantil","mini","mercado","ltda","lj","loja","comercial","de","da","do","alimentos","me","eireli","o","a"]);
+const cadTk=t=>chave2(t).split(" ").filter(w=>w&&!CAD_STOP.has(w)).map(w=>w.replace(/^compre$/,"compremax"));
+let CADK=null;
+function cadDe(nome){if(!nome||!String(nome).trim())return null;
+  if(!CADK){CADK=new Map();CAD.forEach(r=>{[r[0],...r[6]].forEach(n=>{CADK.set(chave2(n),r);CADK.set(chave2(canon(n)),r)})})}
+  const r=CADK.get(chave2(canon(nome)))||CADK.get(chave2(nome));if(r)return cadObj(r);
+  const t=cadTk(canon(nome)).join(" ").replace(/compremax (\w)/,"compremax $1").split(" ").filter(Boolean);if(!t.length)return null;
+  const hit=CAD.filter(r=>{const f=cadTk(r[0].replace(/^COMPRE MAX/,"COMPREMAX"));return t.every(w=>f.includes(w))&&f.length-t.length<=1});
+  return hit.length===1?cadObj(hit[0]):null}
+const cadObj=r=>({id:String(CAD.indexOf(r)+1),fan:r[0],raz:r[1],doc:r[2],end:r[3]+", "+(r[4]||"S/N")+" – "+r[5]});
 function garanteClientes(){let n=0;CLI_NOVOS.forEach(([nm,en])=>{const k=chave2(canon(nm)),ex=clientes.find(c=>chave2(canon(c.nome))===k);
   if(!ex){clientes.push({nome:nm,endereco:en,comprador:""});n++}else if(!ex.endereco){ex.endereco=en;n++}});
   if(n){salvaCli();try{listaCli()}catch(e){}}return n}
@@ -2214,6 +2227,21 @@ function ucBarra(){$("ucb").hidden=true;const on=ucModo(),p=perfil&&perfil.papel
   $("ucm").hidden=!on||!/^(vendedor|promotor)$/.test(p||"");$("fabuc").hidden=!on;$("motuc").hidden=!on;try{vcPinta()}catch(_){}}
 function ucAbre(){try{$("spmd").hidden=true}catch(_){}const p=perfil&&perfil.papel;document.querySelectorAll("#ucv [data-uc]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.uc===p?"true":"false"));$("ucv").classList.add("on")}
 ["ucm","fabuc","motuc"].forEach(i=>$(i).onclick=ucAbre);
+$("cadf").onclick=()=>$("cadv").classList.remove("on");
+$("cfcad").onclick=async()=>{$("cadv").classList.add("on");$("cadm").textContent="Lendo as lojas de todos os usuários…";$("cadl").innerHTML="";
+  const N=new Map(),add=(n,quem)=>{n=String(n||"").trim();if(!n)return;const k=chave2(canon(n));const o=N.get(k)||{n:canon(n),q:new Set()};o.q.add(quem);N.set(k,o)};
+  (clientes||[]).forEach(c=>add(c.nome,"este aparelho"));
+  try{const vs=await fbDb.collection("vendedores").get();await Promise.all(vs.docs.map(async v=>{const nm=((v.data()||{}).nome||v.id).split(" ")[0];
+    try{const d=await fbDb.collection("vendedores/"+v.id+"/docs").doc("cfg").get();if(d.exists){const j=JSON.parse((d.data()||{}).j||"{}");(j.clientes||[]).forEach(c=>add(c.nome,nm));
+      Object.values(j.agenda||j.rota||{}).forEach(l=>(Array.isArray(l)?l:[]).forEach(x=>add(typeof x==="string"?x:(x&&x.nome),nm)))}}catch(_){}}))}
+  catch(e){$("cadm").textContent="Sem permissão para ler os usuários ("+(e.code||e.message)+").";return}
+  const L=[...N.values()].map(o=>({...o,c:cadDe(o.n)})).sort((a,b)=>(!!a.c-!!b.c)||a.n.localeCompare(b.n,"pt-BR"));
+  const ok=L.filter(o=>o.c),no=L.filter(o=>!o.c),usa=new Set(ok.map(o=>o.c.id)),sobra=CAD.map((r,i)=>[i+1,r[0]]).filter(([i])=>!usa.has(String(i)));
+  $("cadm").textContent=L.length+" lojas no app · "+ok.length+" ligadas à tabela · "+no.length+" sem cadastro";
+  const sec=(t,h)=>"<b style='display:block;margin:12px 0 4px'>"+t+"</b>"+h;
+  $("cadl").innerHTML=sec("Sem cadastro na tabela ("+no.length+")",no.map(o=>"<div class='rr'><span class='t'>"+esc(o.n)+" <small style='color:var(--mute)'>· "+esc([...o.q].join(", "))+"</small></span></div>").join("")||"<p class='msg'>Nenhuma.</p>")
+    +sec("Linhas da tabela sem loja no app ("+sobra.length+")",sobra.map(([i,n])=>"<div class='rr'><span class='t'>"+i+" · "+esc(n)+"</span></div>").join("")||"<p class='msg'>Nenhuma.</p>")
+    +sec("Ligadas ("+ok.length+")",ok.map(o=>"<div class='rr'><span class='t'>"+esc(o.n)+" → <b>"+o.c.id+" · "+esc(o.c.fan)+"</b></span></div>").join(""))};
 $("spuc").onclick=ucAbre;$("ucx").onclick=()=>$("ucv").classList.remove("on");
 document.querySelectorAll("#ucv [data-uc]").forEach(b=>b.onclick=()=>{if(perfil&&b.dataset.uc===perfil.papel){$("ucv").classList.remove("on");return}usarComo(b.dataset.uc==="admin"?((perfil&&perfil.ucBase)||"admin"):b.dataset.uc)});$("ucbv").onclick=()=>usarComo((perfil&&perfil.ucBase)||"admin");
 function verComo(p){if(!ehDev())return;try{if(perfil)perfil.ucBase=null;$("ucb").hidden=true;$("ucv").classList.remove("on")}catch(_){}
@@ -2680,6 +2708,9 @@ function icoWpp(x,cx,cy,r){
   x.beginPath();x.arc(cx+r*.14,cy+r*.22,r*.1,0,Math.PI*2);x.fill();
   x.restore();
 }
+function camposDoc(){const F=id=>$(id).value.trim(),cd=cadDe(F("cliente"));
+  if(!cd)return [["Cliente:",F("cliente")],["Endereço:",F("endereco")],["Comprador:",F("comprador")]];
+  return [["Cliente:",cd.fan,"Cód.:",cd.id],["Razão social:",cd.raz],["CNPJ/CPF:",cd.doc,"Comprador:",F("comprador")],["Endereço:",cd.end]]}
 function cabecalho(x,W,P,logo,tit,campos,dTxt){
   x.strokeStyle=AZ;x.lineWidth=4;rr(x,P,P,W-2*P,170,24);x.stroke();
   x.fillStyle=AZ;x.textAlign="left";
@@ -2698,24 +2729,24 @@ function cabecalho(x,W,P,logo,tit,campos,dTxt){
   const campo=(rot,val,a,b,w)=>{
     x.fillStyle=AZ;x.font="800 22px "+FT;x.fillText(rot,a,b);
     const lx=a+x.measureText(rot).width+10;
-    x.fillStyle=TX;x.font="600 26px "+FT;
+    x.fillStyle=TX;let fs=26;x.font="600 26px "+FT;while(val&&fs>17&&x.measureText(val).width>a+w-lx){fs--;x.font="600 "+fs+"px "+FT}
     let v=val;while(v&&x.measureText(v).width>a+w-lx&&v.length>1)v=v.slice(0,-1);
     x.fillText(v,lx,b-2);
     x.strokeStyle=AZ;x.lineWidth=2;x.beginPath();x.moveTo(lx,b+6);x.lineTo(a+w,b+6);x.stroke();
   };
   const F=id=>$(id).value.trim();
-  (campos||[["Cliente:",F("cliente")],["Endereço:",F("endereco")],["Comprador:",F("comprador")]]).forEach(([r,v],i)=>campo(r,v,P,322+52*i,W-2*P));
+  const L=W-2*P,g=24;(campos||camposDoc()).forEach(([r,v,r2,v2],i)=>{const y=322+52*i;if(r2===undefined)campo(r,v,P,y,L);else{const w1=r2==="Cód.:"?L-g-150:Math.round((L-g)*0.55);campo(r,v,P,y,w1);campo(r2,v2,P+w1+g,y,L-g-w1)}});
 }
 const rotDoc=p=>p==="supervisor"?"Supervisor":(p==="promotor"||p==="developer")?"Promotor":"Vendedor";
 let docVend=null;
 function caixasDe(o){let cx=0;const fr=[];ITENS.forEach(n=>{const k=CX[n],v=o[n]||0;if(!k||v<=0)return;cx+=Math.floor(v/k);if(v%k)fr.push([n,v%k])});return{cx,fr}}
-function blocoCaixas(x,o,P,tw,y,so){const {cx,fr}=caixasDe(o),h=62+fr.length*34;if(so)return h;
+function blocoCaixas(x,o,P,tw,y,so){const {cx,fr}=caixasDe(o),h=76+fr.length*34;if(so)return h;
   x.fillStyle="#f1f5fc";rr(x,P,y+14,tw,h-14,14);x.fill();x.strokeStyle=AZ;x.lineWidth=2;rr(x,P,y+14,tw,h-14,14);x.stroke();
   x.textAlign="left";x.fillStyle=AZ;x.font="800 26px "+FT;x.fillText("CAIXAS: "+cx+(cx===1?" caixa":" caixas")+(fr.length?" + fracionados":""),P+20,y+54);
   x.fillStyle=TX;x.font="700 24px "+FT;fr.forEach(([n,r],i)=>{x.fillText(n+" - "+r,P+20,y+54+34*(i+1))});return h}
 function desenhar(sig,logo,m=mode){
   const q=state[m],lista=ITENS.filter(n=>q[n]>0);
-  const W=900,P=32,RH=58,T=462,EX=blocoCaixas(null,q,0,0,0,true)+10,H=T+56+Math.max(lista.length,1)*RH+220+EX;
+  const W=900,P=32,RH=58,T=306+52*camposDoc().length,EX=blocoCaixas(null,q,0,0,0,true)+10,H=T+56+Math.max(lista.length,1)*RH+220+EX;
   const c=document.createElement("canvas");c.width=W;c.height=H;
   const x=c.getContext("2d");
   x.fillStyle="#fff";x.fillRect(0,0,W,H);
@@ -3539,7 +3570,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="194";
+const VER="195";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -3558,7 +3589,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127
 }
 async function swNovo(w){let v="";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(r.ok)v=(await r.text()).trim()}catch(e){}
   if(v&&v===VER){try{w.postMessage({tipo:"atualizar"})}catch(e){}return}mostraAtt(w)}
-function cfgAbrir(){try{$("cfdevv").hidden=!(ehDev()&&!!perfil&&(perfil.papel==="admin"||!!perfil.ucBase||(typeof ESP!=="undefined"&&!!ESP)));
+function cfgAbrir(){try{$("cfcad").hidden=!(ehDev()&&!ESP&&!(perfil&&(perfil.papel==="admin"||perfil.ucBase)));$("cfdevv").hidden=!(ehDev()&&!!perfil&&(perfil.papel==="admin"||!!perfil.ucBase||(typeof ESP!=="undefined"&&!!ESP)));
   const avOn=!!perfil&&(perfil.papel==="admin"||!!perfil.ucBase);$("cfavs").hidden=!avOn;if(avOn){$("cfav").textContent=avisosOn()?"🔔 Avisos: ligados (toque para desligar)":"🔕 Avisos: desligados (toque para ligar)";$("cfavm").textContent=""}}catch(_){}try{$("cfout").hidden=!(perfil&&perfil.papelReal==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser);$("cfoutm").textContent=""}catch(_){}try{const dv=ehDev()&&!!perfil&&perfil.papel==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID;$("cfga").hidden=!dv;
   if(dv){const g=$("sgv");if(g&&g.parentElement!==$("cfgah"))$("cfgah").appendChild(g);g.hidden=false;if(fbDb&&!sup.uv)supLiga();supGerencia()}}catch(e){diag(e,"cfgAcessos")}$("cfq").textContent=perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"Sem conta conectada";$("cfsen").hidden=!(fbAuth&&perfil);$("cfsair").hidden=!fbAuth;
   $("cfv").textContent="Versão 1.0 · em desenvolvimento";$("cfdev").hidden=!(ehDev()&&!(typeof ESP!=="undefined"&&ESP));$("cfdc").innerHTML="";$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
