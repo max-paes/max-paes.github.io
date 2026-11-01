@@ -521,7 +521,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   <div class="sh" id="spmot">Motoristas</div><div class="vg" id="spmv"></div>
   <details class="gv" id="sgv"><summary>Gerenciar acessos</summary>
     <div class="gvf"><b>Novo acesso</b>
-      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option><option value="supervisor">Supervisor</option><option value="admin">Diretor</option></select></label>
+      <label>Perfil<select id="nvp"><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option><option value="supervisor">Vendedor (supervisão)</option><option value="admin">Diretor</option></select></label>
       <label>Nome<input id="nvn" autocapitalize="characters"></label>
       <label>E-mail<input id="nve" type="email" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
       <label>Senha inicial (mín. 6)<input id="nvs" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
@@ -540,7 +540,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   <p class="msg" id="fabm" style="margin:0 2px 10px"></p>
   <div id="fabc"></div>
 </div></div>
-<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Diretor</option><option value="supervisor">Supervisor</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option></select><button id="vcg" hidden>🔒 Só ver</button></div>
+<div id="vcb" hidden><span>👁</span><select id="vcs" aria-label="Ver o app como"><option value="developer">Developer</option><option value="admin">Diretor</option><option value="supervisor">Vendedor (supervisão)</option><option value="vendedor">Vendedor</option><option value="promotor">Promotor</option><option value="motorista">Motorista</option><option value="producao">Produção</option><option value="expedicao">Expedição</option><option value="faturamento">Faturamento</option></select><button id="vcg" hidden>🔒 Só ver</button></div>
 <div class="ov" id="ocm"><div class="box">
   <div class="hhead"><b id="ocmt">Ocorrência</b><button id="ocmx">Fechar</button></div>
   <div id="occ"></div>
@@ -563,7 +563,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 <div class="ov" id="ucv" role="dialog" aria-modal="true" aria-labelledby="uct"><div class="box" style="max-width:420px">
   <div class="hhead"><b id="uct">Usar o app como</b><button id="ucx">Fechar</button></div>
   <p class="msg" style="margin:0 2px 10px">Abre a tela de cada função com os seus acessos de diretor. Em todas elas este mesmo botão aparece no topo.</p>
-  <div class="ucg"><button data-uc="admin">Diretor</button><button data-uc="vendedor">Vendedor</button><button data-uc="promotor">Promotor</button><button data-uc="supervisor">Supervisor</button><button data-uc="faturamento">Faturamento</button><button data-uc="expedicao">Expedição</button><button data-uc="producao">Produção</button><button data-uc="motorista">Motorista</button></div>
+  <div class="ucg"><button data-uc="admin">Diretor</button><button data-uc="vendedor">Vendedor</button><button data-uc="promotor">Promotor</button><button data-uc="supervisor">Vendedor (supervisão)</button><button data-uc="faturamento">Faturamento</button><button data-uc="expedicao">Expedição</button><button data-uc="producao">Produção</button><button data-uc="motorista">Motorista</button></div>
 </div></div>
 <div id="ucb" hidden role="status"><span id="ucbt"></span><button id="ucbv">↩ Voltar a Diretor</button></div>
 <div class="ov" id="vh"><div class="box">
@@ -1498,7 +1498,7 @@ function aplicaAcesso(){const dono=false;/* gôndola retirada de todos os usuár
 const NAO_VENDE=/^(motorista|producao|expedicao|faturamento|admin)$/,vende=v=>!NAO_VENDE.test((v||{}).papel||"")||((v||{}).papel==="admin"&&(v||{}).vendeu===true);
 const rotPDev=p=>p==="developer"?"Developer":rotP(p);
 const abaPro=()=>!!perfil&&/^(promotor|developer)$/.test(perfil.papel||"");const rotAbaEnt=()=>abaPro()?"Ocorrência":"Entrega";
-const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Promotor":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
+const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Promotor":p==="supervisor"?"Vendedor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[];/* pedidos entregues pela empresa já aplicados; lista esvaziada para não recriar pedidos excluídos */
@@ -1846,12 +1846,12 @@ const PRES_ON=5*60*1000;setInterval(()=>{try{document.querySelectorAll("#sgacc .
 function presTxt(v){const t=v.visto||v.ultimoAcesso||0;if(!t)return "<span class='off'>nunca acessou</span>";
   if(Date.now()-t<PRES_ON&&v.visto)return "<span class='on' style='color:#1a8f4c;font-weight:800'>🟢 Online agora</span>";
   const d=new Date(t),p=n=>String(n).padStart(2,"0");return "Último acesso "+p(d.getDate())+"/"+p(d.getMonth()+1)+" às "+p(d.getHours())+":"+p(d.getMinutes())}
-function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&perfil.papel==="developer",ger=dono;/* por enquanto só o developer gerencia acessos */$("sgv").hidden=!ger||$("sgv").parentElement!==$("cfgah");$("bkw").hidden=!dono;if(!ger)return;
+function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&(perfil.papelReal||perfil.papel)==="developer"&&!(typeof ESP!=="undefined"&&ESP),ger=dono;/* por enquanto só o developer gerencia acessos */$("sgv").hidden=!ger||$("sgv").parentElement!==$("cfgah");$("bkw").hidden=!dono;if(!ger)return;
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotPDev(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+"<br><span class='pr' data-u='"+esc(uid)+"'>"+presTxt(v)+"</span>"+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Supervisor"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Vendedor (supervisão)"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
     sel.value=["promotor","motorista","producao","expedicao","faturamento","supervisor","admin"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
@@ -2216,7 +2216,7 @@ async function vcUsuarios(f){if(!fbDb)return;if(vcU&&!(f&&Date.now()-vcU>15000))
     L.forEach(u=>{const o=document.createElement("option");o.value="u:"+u.uid;o.textContent=u.n.split(" ").slice(0,2).join(" ")+" · "+rotPDev(u.p).toLowerCase();og.appendChild(o)});
     const sv=$("vcs").value;$("vcs").querySelectorAll("optgroup").forEach(x=>x.remove());$("vcs").appendChild(og);$("vcs").value=ESP?"u:"+ESP.uid:sv}catch(e){vcU=null}}
 /* diretor: usar o app como outra função (só nesta sessão; os acessos continuam os de diretor) */
-const UC_ROT={vendedor:"Vendedor",promotor:"Promotor",supervisor:"Supervisor",faturamento:"Faturamento",expedicao:"Expedição",producao:"Produção",motorista:"Motorista"};
+const UC_ROT={vendedor:"Vendedor",promotor:"Promotor",supervisor:"Vendedor (supervisão)",faturamento:"Faturamento",expedicao:"Expedição",producao:"Produção",motorista:"Motorista"};
 const podeUC=()=>!!perfil&&(perfil.papelReal==="admin"||ehDev());
 function usarComo(p){if(!podeUC())return;const base=perfil.ucBase||"admin";if(p!==base&&!UC_ROT[p])return;
   if(p===base)perfil.ucBase=null;else if(!perfil.ucBase)perfil.ucBase=perfil.papel||"admin";perfil.papel=p;try{fabDesliga()}catch(_){}try{motDesliga()}catch(_){}sup.modo="tudo";$("ucv").classList.remove("on");$("sp").classList.remove("on");
@@ -2737,7 +2737,7 @@ function cabecalho(x,W,P,logo,tit,campos,dTxt){
   const F=id=>$(id).value.trim();
   const L=W-2*P,g=24;(campos||camposDoc()).forEach(([r,v,r2,v2],i)=>{const y=322+52*i;if(r2===undefined)campo(r,v,P,y,L);else{const w1=r2==="Cód.:"?L-g-150:Math.round((L-g)*0.55);campo(r,v,P,y,w1);campo(r2,v2,P+w1+g,y,L-g-w1)}});
 }
-const rotDoc=p=>p==="supervisor"?"Supervisor":(p==="promotor"||p==="developer")?"Promotor":"Vendedor";
+const rotDoc=p=>p==="supervisor"?"Vendedor":(p==="promotor"||p==="developer")?"Promotor":"Vendedor";
 let docVend=null;
 function caixasDe(o){let cx=0;const fr=[];ITENS.forEach(n=>{const k=CX[n],v=o[n]||0;if(!k||v<=0)return;cx+=Math.floor(v/k);if(v%k)fr.push([n,v%k])});return{cx,fr}}
 function blocoCaixas(x,o,P,tw,y,so){const {cx,fr}=caixasDe(o),h=76+fr.length*34;if(so)return h;
@@ -3571,7 +3571,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="199";
+const VER="200";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -3591,7 +3591,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||/^(localhost|127
 async function swNovo(w){let v="";try{const r=await fetch("versao.txt?t="+Date.now(),{cache:"no-store"});if(r.ok)v=(await r.text()).trim()}catch(e){}
   if(v&&v===VER){try{w.postMessage({tipo:"atualizar"})}catch(e){}return}mostraAtt(w)}
 function cfgAbrir(){try{$("cfcad").hidden=!(ehDev()&&!ESP&&!(perfil&&(perfil.papel==="admin"||perfil.ucBase)));$("cfdevv").hidden=!(ehDev()&&!!perfil&&(perfil.papel==="admin"||!!perfil.ucBase||(typeof ESP!=="undefined"&&!!ESP)));
-  const avOn=!!perfil&&(perfil.papel==="admin"||!!perfil.ucBase);$("cfavs").hidden=!avOn;if(avOn){$("cfav").textContent=avisosOn()?"🔔 Avisos: ligados (toque para desligar)":"🔕 Avisos: desligados (toque para ligar)";$("cfavm").textContent=""}}catch(_){}try{$("cfout").hidden=!(perfil&&perfil.papelReal==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser);$("cfoutm").textContent=""}catch(_){}try{const dv=ehDev()&&!!perfil&&perfil.papel==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID;$("cfga").hidden=!dv;
+  const avOn=!!perfil&&(perfil.papel==="admin"||!!perfil.ucBase);$("cfavs").hidden=!avOn;if(avOn){$("cfav").textContent=avisosOn()?"🔔 Avisos: ligados (toque para desligar)":"🔕 Avisos: desligados (toque para ligar)";$("cfavm").textContent=""}}catch(_){}try{$("cfout").hidden=!(perfil&&perfil.papelReal==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser);$("cfoutm").textContent=""}catch(_){}try{const dv=ehDev()&&!!perfil&&(perfil.papelReal||perfil.papel)==="developer"&&!(typeof ESP!=="undefined"&&ESP)&&fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===DONO_UID;$("cfga").hidden=!dv;
   if(dv){const g=$("sgv");if(g&&g.parentElement!==$("cfgah"))$("cfgah").appendChild(g);g.hidden=false;if(fbDb&&!sup.uv)supLiga();supGerencia()}}catch(e){diag(e,"cfgAcessos")}$("cfq").textContent=perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"Sem conta conectada";$("cfsen").hidden=!(fbAuth&&perfil);$("cfsair").hidden=!fbAuth;
   $("cfv").textContent="Versão 1.0 · em desenvolvimento";$("cfdev").hidden=!(ehDev()&&!(typeof ESP!=="undefined"&&ESP));$("cfdc").innerHTML="";$("cfrm").textContent="";$("cfam").textContent="";aplicaTema();$("cfgv").classList.add("on")}
 document.querySelectorAll(".cfgb").forEach(b=>b.onclick=cfgAbrir);$("cfgx").onclick=()=>$("cfgv").classList.remove("on");
