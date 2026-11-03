@@ -508,7 +508,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   <div class="lgl"><button id="lgc">Cancelar</button><button id="lgr">Esqueci a senha</button></div>
 </div></div>
 <div class="ov" id="sp" role="dialog" aria-modal="true" aria-labelledby="spt"><div class="sw">
-  <div class="stop"><h2 id="spt" class="hlg"><img class="slogo" alt="Max Pães"><span><small class="quem" id="spq"></small></span></h2><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="spr">Relatórios</button><button id="spen">Entregas</button><span class="mn"><button id="spmn" aria-expanded="false">☰ Mais</button><div id="spmd" class="mnd" hidden><button id="spfp" hidden>Produção</button><button id="spfe" hidden>Expedição</button><button id="sprt" hidden>Rota do motorista</button><button id="spav" hidden>Avisos</button><button id="spx">Usar como vendedor</button><button id="spuc" hidden>Usar como…</button></div></span></div>
+  <div class="stop"><h2 id="spt" class="hlg"><img class="slogo" alt="Max Pães"><span><small class="quem" id="spq"></small></span></h2><button class="cfgb" aria-label="Configurações" title="Configurações">⚙</button><button id="spr">Relatórios</button><button id="spen">Entregas</button><span class="mn"><button id="spmn" aria-expanded="false">☰ Mais</button><div id="spmd" class="mnd" hidden><button id="spfp" hidden>Produção</button><button id="spfe" hidden>Expedição</button><button id="sprt" hidden>Rota do motorista</button><button id="spav" hidden>Avisos</button><button id="spx">Tela de vendas</button><button id="spuc" hidden>Usar como…</button></div></span></div>
   <div class="ctl"><div class="ctl1"><button id="spa" aria-label="Dia anterior">◀</button><span class="dl" id="spd" aria-live="polite"></span><button id="spn" aria-label="Próximo dia">▶</button></div>
     <div class="ctl2"><button id="sph">Hoje</button><button id="smt" aria-pressed="true">Histórico</button><button id="smd" aria-pressed="false">Dia</button><button id="sms" aria-pressed="false">Semana</button></div></div>
   <p class="msg" id="spm" style="margin:0 2px 10px"></p>
@@ -1782,7 +1782,7 @@ async function resumoDir(T,per,at,ant,rotAnt,rk,al,top,mesU){const b=$("dirrs"),
     const blob=await new Promise(z=>c2.toBlob(z,"image/jpeg",0.92));ultimo={blob,nome:"resumo-diretor-"+sup.dia+".jpg",url:c2.toDataURL("image/jpeg",0.92)};abrirPrev("Resumo do diretor pronto. Salve ou envie no WhatsApp.")}
   catch(e){diag(e,"resumo")}finally{b.textContent=r0}}
 const quemTxt=()=>perfil&&perfil.nome?rotP(perfil.papel)+": "+U(perfil.nome):"";
-function supRender(){if(!$("sp").classList.contains("on")){try{if($("sgv").parentElement===$("cfgah"))supGerencia()}catch(_){}return}{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spuc").hidden=true;$("spfp").hidden=$("spfe").hidden=!ehSup();const um=ucModo();$("spmn").textContent=um?"Usar como":"☰ Mais";$("spmn").hidden=!um&&![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
+function supRender(){if(!$("sp").classList.contains("on")){try{if($("sgv").parentElement===$("cfgah"))supGerencia()}catch(_){}return}{const dv=!!perfil&&perfil.papel==="admin";$("sprt").hidden=true;$("spx").hidden=dv;$("spuc").hidden=true;$("spfe").hidden=!ehSup();$("spfp").hidden=!ehSup()||perfil.papel==="supervisor";const um=ucModo();$("spmn").textContent=um?"Usar como":"☰ Mais";$("spmn").hidden=!um&&![...$("spmd").querySelectorAll("button")].some(b=>!b.hidden)}try{$("spq").textContent=quemTxt()}catch(_){}supGerencia();fiChip();
   const d=sup.dia,hj=hojeISO(),[s0,s1]=supRng(),dia=sup.modo==="dia",tudo=sup.modo==="tudo";
   $("spd").textContent=tudo?"Histórico · últimos "+HIST_DIAS+" dias":dia?(d===hj?"Hoje · ":["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][new Date(d+"T12:00:00").getDay()]+" · ")+dBR(d):dBR(s0)+" a "+dBR(s1);
   $("smd").setAttribute("aria-pressed",dia);$("sms").setAttribute("aria-pressed",sup.modo==="semana");$("smt").setAttribute("aria-pressed",tudo);$("spsem").hidden=sup.modo!=="semana";
@@ -1846,12 +1846,12 @@ const PRES_ON=5*60*1000;setInterval(()=>{try{document.querySelectorAll("#sgacc .
 function presTxt(v){const t=v.visto||v.ultimoAcesso||0;if(!t)return "<span class='off'>nunca acessou</span>";
   if(Date.now()-t<PRES_ON&&v.visto)return "<span class='on' style='color:#1a8f4c;font-weight:800'>🟢 Online agora</span>";
   const d=new Date(t),p=n=>String(n).padStart(2,"0");return "Último acesso "+p(d.getDate())+"/"+p(d.getMonth()+1)+" às "+p(d.getHours())+":"+p(d.getMinutes())}
-function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&(perfil.papelReal||perfil.papel)==="developer"&&!(typeof ESP!=="undefined"&&ESP),ger=dono;/* por enquanto só o developer gerencia acessos */$("sgv").hidden=!ger||$("sgv").parentElement!==$("cfgah");$("bkw").hidden=!dono;if(!ger)return;/* o perfil supervisor deixou de existir: quem ainda estiver como supervisor passa a vendedor */Object.entries(sup.vend||{}).forEach(([u,v])=>{if(v&&v.papel==="supervisor"){v.papel="vendedor";fbDb.collection("vendedores").doc(u).set({papel:"vendedor"},{merge:true}).catch(()=>{})}});
+function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:"";const dono=me===DONO_UID&&!!perfil&&(perfil.papelReal||perfil.papel)==="developer"&&!(typeof ESP!=="undefined"&&ESP),ger=dono;/* por enquanto só o developer gerencia acessos */$("sgv").hidden=!ger||$("sgv").parentElement!==$("cfgah");$("bkw").hidden=!dono;if(!ger)return;
   Object.keys(sup.vend).sort((a,b)=>nomeV(a).localeCompare(nomeV(b),"pt-BR")).forEach(uid=>{const v=sup.vend[uid]||{};const r=document.createElement("div");r.className="gr";
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotPDev(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+"<br><span class='pr' data-u='"+esc(uid)+"'>"+presTxt(v)+"</span>"+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Vendedor + painel e expedição"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
     sel.value=["promotor","motorista","producao","expedicao","faturamento","supervisor","admin"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
@@ -2250,7 +2250,7 @@ function verComo(p){if(!ehDev())return;try{if(perfil)perfil.ucBase=null;$("ucb")
   perfil.papel=p;fabDesliga();sup.admIni=0;sup.modo="tudo";try{localStorage.setItem("mpv:tela","")}catch(e){}
   $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
 function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
-  pintaAvisos();$("spfp").hidden=$("spfe").hidden=!ehSup();if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir();if(ehAdm())setTimeout(fiCarrega,2500)}
+  pintaAvisos();$("spfe").hidden=!ehSup();$("spfp").hidden=!ehSup()||perfil.papel==="supervisor";if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir();if(ehAdm())setTimeout(fiCarrega,2500)}
 async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
     stNuvem("Modo sem nuvem: os dados ficam só neste celular. Faça backup com frequência.");return}
@@ -3571,7 +3571,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="201";
+const VER="202";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
