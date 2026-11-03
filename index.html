@@ -218,7 +218,7 @@ html[data-fs="1"] body{zoom:1.12}html[data-fs="2"] body{zoom:1.25}html[data-fs="
 .card{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .card img{width:100%;max-height:140px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
 .card button{padding:12px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 15px Archivo,sans-serif}
-#sg{padding:0;overflow:hidden;background:var(--bg)}
+#sg{padding:0;overflow:hidden;background:var(--bg);z-index:90}#sg,#sgin,#pad{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}html:has(#sg.on),body:has(#sg.on){overscroll-behavior:none}
 #sgin{position:absolute;top:0;left:0;display:flex;flex-direction:column;gap:8px;padding:10px;box-sizing:border-box}
 #sgbar{flex:none;display:flex;flex-direction:column;gap:7px}
 #sgbar b{font-size:13px;color:var(--mute);text-align:center;font-weight:700}
@@ -2933,28 +2933,35 @@ function layoutSg(){
   el.style.width=(rot?H:W)+"px";el.style.height=(rot?W:H)+"px";
   el.style.transformOrigin="0 0";el.style.transform=rot?"translateX("+W+"px) rotate(90deg)":"none";
 }
-function ajustaPad(){pad.width=Math.round(pad.clientWidth*2);pad.height=Math.round(pad.clientHeight*2);limpaPad()}
+function ajustaPad(manter){let snap=null;if(manter&&tocou&&pad.width>0&&pad.height>0){snap=document.createElement("canvas");snap.width=pad.width;snap.height=pad.height;snap.getContext("2d").drawImage(pad,0,0)}
+  const t=tocou;pad.width=Math.max(2,Math.round(pad.clientWidth*2));pad.height=Math.max(2,Math.round(pad.clientHeight*2));limpaPad();
+  if(snap){pc.drawImage(snap,0,0,snap.width,snap.height,0,0,pad.width,pad.height);tocou=t}}
+/* o desenho só se perde se o usuário pedir (Limpar); mudança de tamanho da tela mantém o que já foi riscado */
+const padOk=()=>Math.abs(Math.round(pad.clientWidth*2)-pad.width)<=40&&Math.abs(Math.round(pad.clientHeight*2)-pad.height)<=40&&pad.width>2
 async function tentaTela(){try{await screen.orientation.lock("landscape")}catch(e){}}
 function saiTela(){try{screen.orientation.unlock()}catch(e){}try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}pintaBarras()}
-function abrirSg(){$("sg").classList.add("on");layoutSg();ajustaPad();$("sgmsg").textContent=MSG;pintaBarras();tentaTela()}
+function abrirSg(){$("sg").classList.add("on");layoutSg();ajustaPad();$("sgmsg").textContent=MSG;pintaBarras();tentaTela();requestAnimationFrame(()=>{if(!tocou&&$("sg").classList.contains("on")){layoutSg();if(!padOk())ajustaPad()}});setTimeout(()=>{if(!tocou&&$("sg").classList.contains("on")){layoutSg();if(!padOk())ajustaPad()}},400)}
 function fecharSg(){$("sg").classList.remove("on");saiTela()}
 window.addEventListener("resize",()=>{
   if(!$("sg").classList.contains("on"))return;
   layoutSg();
-  if(Math.abs(Math.round(pad.clientWidth*2)-pad.width)>40||Math.abs(Math.round(pad.clientHeight*2)-pad.height)>40)ajustaPad();
+  if(!padOk()&&!desenha)ajustaPad(true);
 });
 const pos=e=>{
   const r=pad.getBoundingClientRect();
   return rot?[(e.clientY-r.top)/r.height*pad.width,(r.right-e.clientX)/r.width*pad.height]
             :[(e.clientX-r.left)/r.width*pad.width,(e.clientY-r.top)/r.height*pad.height];
 };
-pad.addEventListener("pointerdown",e=>{e.preventDefault();try{pad.setPointerCapture(e.pointerId)}catch(_){}desenha=true;tocou=true;const [a,b]=pos(e);pc.beginPath();pc.moveTo(a,b);pc.lineTo(a+.1,b+.1);pc.stroke()});
-pad.addEventListener("pointermove",e=>{if(!desenha)return;const [a,b]=pos(e);pc.lineTo(a,b);pc.stroke()});
+pad.addEventListener("pointerdown",e=>{e.preventDefault();if(!tocou&&!padOk()){layoutSg();ajustaPad()}try{pad.setPointerCapture(e.pointerId)}catch(_){}desenha=true;tocou=true;const [a,b]=pos(e);pc.beginPath();pc.moveTo(a,b);pc.lineTo(a+.1,b+.1);pc.stroke()});
+pad.addEventListener("pointermove",e=>{if(!desenha)return;const L=e.getCoalescedEvents?e.getCoalescedEvents():[];(L.length?L:[e]).forEach(q=>{const [a,b]=pos(q);pc.lineTo(a,b);pc.stroke()})});
 ["pointerup","pointercancel","pointerleave"].forEach(t=>pad.addEventListener(t,()=>{desenha=false}));
 $("ass").onclick=abrirSg;
-$("sgl").onclick=limpaPad;
-$("sgc").onclick=fecharSg;
-$("sgs").onclick=()=>{if(!tocou){$("sgmsg").textContent="Faça a assinatura antes de salvar";return}{const tw=Math.min(420,pad.width),th=Math.round(pad.height*tw/pad.width),cv=document.createElement("canvas");cv.width=tw;cv.height=th;cv.getContext("2d").drawImage(pad,0,0,tw,th);assin[mode]=cv.toDataURL("image/png")}fecharSg();render()};
+/* botões da assinatura respondem ao toque (soltar o dedo sobre o botão) mesmo quando o navegador do celular não gera o "click" logo depois de um traço */
+function toqueBtn(el,fn){let dn=false,ult=0;const go=()=>{const t=Date.now();if(t-ult<500)return;ult=t;fn()};
+  el.addEventListener("pointerdown",()=>{dn=true});el.addEventListener("pointercancel",()=>{dn=false});
+  el.addEventListener("pointerup",()=>{if(dn){dn=false;go()}});el.addEventListener("click",go)}
+const sgSalva=()=>{if(!tocou){$("sgmsg").textContent="Faça a assinatura antes de salvar";return}{const tw=Math.min(420,pad.width),th=Math.round(pad.height*tw/pad.width),cv=document.createElement("canvas");cv.width=tw;cv.height=th;cv.getContext("2d").drawImage(pad,0,0,tw,th);assin[mode]=cv.toDataURL("image/png")}fecharSg();render()};
+toqueBtn($("sgl"),limpaPad);toqueBtn($("sgc"),fecharSg);toqueBtn($("sgs"),sgSalva);
 /* cada etapa isolada: um erro em uma não derruba o app inteiro */
 [carregarHist,carregarAg,carregarCli,carregar].forEach(f=>{try{f()}catch(e){diag(e,"inicio:"+f.name)}});
 if(curId){const e=hist.find(h=>h.id===curId);if(e){$("data").value=e.data||$("data").value;stPed=e.status||"rascunho";eraFat=!!e.fat;snapFat=e.snap||null;fechEm=e.fechadoEm||0}else curId=null}
@@ -3572,7 +3579,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="203";
+const VER="204";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
