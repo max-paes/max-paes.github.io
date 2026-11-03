@@ -1686,7 +1686,8 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
   const un=ped.reduce((a,x)=>a+x.ped,0),tro=T.reduce((a,x)=>a+(x.tro||0),0);
   // período anterior, mês e últimos 60 dias (o diretor carrega 60 dias para as lojas em risco)
   const [d0,d1]=supRng(),pa=addD(d0,-7),pb=addD(d1,-7),m0=(TUDO?hj:sup.dia).slice(0,8)+"01",h60=addD(hj,-60);
-  if(ADM){const a0=[h60,pa,m0].sort()[0],b0=d1>hj?d1:hj;dirHist(a0,b0)}else if(!TUDO)dirHist(pa<m0?pa:m0,d1);
+  const LJ=ADM||(!!perfil&&perfil.papel==="supervisor");/* lojas em risco e que mais compram: diretor e vendedor com painel */
+  if(LJ){const a0=[h60,pa,m0].sort()[0],b0=d1>hj?d1:hj;dirHist(a0,b0)}else if(!TUDO)dirHist(pa<m0?pa:m0,d1);
   const HD=(DH.docs&&DH.docs.length)?DH.docs:T;const ant=somaP(TUDO?[]:HD.filter(x=>x.data>=pa&&x.data<=pb)),at=somaP(T);
   const mesU={};HD.filter(x=>x.data>=m0&&x.data<=d1&&(x.ped||0)>0).forEach(x=>{mesU[x.uid]=(mesU[x.uid]||0)+x.ped});
   const rotAnt=dia?"vs. mesmo dia da semana passada":"vs. semana passada";const CMP=!TUDO&&!!DH.k;
@@ -1713,7 +1714,7 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
   const rkH=rk.length?"<div style='overflow-x:auto;margin:0 -4px'><table class='tx' style='min-width:100%'><tr><th>Nome</th><th class='n'>Visitas</th><th class='n'>Fechados</th><th class='n'>Un.</th><th class='n'>% troca</th><th class='n'>Mês / meta</th></tr>"+rk.map(([u,v])=>"<tr><td>"+esc(nomeV(u).split(" ").slice(0,2).join(" "))+(v.agora?"<br><small class='on'>● em visita · "+esc(v.agora)+"</small>":"")+"</td><td class='n'>"+v.vis+"</td><td class='n'>"+v.fech+(v.ras?"<small> +"+v.ras+" aberto</small>":"")+"</td><td class='n'><b>"+v.un+"</b>"+(tab?"<br><small>"+esc(brl(v.rs))+"</small>":"")+"</td><td class='n"+(pct(v.tro,v.un)>10?" rd":"")+"'>"+(v.un?pct(v.tro,v.un)+"%"+(pct(v.tro,v.un)>10?"<small> alta</small>":""):"—")+"</td><td class='n'>"+metaCel(u,mesU[u]||0)+"</td></tr>").join("")+"</table></div>":"<p class='msg' style='margin:4px 0 0'>Sem movimento "+esc(per)+".</p>";
   h+=ddSec("rk","Ranking da equipe",rkH,"dcw");
   // lojas em risco (diretor)
-  if(ADM){const base=HD.filter(x=>(x.ped||0)>0&&x.status&&x.status!=="rascunho"&&x.data>=h60),ult={},u30={},p30={},d30=addD(hj,-30);
+  if(LJ){const base=HD.filter(x=>(x.ped||0)>0&&x.status&&x.status!=="rascunho"&&x.data>=h60),ult={},u30={},p30={},d30=addD(hj,-30);
     base.forEach(x=>{const k=norm(canon(x.cliente||""));if(!k)return;if(!ult[k]||x.data>ult[k].d)ult[k]={d:x.data,c:x.cliente,u:x.uid};if(x.data>d30)u30[k]=(u30[k]||0)+x.ped;else p30[k]=(p30[k]||0)+x.ped});
     const uv={};HD.forEach(x=>{if(!(x.ini||(x.ped||0)>0||(x.tro||0)>0))return;const k=norm(canon(x.cliente||""));if(k&&(!uv[k]||x.data>uv[k]))uv[k]=x.data});
     Object.values(sup.vis||{}).forEach(V=>Object.entries(V||{}).forEach(([d,m])=>{if(d<h60)return;Object.entries(m||{}).forEach(([kk,on])=>{if(on!==true)return;let k=kk;try{k=norm(canon(kk))}catch(_){}if(!uv[k]||d>uv[k])uv[k]=d})}));
@@ -1725,7 +1726,7 @@ function dirRender(T,dia,hj){const B=$("spdir");if(!B)return;const AL=$("spal");
       if(cai.length)rH+="<small class='ddt'>Mais caíram (últimos 30 dias × 30 dias antes)</small>"+cai.map(o=>"<div class='db ln'><span><strong>"+esc(o.c)+"</strong><small>30 dias antes: "+o.a+" un.</small><small>Últimos 30 dias: "+o.b+" un.</small></span><b class='rd'>caiu "+Math.round((o.a-o.b)/o.a*100)+"%</b></div>").join("")}
     h+=ddSec("risco","Lojas em risco",rH)}
   // lojas que mais compram, com filtro de ticket médio (diretor)
-  if(ADM){const LC={};fech.forEach(x=>{const k=norm(canon(x.cliente||""));if(!k)return;const o=LC[k]=LC[k]||{c:x.cliente,n:0,u:0,r:0};o.n++;o.u+=x.ped||0;if(tab)o.r+=valTab((itensDe(x)||{}).pedido,tab)});
+  if(LJ){const LC={};fech.forEach(x=>{const k=norm(canon(x.cliente||""));if(!k)return;const o=LC[k]=LC[k]||{c:x.cliente,n:0,u:0,r:0};o.n++;o.u+=x.ped||0;if(tab)o.r+=valTab((itensDe(x)||{}).pedido,tab)});
     const st=sup.lc||(sup.lc={o:"tot",f:"all"});st.f="all";const FX={all:()=>true,a:o=>o.tu<50,b:o=>o.tu>=50&&o.tu<150,c:o=>o.tu>=150};
     let L=Object.values(LC).map(o=>({...o,tu:o.n?o.u/o.n:0,tr:o.n&&tab?o.r/o.n:0})).filter(FX[st.f]||FX.all);
     L.sort(st.o==="tm"?(a,b)=>b.tu-a.tu:st.o==="tmm"?(a,b)=>a.tu-b.tu:(a,b)=>b.u-a.u);
@@ -3571,7 +3572,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="202";
+const VER="203";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
