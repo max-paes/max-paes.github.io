@@ -428,7 +428,7 @@ body.trv #edbar{border-color:#0b7a75}
 #camt{width:78px;height:78px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 5px rgba(0,0,0,.35),0 0 0 9px #fff;padding:0}#camt:active{transform:scale(.92)}
 #camr{width:54px;height:54px;border-radius:50%;border:0;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff;color:#fff;font:800 26px Archivo,sans-serif;padding:0}#camr[hidden]{display:none}
 #camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
-#vh,#mt{z-index:30}#cfgv{z-index:48}
+#vh,#mt{z-index:30}#cfgv{z-index:48}#clv{z-index:40}
 body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none!important}body:has(#ucb:not([hidden])) main{padding-bottom:150px}
 .ocl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .oci{border-left:3px solid var(--brand);padding:4px 10px;font-size:14px;line-height:1.35;white-space:pre-wrap}.oce{display:block;margin:4px 0 0;padding:3px 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--brand)}.oci small{display:block;color:var(--mute);font-size:12px;font-weight:700}
@@ -1527,7 +1527,7 @@ function precoDoc(item){const cd=cadDe($("cliente").value.trim()),pl=cd&&(cadNv[
 function clNuvemIni(){if(clIni||!fbDb)return;clIni=true;
   try{fbDb.collection("obsent").doc("_cadastro").onSnapshot(sn=>{const d=sn.exists?(sn.data()||{}):{},n={};
     Object.keys(d).forEach(k=>{if(/^l\d+$/.test(k)){try{n[k.slice(1)]=JSON.parse(d[k])}catch(_){}}});
-    cadNv=n;lsS("mpv:cadnv",JSON.stringify(n));try{if($("clv").classList.contains("on")&&!clSel)clLista($("clq").value)}catch(_){}},()=>{clIni=false})}catch(_){clIni=false}}
+    cadNv=n;lsS("mpv:cadnv",JSON.stringify(n));try{if($("clv").classList.contains("on")&&!clSel)clItens($("clq").value)}catch(_){}},()=>{clIni=false})}catch(_){clIni=false}}
 function garanteClientes(){let n=0;CLI_NOVOS.forEach(([nm,en])=>{const k=chave2(canon(nm)),ex=clientes.find(c=>chave2(canon(c.nome))===k);
   if(!ex){clientes.push({nome:nm,endereco:en,comprador:""});n++}else if(!ex.endereco){ex.endereco=en;n++}});
   if(n){salvaCli();try{listaCli()}catch(e){}}return n}
@@ -2248,12 +2248,13 @@ const clPodeEditar=()=>ehSup();
 const clMoeda=v=>v>0?v.toFixed(2).replace(".",","):"";
 const clNum=t=>{const v=parseFloat(String(t).replace(/[^\d,.-]/g,"").replace(/\.(?=.*[.,])/g,"").replace(",","."));return v>0?Math.round(v*100)/100:0};
 function clAbre(){try{$("spmd").hidden=true}catch(_){}clNuvemIni();$("clv").classList.add("on");clLista("")}
-function clLista(q){clSel=null;$("clt").textContent="Cadastro das lojas";const k=chave2(q||"");
+function clLista(q){clSel=null;$("clt").textContent="Cadastro das lojas";
+  $("clb").innerHTML="<input id='clq' type='search' placeholder='Buscar loja' autocomplete='off' style='width:100%;margin:6px 0 8px'><div id='cll' style='max-height:62vh;overflow:auto'></div>";
+  $("clq").value=q||"";$("clq").oninput=e=>clItens(e.target.value);clItens(q||"")}
+function clItens(q){const k=chave2(q||""),el=$("cll");if(!el)return;
   const L=CAD.map((r,i)=>({id:String(i+1),r,o:cadObj(r)})).filter(x=>!k||chave2(x.o.fan+" "+x.o.raz+" "+x.o.end+" "+x.r[6].join(" ")).includes(k));
-  $("clb").innerHTML="<input id='clq' type='search' placeholder='Buscar loja' value='"+esc(q||"")+"' style='width:100%;margin:6px 0 8px'><div style='max-height:62vh;overflow:auto'>"+
-    (L.map(x=>{const np=Object.keys(((cadNv[x.id]||{}).p)||{}).length;return "<button class='rr clit' data-i='"+x.id+"' style='display:block;width:100%;text-align:left'><span class='t'><b>"+x.id+" · "+esc(x.o.fan)+"</b><br><small style='color:var(--mute)'>"+esc(x.r[5])+" · "+(np?np+" preços":"sem preços")+"</small></span></button>"}).join("")||"<p class='msg'>Nenhuma loja encontrada.</p>")+"</div>";
-  $("clq").oninput=e=>{const v=e.target.value;clLista(v);const n=$("clq");n.focus();n.setSelectionRange(v.length,v.length)};
-  document.querySelectorAll("#clb .clit").forEach(b=>b.onclick=()=>clFicha(b.dataset.i))}
+  el.innerHTML=L.map(x=>{const np=Object.keys(((cadNv[x.id]||{}).p)||{}).length;return "<button class='rr clit' data-i='"+x.id+"' style='display:block;width:100%;text-align:left'><span class='t'><b>"+x.id+" · "+esc(x.o.fan)+"</b><br><small style='color:var(--mute)'>"+esc(x.r[5])+" · "+(np?np+" preços":"sem preços")+"</small></span></button>"}).join("")||"<p class='msg'>Nenhuma loja encontrada.</p>";
+  el.querySelectorAll(".clit").forEach(b=>b.onclick=()=>clFicha(b.dataset.i))}
 function clFicha(id){clSel=id;const r=CAD[+id-1],o=(cadNv[id]||{}),c=o.c||{},p=o.p||{},ed=clPodeEditar(),dis=ed?"":" disabled";
   $("clt").textContent="Loja "+id;
   const campo=(k,rot,v)=>"<label style='display:block;margin:6px 0 2px;font-size:12px;color:var(--mute)'>"+rot+"</label><input data-c='"+k+"' value='"+esc(v)+"'"+dis+" style='width:100%'>";
@@ -2800,7 +2801,7 @@ function blocoCaixas(x,o,P,tw,y,so){const {cx,fr}=caixasDe(o),h=76+fr.length*34;
   x.fillStyle=TX;x.font="700 24px "+FT;fr.forEach(([n,r],i)=>{x.fillText(n+" - "+r,P+20,y+54+34*(i+1))});return h}
 function desenhar(sig,logo,m=mode){
   const q=state[m],lista=ITENS.filter(n=>q[n]>0);
-  const pr=docPreco,W=900,P=32,RH=58,T=306+52*camposDoc().length,EX=blocoCaixas(null,q,0,0,0,true)+10,H=T+56+Math.max(lista.length,1)*RH+220+EX+(pr?84:0);
+  const pr=docPreco&&m!=="troca",W=900,P=32,RH=58,T=306+52*camposDoc().length,EX=blocoCaixas(null,q,0,0,0,true)+10,H=T+56+Math.max(lista.length,1)*RH+220+EX+(pr?84:0);
   const c=document.createElement("canvas");c.width=W;c.height=H;
   const x=c.getContext("2d");
   x.fillStyle="#fff";x.fillRect(0,0,W,H);
@@ -3645,7 +3646,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="205";
+const VER="206";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
