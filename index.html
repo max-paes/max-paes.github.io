@@ -1170,7 +1170,7 @@ function renderVisBar(){const b=$("vbb"),t=$("vbtx");b.dataset.c="";
 $("vbb").onclick=()=>{const b=$("vbb");
   if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);b.textContent="Informe o cliente";setTimeout(renderVisBar,2000);return}
   if(!visita.ini){visita.ini=hhmm();visita.fim="";preencheCtt()}
-  else if(!visita.fim){visita.fim=hhmm();preencheCtt();renderVisBar();mode="visita";render();window.scrollTo(0,0);return}
+  else if(!visita.fim){if(!liberaVis()){b.textContent="Feche o pedido ou use Sem pedido";setTimeout(renderVisBar,2500);return}visita.fim=hhmm();preencheCtt();renderVisBar();mode="visita";render();window.scrollTo(0,0);return}
   else{if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Toque de novo para reabrir";setTimeout(()=>{if(b.dataset.c==="1")renderVisBar()},3000);return}visita.fim=""}
   renderVisBar();salvar();if(mode==="visita")renderVis();};
 function preencheCtt(){
@@ -1378,6 +1378,7 @@ async function copiaTexto(t){
 }
 $("vcopy").onclick=async()=>{const b=$("vcopy"),t=textoChecklist();
   if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash(b,"Copiar texto","Informe o cliente");return}
+  if(!liberaVis()){flash(b,"Copiar texto","Feche o pedido ou use Sem pedido");return}
   salvar();lembraCli($("cliente").value,$("endereco").value,$("comprador").value);
   const ok=await copiaTexto(t);
   if(ok)flash(b,"Copiar texto","✓ Copiado! Cole no WhatsApp");
@@ -2551,6 +2552,13 @@ function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const
   if(entRota&&ok){b.className="sep";b.textContent="🚚 Em rota";return}
   if(fe){b.className="fec";b.textContent=stPed==="alterado"?"✓ Fechado · alterado":"✓ Pedido fechado";return}
   b.className="";b.textContent="Fechar pedido"}
+/* Usuários que só enviam checklist, geram documento ou finalizam visita depois de "Fechar pedido" ou "Sem pedido" com motivo */
+const EXIGE_FECHAR=["MARIANE"];
+const exigeFechar=()=>!!(perfil&&!ESP&&EXIGE_FECHAR.some(n=>norm(perfil.nome||"").startsWith(norm(n))));
+const pedFechado=()=>!!(curId&&(entRota||entFin||!/^(rascunho|alterando)$/.test(stPed||"rascunho")));
+function semPedMarcado(){const cli=($("cliente").value||"").trim();if(!cli)return false;const dt=$("data").value||hojeISO(),k=norm(cli),m=(motivos[dt]||{})[k];return (visitas[dt]||{})[k]===true&&!!m&&m!==OUTRO_DIA}
+const liberaDoc=()=>!exigeFechar()||pedFechado();
+const liberaVis=()=>!exigeFechar()||pedFechado()||semPedMarcado();
 const fatAviso=(t)=>{const b=$("fat");b.textContent=t;clearTimeout(b._t);b._t=setTimeout(pintaFat,2200)};
 $("fat").onclick=()=>{
   if(entFin){fatAviso("Entrega finalizada: só a supervisão reabre");return}
@@ -2904,6 +2912,7 @@ const msg=t=>{$("msg").textContent=t};
 function carregaImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
 const flash=(b,rot,t)=>{b.textContent=t;setTimeout(()=>b.textContent=rot,2000)};
 async function gerar(b,rot,m){
+  if(!liberaDoc()){flash(b,rot,"Feche o pedido primeiro");return false}
   if(!$("cliente").value.trim()){$("gf").classList.remove("on");$("cliente").focus();window.scrollTo(0,0);flash(b,rot,"Informe o cliente");return false}
   if(!Object.values(state[m]).some(v=>v>0)){flash(b,rot,m==="troca"?"Nenhuma troca lançada":"Nenhum item no pedido");return false}
   b.textContent="Gerando...";
@@ -2937,6 +2946,7 @@ $("shrp").onclick=()=>{
 $("cpl").onclick=async()=>{const b=$("cpl");try{await navigator.clipboard.writeText(legendaArq());flash(b,"Copiar legenda","Legenda copiada")}catch(e){flash(b,"Copiar legenda","Não deu para copiar")}};
 function abreWa(t){const u="https://wa.me/?text="+encodeURIComponent(t);let w=null;try{w=window.open(u,"_blank")}catch(e){}if(!w)location.href=u}
 $("vwpp").onclick=()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash($("vwpp"),"Enviar no WhatsApp","Informe o cliente");return}
+  if(!liberaVis()){flash($("vwpp"),"Enviar no WhatsApp","Feche o pedido ou use Sem pedido");return}
   salvar();const t=textoChecklist();
   copiaFundo(t);
   const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const h=HQ.m[id];if(h&&h.size){fs.push(new File([h],"foto-visita-"+(i+1)+".jpg",{type:"image/jpeg"}));return}const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);
@@ -2949,7 +2959,7 @@ function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.p
 function rotGf(m){const n=Object.values(state[m]).filter(v=>v>0).length;return (m==="troca"?"Troca":"Pedido")+" · "+(n?n+(n===1?" item":" itens"):"vazio")}
 function gprPinta(){const b=$("gpr");b.setAttribute("aria-pressed",docPreco?"true":"false");b.textContent="Preços no documento: "+(docPreco?"Sim":"Não")}
 $("gpr").onclick=()=>{docPreco=!docPreco;lsS("mpv:docpreco",docPreco?"1":"0");gprPinta()};
-$("garq").onclick=()=>{gprPinta();clNuvemIni();$("gp").textContent=rotGf("pedido");$("gt").textContent=rotGf("troca");$("dup").textContent="Pedido + Troca · folha A4";$("gf").classList.add("on")};
+$("garq").onclick=()=>{if(!liberaDoc()){fatAviso("Feche o pedido para gerar o documento");return}gprPinta();clNuvemIni();$("gp").textContent=rotGf("pedido");$("gt").textContent=rotGf("troca");$("dup").textContent="Pedido + Troca · folha A4";$("gf").classList.add("on")};
 $("gfx").onclick=()=>$("gf").classList.remove("on");
 $("gp").onclick=async()=>{if(!(await gerar($("gp"),rotGf("pedido"),"pedido")))return;marcaFechado();$("gf").classList.remove("on");abrirPrev("JPG do pedido pronto. Toque em Salvar JPG ou Tela cheia.")};
 $("gt").onclick=async()=>{if(!(await gerar($("gt"),rotGf("troca"),"troca")))return;marcaFechado();$("gf").classList.remove("on");abrirPrev("JPG da troca pronto. Toque em Salvar JPG ou Tela cheia.")};
@@ -2981,6 +2991,7 @@ $("dup").onclick=async()=>{
   const b=$("dup"),rot0="Pedido + Troca · folha A4";
   if(!$("cliente").value.trim()){$("gf").classList.remove("on");$("cliente").focus();window.scrollTo(0,0);return flash(b,rot0,"Informe o cliente")}
   if(![state.pedido,state.troca].some(o=>Object.values(o).some(v=>v>0)))return flash(b,rot0,"Adicione itens");
+  if(!liberaDoc())return flash(b,rot0,"Feche o pedido primeiro");
   b.textContent="Gerando...";
   try{await document.fonts.load("800 28px Archivo")}catch(e){}
   const logo=await carregaImg(LOGO);
@@ -3659,7 +3670,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="210";
+const VER="211";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
