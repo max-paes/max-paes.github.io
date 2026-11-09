@@ -1291,7 +1291,7 @@ function fotoLeve(file){return new Promise(ok=>{const im=new Image(),u=URL.creat
 function visFoto(file){const uid=visUid();if((visita.fo||[]).length>=999)return Promise.resolve();
   const V=visita,id=Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36),pv=URL.createObjectURL(file);
   const reg={ts:Date.now(),data:$("data").value,cli:U($("cliente").value.trim()),p:curId?"p_"+curId:""};
-  vfoto[id]=pv;V.fo=(V.fo||[]).concat([id]);hqPut(id,file);salvar();
+  vfoto[id]=pv;V.fo=(V.fo||[]).concat([id]);hqPut(id,file);salvar();setTimeout(()=>shPrep([id]),400);
   setTimeout(()=>fotoLeve(file).then(d=>{if(!(V.fo||[]).includes(id)){URL.revokeObjectURL(pv);return}
     if(!d){aviso("Não consegui ler essa foto.");return}
     vfoto[id]=d;reg.j=d;
@@ -2949,22 +2949,19 @@ $("shrp").onclick=()=>{
 };
 $("cpl").onclick=async()=>{const b=$("cpl");try{await navigator.clipboard.writeText(legendaArq());flash(b,"Copiar legenda","Legenda copiada")}catch(e){flash(b,"Copiar legenda","Não deu para copiar")}};
 function abreWa(t){const u="https://wa.me/?text="+encodeURIComponent(t);let w=null;try{w=window.open(u,"_blank")}catch(e){}if(!w)location.href=u}
-let shDe=0,shPrepOk=false;
+let shDe=0;
 function shArquivos(){const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const nome="foto-visita-"+(i+1)+".jpg",h=SH[id]||HQ.m[id];if(h&&h.size){fs.push(new File([h],nome,{type:"image/jpeg"}));return}
   const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);fs.push(new File([u],nome,{type:"image/jpeg"}))})}catch(_){}return fs}
 const podeShr=o=>{try{return !!(navigator.share&&navigator.canShare&&navigator.canShare(o))}catch(_){return false}};
+/* Enviar no WhatsApp: um toque abre o Compartilhar com todas as fotos e o texto do checklist juntos, sem avisos na tela */
 $("vwpp").onclick=()=>{const B=$("vwpp"),R0="Enviar no WhatsApp";
   if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash(B,R0,"Informe o cliente");return}
   if(!liberaVis()){flash(B,R0,"Feche o pedido ou use Sem pedido");return}
-  salvar();const t=textoChecklist();copiaFundo(t);
-  const fs=shArquivos(),so=Date.now()-shDe<20000;shDe=0;B.textContent=R0;
-  if((visita.fo||[]).length&&fs.length<(visita.fo||[]).length&&!so&&!shPrepOk){shPrep(visita.fo||[]);shPrepOk=true;B.textContent="Preparando fotos… toque de novo";setTimeout(()=>{shPrepOk=false;if(B.textContent.startsWith("Preparando"))B.textContent=R0},20000);return}
-  shPrepOk=false;
-  const falhou=()=>{shDe=Date.now();B.textContent="Toque de novo para enviar as fotos";setTimeout(()=>{if(shDe&&Date.now()-shDe>=19000){shDe=0;B.textContent=R0}},20000)};
+  salvar();const t=textoChecklist(),fs=shArquivos(),so=Date.now()-shDe<20000;shDe=0;B.textContent=R0;
+  const falhou=()=>{shDe=Date.now();B.textContent="Toque de novo para enviar";setTimeout(()=>{if(shDe&&Date.now()-shDe>=19000){shDe=0;B.textContent=R0}},20000)};
   if(fs.length){
-    if(!so&&podeShr({files:fs,text:t})){navigator.share({files:fs,text:t}).then(()=>aviso("Fotos enviadas. O texto do checklist também está copiado: se o WhatsApp não colocar o texto, é só colar.")).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
-    if(podeShr({files:fs})){navigator.share({files:fs}).then(()=>aviso("Fotos enviadas. O texto do checklist está copiado: cole no WhatsApp.")).catch(e=>{if(e&&e.name==="AbortError")return;aviso("Não deu para enviar as fotos direto. Elas estão na galeria do celular: anexe no WhatsApp. O texto já está copiado.")});return}
-    aviso("Este celular não deixou enviar as fotos direto. Elas estão na galeria: anexe no WhatsApp. O texto já está copiado.")}
+    if(!so&&podeShr({files:fs,text:t})){navigator.share({files:fs,text:t}).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
+    if(podeShr({files:fs})){copiaFundo(t);navigator.share({files:fs}).then(()=>flash(B,R0,"Texto copiado: cole no WhatsApp")).catch(e=>{if(e&&e.name==="AbortError")return;flash(B,R0,"Não deu para enviar as fotos")});return}}
   if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
   abreWa(t)};
 function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.pdf&&podeCompart());$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
@@ -3682,7 +3679,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="214";
+const VER="215";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
