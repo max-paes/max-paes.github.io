@@ -1522,14 +1522,18 @@ function cadDe(nome){if(!nome||!String(nome).trim())return null;
   return hit.length===1?cadObj(hit[0]):null}
 let cadNv={};try{const j=JSON.parse(lsG("mpv:cadnv")||"{}");if(j&&typeof j==="object")cadNv=j}catch(_){}
 let docPreco=lsG("mpv:docpreco")==="1",clIni=false;
-const cadObj=r=>{const id=String(CAD.indexOf(r)+1),o=(cadNv[id]||{}).c||{};
+const CAD_BASE=CAD.length;
+function cadSync(){CAD.length=CAD_BASE;Object.keys(cadNv).filter(k=>(cadNv[k]||{}).novo).sort((a,b)=>a-b).forEach(k=>{const c=cadNv[k].c||{},r=[c.fan||"",c.raz||"",c.doc||"",c.rua||"",c.num||"",c.bairro||"",Array.isArray(c.ali)?c.ali:[]];r.i=k;CAD.push(r)});CADK=null}
+const cadId=r=>r.i||String(CAD.indexOf(r)+1),cadRow=id=>CAD.find(r=>cadId(r)===String(id));
+cadSync();
+const cadObj=r=>{const id=cadId(r),o=(cadNv[id]||{}).c||{};
   return{id,fan:o.fan||r[0],raz:o.raz||r[1],doc:o.doc||r[2],end:(o.rua??r[3])+", "+((o.num??r[4])||"S/N")+" – "+(o.bairro??r[5])}};
 /* preço de um produto para a loja digitada no pedido; se a loja não tem, usa a tabela de preços do próprio usuário */
 function precoDoc(item){const cd=cadDe($("cliente").value.trim()),pl=cd&&(cadNv[cd.id]||{}).p;const v=pl&&pl[item]>0?pl[item]:precos[item];return v>0?v:0}
 function clNuvemIni(){if(clIni||!fbDb)return;clIni=true;
   try{fbDb.collection("obsent").doc("_cadastro").onSnapshot(sn=>{const d=sn.exists?(sn.data()||{}):{},n={};
     Object.keys(d).forEach(k=>{if(/^l\d+$/.test(k)){try{n[k.slice(1)]=JSON.parse(d[k])}catch(_){}}});
-    cadNv=n;lsS("mpv:cadnv",JSON.stringify(n));try{if($("clv").classList.contains("on")&&!clSel)clItens($("clq").value)}catch(_){}},()=>{clIni=false})}catch(_){clIni=false}}
+    cadNv=n;cadSync();lsS("mpv:cadnv",JSON.stringify(n));try{if($("clv").classList.contains("on")&&!clSel)clItens($("clq").value)}catch(_){}},()=>{clIni=false})}catch(_){clIni=false}}
 function garanteClientes(){let n=0;CLI_NOVOS.forEach(([nm,en])=>{const k=chave2(canon(nm)),ex=clientes.find(c=>chave2(canon(c.nome))===k);
   if(!ex){clientes.push({nome:nm,endereco:en,comprador:""});n++}else if(!ex.endereco){ex.endereco=en;n++}});
   if(n){salvaCli();try{listaCli()}catch(e){}}return n}
@@ -2251,18 +2255,19 @@ const clMoeda=v=>v>0?v.toFixed(2).replace(".",","):"";
 const clNum=t=>{const v=parseFloat(String(t).replace(/[^\d,.-]/g,"").replace(/\.(?=.*[.,])/g,"").replace(",","."));return v>0?Math.round(v*100)/100:0};
 function clAbre(){try{$("spmd").hidden=true}catch(_){}clNuvemIni();$("clv").classList.add("on");clLista("")}
 function clLista(q){clSel=null;$("clt").textContent="Cadastro das lojas";
-  $("clb").innerHTML="<input id='clq' type='search' placeholder='Buscar loja' autocomplete='off' style='width:100%;margin:6px 0 8px'><div id='cll' style='max-height:62vh;overflow:auto'></div>";
+  $("clb").innerHTML="<div style='display:flex;gap:8px;margin:6px 0 8px'><input id='clq' type='search' placeholder='Buscar loja' autocomplete='off' style='flex:1;min-width:0'>"+(clPodeEditar()?"<button id='clnv'>+ Nova loja</button>":"")+"</div><div id='cll' style='max-height:62vh;overflow:auto'></div>";
+  if($("clnv"))$("clnv").onclick=()=>clFicha("novo");
   $("clq").value=q||"";$("clq").oninput=e=>clItens(e.target.value);clItens(q||"")}
 function clItens(q){const k=chave2(q||""),el=$("cll");if(!el)return;
-  const L=CAD.map((r,i)=>({id:String(i+1),r,o:cadObj(r)})).filter(x=>!k||chave2(x.o.fan+" "+x.o.raz+" "+x.o.end+" "+x.r[6].join(" ")).includes(k));
+  const L=CAD.map(r=>({id:cadId(r),r,o:cadObj(r)})).filter(x=>!k||chave2(x.o.fan+" "+x.o.raz+" "+x.o.end+" "+x.r[6].join(" ")).includes(k));
   el.innerHTML=L.map(x=>{const np=Object.keys(((cadNv[x.id]||{}).p)||{}).length;return "<button class='rr clit' data-i='"+x.id+"'><span class='t'><b>"+x.id+" · "+esc(x.o.fan)+"</b><br><small>"+esc(x.r[5])+" · "+(np?np+" preços":"sem preços")+"</small></span></button>"}).join("")||"<p class='msg'>Nenhuma loja encontrada.</p>";
   el.querySelectorAll(".clit").forEach(b=>b.onclick=()=>clFicha(b.dataset.i))}
-function clFicha(id){clSel=id;const r=CAD[+id-1],o=(cadNv[id]||{}),c=o.c||{},p=o.p||{},ed=clPodeEditar(),dis=ed?"":" disabled";
-  $("clt").textContent="Loja "+id;
+function clFicha(id){clSel=id;const nova=id==="novo",r=nova?["","","","","","",[]]:cadRow(id),o=nova?{}:(cadNv[id]||{}),c=o.c||{},p=o.p||{},ed=clPodeEditar(),dis=ed?"":" disabled",eNovo=nova||!!o.novo;
+  $("clt").textContent=nova?"Nova loja":"Loja "+id;
   const campo=(k,rot,v)=>"<label style='display:block;margin:6px 0 2px;font-size:12px;color:var(--mute)'>"+rot+"</label><input data-c='"+k+"' value='"+esc(v)+"'"+dis+" style='width:100%'>";
   $("clb").innerHTML="<div style='max-height:68vh;overflow:auto'>"+
     campo("fan","Nome fantasia",c.fan||r[0])+campo("raz","Razão social",c.raz||r[1])+campo("doc","CNPJ/CPF",c.doc||r[2])+campo("rua","Rua",c.rua??r[3])+campo("num","Número",c.num??r[4])+campo("bairro","Bairro",c.bairro??r[5])+
-    "<p class='msg' style='margin:6px 0 0;font-size:12px'>Nomes que o app reconhece para esta loja: "+esc([r[0]].concat(r[6]).join(" · "))+"</p>"+
+    (eNovo?campo("ali","Outros nomes que o vendedor usa (separe por vírgula)",(r[6]||[]).join(", ")):"<p class='msg' style='margin:6px 0 0;font-size:12px'>Nomes que o app reconhece para esta loja: "+esc([r[0]].concat(r[6]).join(" · "))+"</p>")+
     "<b style='display:block;margin:14px 0 4px'>Preços dos produtos para esta loja</b>"+
     ITENS.map((n,i)=>"<div style='display:flex;gap:8px;align-items:center;margin:4px 0'><span style='flex:1;min-width:0;font-size:14px'>"+esc(n)+"</span><input data-p='"+i+"' inputmode='decimal' placeholder='R$ 0,00' value='"+clMoeda(p[n])+"'"+dis+" style='width:96px;text-align:right'></div>").join("")+"</div>"+
     "<div class='acts'>"+(ed?"<button id='clsv'>Salvar</button><button id='clgr' class='sec'>Preencher com a tabela geral</button>":"")+"<button id='clvl' class='sec'>Voltar</button></div><p id='clms' class='msg'></p>";
@@ -2270,10 +2275,14 @@ function clFicha(id){clSel=id;const r=CAD[+id-1],o=(cadNv[id]||{}),c=o.c||{},p=o
   if(!ed)return;
   $("clgr").onclick=()=>{const T=precoTab()||precos;let n=0;document.querySelectorAll("#clb [data-p]").forEach(i=>{if(!clNum(i.value)&&T[ITENS[+i.dataset.p]]>0){i.value=clMoeda(T[ITENS[+i.dataset.p]]);n++}});$("clms").textContent=n?n+" preços preenchidos. Toque em Salvar.":"Nenhum preço na tabela geral para preencher."};
   $("clsv").onclick=async()=>{const b=$("clsv");b.disabled=true;const nc={},np={};
-    document.querySelectorAll("#clb [data-c]").forEach(i=>{const k=i.dataset.c,v=i.value.trim(),orig={fan:r[0],raz:r[1],doc:r[2],rua:r[3],num:r[4],bairro:r[5]}[k];if(v!==String(orig))nc[k]=v});
+    document.querySelectorAll("#clb [data-c]").forEach(i=>{const k=i.dataset.c,v=i.value.trim();if(k==="ali"){nc.ali=v.split(",").map(t=>t.trim()).filter(Boolean);return}
+      if(eNovo){nc[k]=v;return}const orig={fan:r[0],raz:r[1],doc:r[2],rua:r[3],num:r[4],bairro:r[5]}[k];if(v!==String(orig))nc[k]=v});
+    if(nova){if(!nc.fan){$("clms").textContent="Informe o nome da loja.";b.disabled=false;return}
+      const ja=cadDe(nc.fan);if(ja){$("clms").textContent="Já existe a loja "+ja.id+" · "+ja.fan+". Abra a loja na lista para alterar.";b.disabled=false;return}
+      id=String(Math.max(0,...CAD.map(x=>+cadId(x)))+1)}
     document.querySelectorAll("#clb [data-p]").forEach(i=>{const v=clNum(i.value);if(v>0)np[ITENS[+i.dataset.p]]=v});
-    const reg={c:nc,p:np,ts:Date.now()};
-    try{await fbDb.collection("obsent").doc("_cadastro").set({["l"+id]:JSON.stringify(reg)},{merge:true});cadNv[id]=reg;lsS("mpv:cadnv",JSON.stringify(cadNv));$("clms").textContent="Salvo. Os usuários recebem os preços na próxima vez que abrirem o app."}
+    const reg={c:nc,p:np,ts:Date.now()};if(eNovo)reg.novo=1;
+    try{await fbDb.collection("obsent").doc("_cadastro").set({["l"+id]:JSON.stringify(reg)},{merge:true});cadNv[id]=reg;cadSync();lsS("mpv:cadnv",JSON.stringify(cadNv));if(nova){clFicha(id);$("clms").textContent="Loja cadastrada com o código "+id+".";return}$("clms").textContent="Salvo. Os usuários recebem os preços na próxima vez que abrirem o app."}
     catch(e){$("clms").textContent="Não foi possível salvar ("+(e.code||e.message)+"). Confira a internet e tente de novo."}
     b.disabled=false}}
 $("clx").onclick=()=>$("clv").classList.remove("on");
@@ -2287,7 +2296,7 @@ $("cfcad").onclick=async()=>{$("cadv").classList.add("on");$("cadm").textContent
       Object.values(j.agenda||j.rota||{}).forEach(l=>(Array.isArray(l)?l:[]).forEach(x=>add(typeof x==="string"?x:(x&&x.nome),nm)))}}catch(_){}}))}
   catch(e){$("cadm").textContent="Sem permissão para ler os usuários ("+(e.code||e.message)+").";return}
   const L=[...N.values()].map(o=>({...o,c:cadDe(o.n)})).sort((a,b)=>(!!a.c-!!b.c)||a.n.localeCompare(b.n,"pt-BR"));
-  const ok=L.filter(o=>o.c),no=L.filter(o=>!o.c),usa=new Set(ok.map(o=>o.c.id)),sobra=CAD.map((r,i)=>[i+1,r[0]]).filter(([i])=>!usa.has(String(i)));
+  const ok=L.filter(o=>o.c),no=L.filter(o=>!o.c),usa=new Set(ok.map(o=>o.c.id)),sobra=CAD.map((r,i)=>[cadId(r),r[0]]).filter(([i])=>!usa.has(String(i)));
   $("cadm").textContent=L.length+" lojas no app · "+ok.length+" ligadas à tabela · "+no.length+" sem cadastro";
   const sec=(t,h)=>"<b style='display:block;margin:12px 0 4px'>"+t+"</b>"+h;
   $("cadl").innerHTML=sec("Sem cadastro na tabela ("+no.length+")",no.map(o=>"<div class='rr'><span class='t'>"+esc(o.n)+" <small style='color:var(--mute)'>· "+esc([...o.q].join(", "))+"</small></span></div>").join("")||"<p class='msg'>Nenhuma.</p>")
@@ -3648,7 +3657,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="207";
+const VER="208";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
