@@ -430,6 +430,7 @@ body.trv #edbar{border-color:#0b7a75}
 #camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
 #vh,#mt{z-index:30}#cfgv{z-index:48}#clv{z-index:40}
 #clv .clit{display:block;width:100%;text-align:left;margin:0 0 6px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Archivo,sans-serif}#clv .clit small{color:var(--mute);font-weight:500}#clv .clit:active{background:var(--hit)}
+#clnv{flex:none;padding:0 14px;border-radius:10px;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}#clnv:active{background:var(--hit)}
 #clv .rr{border-bottom:0}#clv input{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font:500 15px Archivo,sans-serif}#clv input::placeholder{color:var(--mute)}#clv input:disabled{opacity:.7}
 body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none!important}body:has(#ucb:not([hidden])) main{padding-bottom:150px}
 .ocl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
@@ -2251,7 +2252,8 @@ function ucAbre(){try{$("spmd").hidden=true}catch(_){}const p=perfil&&perfil.pap
 /* cadastro das lojas (painel): dados da loja e preços de cada produto para a loja */
 let clSel=null;
 const clPodeEditar=()=>ehSup();
-const clMoeda=v=>v>0?v.toFixed(2).replace(".",","):"";
+const clMoeda=v=>v>0?"R$ "+v.toFixed(2).replace(".",","):"";
+function clMask(i){i.oninput=()=>{const t=i.value.replace(/[^\d,]/g,"").replace(/(,.*?),/g,"$1");i.value=t?"R$ "+t:""};i.onfocus=()=>{if(!i.value)i.value="R$ "};i.onblur=()=>{const v=clNum(i.value);i.value=clMoeda(v)}}
 const clNum=t=>{const v=parseFloat(String(t).replace(/[^\d,.-]/g,"").replace(/\.(?=.*[.,])/g,"").replace(",","."));return v>0?Math.round(v*100)/100:0};
 function clAbre(){try{$("spmd").hidden=true}catch(_){}clNuvemIni();$("clv").classList.add("on");clLista("")}
 function clLista(q){clSel=null;$("clt").textContent="Cadastro das lojas";
@@ -2272,7 +2274,7 @@ function clFicha(id){clSel=id;const nova=id==="novo",r=nova?["","","","","","",[
     ITENS.map((n,i)=>"<div style='display:flex;gap:8px;align-items:center;margin:4px 0'><span style='flex:1;min-width:0;font-size:14px'>"+esc(n)+"</span><input data-p='"+i+"' inputmode='decimal' placeholder='R$ 0,00' value='"+clMoeda(p[n])+"'"+dis+" style='width:96px;text-align:right'></div>").join("")+"</div>"+
     "<div class='acts'>"+(ed?"<button id='clsv'>Salvar</button><button id='clgr' class='sec'>Preencher com a tabela geral</button>":"")+"<button id='clvl' class='sec'>Voltar</button></div><p id='clms' class='msg'></p>";
   $("clvl").onclick=()=>clLista("");
-  if(!ed)return;
+  if(!ed)return;document.querySelectorAll("#clb [data-p]").forEach(clMask);
   $("clgr").onclick=()=>{const T=precoTab()||precos;let n=0;document.querySelectorAll("#clb [data-p]").forEach(i=>{if(!clNum(i.value)&&T[ITENS[+i.dataset.p]]>0){i.value=clMoeda(T[ITENS[+i.dataset.p]]);n++}});$("clms").textContent=n?n+" preços preenchidos. Toque em Salvar.":"Nenhum preço na tabela geral para preencher."};
   $("clsv").onclick=async()=>{const b=$("clsv");b.disabled=true;const nc={},np={};
     document.querySelectorAll("#clb [data-c]").forEach(i=>{const k=i.dataset.c,v=i.value.trim();if(k==="ali"){nc.ali=v.split(",").map(t=>t.trim()).filter(Boolean);return}
@@ -3657,7 +3659,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="209";
+const VER="210";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
