@@ -1267,7 +1267,11 @@ async function filaEnvia(){const uid=visUid();if(!uid||filaRodando||navigator.on
 window.addEventListener("online",()=>setTimeout(filaEnvia,1500));setInterval(filaEnvia,60000);
 function visUid(){return fbAuth&&fbAuth.currentUser&&fbDb?fbAuth.currentUser.uid:null}
 const FDEL={k:"",t:0};
-function visFotos(){const B=$("vfotos");if(!B)return;try{hqCarrega(visita.fo||[])}catch(_){}B.innerHTML="";const ids=visita.fo||[],uid=visUid();
+const SH={};
+function shPrep(ids){(ids||[]).forEach(id=>{if(SH[id]!==undefined)return;const h=HQ.m[id];if(!(h&&h.size)){if(HQ.m[id]===null)setTimeout(()=>shPrep([id]),800);return}
+  SH[id]=null;(async()=>{try{const bm=await createImageBitmap(h),m=2048,k=Math.min(1,m/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);
+    c.getContext("2d").drawImage(bm,0,0,c.width,c.height);try{bm.close()}catch(_){}const b=await new Promise(r=>c.toBlob(r,"image/jpeg",0.9));SH[id]=b&&b.size?b:h}catch(_){SH[id]=h}})()})}
+function visFotos(){const B=$("vfotos");if(!B)return;try{hqCarrega(visita.fo||[]);setTimeout(()=>shPrep(visita.fo||[]),300)}catch(_){}B.innerHTML="";const ids=visita.fo||[],uid=visUid();
   ids.forEach(id=>{const w=document.createElement("div");w.className="th";
     if(!vfoto[id]){vfoto[id]="…";filaGet(id).then(q=>{if(q&&q.j){vfoto[id]=q.j;if(mode==="visita")visFotos();return}if(!uid){vfoto[id]="";return}fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).get().then(sn=>{vfoto[id]=sn.exists?(sn.data()||{}).j:"";if(mode==="visita")visFotos()}).catch(()=>{vfoto[id]=""})})}
     const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.onclick=()=>{const K=(visita.fo||[]).filter(k=>vfoto[k]&&vfoto[k]!=="…"),L=K.map(k=>vfoto[k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;vfoto[id]=u;const uid=visUid();if(uid)fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:u},{merge:true}).catch(()=>{});try{visFotos()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
@@ -2945,14 +2949,20 @@ $("shrp").onclick=()=>{
 };
 $("cpl").onclick=async()=>{const b=$("cpl");try{await navigator.clipboard.writeText(legendaArq());flash(b,"Copiar legenda","Legenda copiada")}catch(e){flash(b,"Copiar legenda","Não deu para copiar")}};
 function abreWa(t){const u="https://wa.me/?text="+encodeURIComponent(t);let w=null;try{w=window.open(u,"_blank")}catch(e){}if(!w)location.href=u}
-$("vwpp").onclick=()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash($("vwpp"),"Enviar no WhatsApp","Informe o cliente");return}
-  if(!liberaVis()){flash($("vwpp"),"Enviar no WhatsApp","Feche o pedido ou use Sem pedido");return}
-  salvar();const t=textoChecklist();
-  copiaFundo(t);
-  const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const h=HQ.m[id];if(h&&h.size){fs.push(new File([h],"foto-visita-"+(i+1)+".jpg",{type:"image/jpeg"}));return}const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);
-    fs.push(new File([u],"foto-visita-"+(i+1)+".jpg",{type:"image/jpeg"}))})}catch(_){}
-  if(fs.length&&navigator.share&&navigator.canShare&&(()=>{try{return navigator.canShare({files:fs,text:t})}catch(_){return false}})()){
-    navigator.share({files:fs,text:t}).then(()=>aviso("Fotos enviadas. O texto do checklist também está copiado: se o WhatsApp não colocar o texto, é só colar.")).catch(e=>{if(e&&e.name==="AbortError")return;navigator.share({text:t}).catch(()=>abreWa(t))});return}
+let shDe=0;
+function shArquivos(){const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const nome="foto-visita-"+(i+1)+".jpg",h=SH[id]||HQ.m[id];if(h&&h.size){fs.push(new File([h],nome,{type:"image/jpeg"}));return}
+  const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);fs.push(new File([u],nome,{type:"image/jpeg"}))})}catch(_){}return fs}
+const podeShr=o=>{try{return !!(navigator.share&&navigator.canShare&&navigator.canShare(o))}catch(_){return false}};
+$("vwpp").onclick=()=>{const B=$("vwpp"),R0="Enviar no WhatsApp";
+  if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);flash(B,R0,"Informe o cliente");return}
+  if(!liberaVis()){flash(B,R0,"Feche o pedido ou use Sem pedido");return}
+  salvar();const t=textoChecklist();copiaFundo(t);
+  const fs=shArquivos(),so=Date.now()-shDe<20000;shDe=0;B.textContent=R0;
+  const falhou=()=>{shDe=Date.now();B.textContent="Toque de novo para enviar as fotos";setTimeout(()=>{if(shDe&&Date.now()-shDe>=19000){shDe=0;B.textContent=R0}},20000)};
+  if(fs.length){
+    if(!so&&podeShr({files:fs,text:t})){navigator.share({files:fs,text:t}).then(()=>aviso("Fotos enviadas. O texto do checklist também está copiado: se o WhatsApp não colocar o texto, é só colar.")).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
+    if(podeShr({files:fs})){navigator.share({files:fs}).then(()=>aviso("Fotos enviadas. O texto do checklist está copiado: cole no WhatsApp.")).catch(e=>{if(e&&e.name==="AbortError")return;aviso("Não deu para enviar as fotos direto. Elas estão na galeria do celular: anexe no WhatsApp. O texto já está copiado.")});return}
+    aviso("Este celular não deixou enviar as fotos direto. Elas estão na galeria: anexe no WhatsApp. O texto já está copiado.")}
   if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;abreWa(t)});return}
   abreWa(t)};
 function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.pdf&&podeCompart());$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
@@ -3670,7 +3680,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="211";
+const VER="212";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
