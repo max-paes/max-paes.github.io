@@ -3052,9 +3052,21 @@ const pos=e=>{
   return rot?[(e.clientY-r.top)/r.height*pad.width,(r.right-e.clientX)/r.width*pad.height]
             :[(e.clientX-r.left)/r.width*pad.width,(e.clientY-r.top)/r.height*pad.height];
 };
-pad.addEventListener("pointerdown",e=>{e.preventDefault();if(!tocou&&!padOk()){layoutSg();ajustaPad()}try{pad.setPointerCapture(e.pointerId)}catch(_){}desenha=true;tocou=true;const [a,b]=pos(e);pc.beginPath();pc.moveTo(a,b);pc.lineTo(a+.1,b+.1);pc.stroke()});
-pad.addEventListener("pointermove",e=>{if(!desenha)return;const L=e.getCoalescedEvents?e.getCoalescedEvents():[];(L.length?L:[e]).forEach(q=>{const [a,b]=pos(q);pc.lineTo(a,b);pc.stroke()})});
-["pointerup","pointercancel","pointerleave"].forEach(t=>pad.addEventListener(t,()=>{desenha=false}));
+/* desenho: aceita "pointer" e, se o celular não enviar, cai no toque (touch) e no mouse; só uma fonte por traço */
+let fonte="";
+function iniTraco(e,src){if(fonte&&fonte!==src&&desenha)return false;fonte=src;if(!tocou&&!padOk()){layoutSg();ajustaPad()}desenha=true;tocou=true;const [a,b]=pos(e);pc.beginPath();pc.moveTo(a,b);pc.lineTo(a+.1,b+.1);pc.stroke();return true}
+function movTraco(e,src){if(!desenha||fonte!==src)return;const [a,b]=pos(e);pc.lineTo(a,b);pc.stroke()}
+function fimTraco(src){if(fonte===src||!desenha){desenha=false;fonte=""}}
+pad.addEventListener("pointerdown",e=>{e.preventDefault();if(!iniTraco(e,"p"))return;try{pad.setPointerCapture(e.pointerId)}catch(_){}});
+pad.addEventListener("pointermove",e=>{if(!desenha||fonte!=="p")return;const L=e.getCoalescedEvents?e.getCoalescedEvents():[];(L.length?L:[e]).forEach(q=>movTraco(q,"p"))});
+["pointerup","pointercancel"].forEach(t=>pad.addEventListener(t,()=>fimTraco("p")));
+const T0=e=>e.changedTouches&&e.changedTouches[0]||e.touches&&e.touches[0];
+pad.addEventListener("touchstart",e=>{e.preventDefault();const q=T0(e);if(q)iniTraco(q,"t")},{passive:false});
+pad.addEventListener("touchmove",e=>{e.preventDefault();const q=T0(e);if(q)movTraco(q,"t")},{passive:false});
+["touchend","touchcancel"].forEach(t=>pad.addEventListener(t,()=>fimTraco("t")));
+pad.addEventListener("mousedown",e=>{iniTraco(e,"m")});
+window.addEventListener("mousemove",e=>movTraco(e,"m"));
+window.addEventListener("mouseup",()=>fimTraco("m"));
 $("ass").onclick=abrirSg;
 /* botões da assinatura respondem ao toque (soltar o dedo sobre o botão) mesmo quando o navegador do celular não gera o "click" logo depois de um traço */
 function toqueBtn(el,fn){let dn=false,ult=0;const go=()=>{const t=Date.now();if(t-ult<500)return;ult=t;fn()};
@@ -3679,7 +3691,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="215";
+const VER="216";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
