@@ -2949,7 +2949,7 @@ $("shrp").onclick=()=>{
 };
 $("cpl").onclick=async()=>{const b=$("cpl");try{await navigator.clipboard.writeText(legendaArq());flash(b,"Copiar legenda","Legenda copiada")}catch(e){flash(b,"Copiar legenda","Não deu para copiar")}};
 function abreWa(t){const u="https://wa.me/?text="+encodeURIComponent(t);let w=null;try{w=window.open(u,"_blank")}catch(e){}if(!w)location.href=u}
-let shDe=0;
+let shDe=0,shPrepOk=false;
 function shArquivos(){const fs=[];try{(visita.fo||[]).forEach((id,i)=>{const nome="foto-visita-"+(i+1)+".jpg",h=SH[id]||HQ.m[id];if(h&&h.size){fs.push(new File([h],nome,{type:"image/jpeg"}));return}
   const d=vfoto[id];if(!d||!/^data:image/.test(d))return;const b=atob(d.split(",")[1]),u=new Uint8Array(b.length);for(let j=0;j<b.length;j++)u[j]=b.charCodeAt(j);fs.push(new File([u],nome,{type:"image/jpeg"}))})}catch(_){}return fs}
 const podeShr=o=>{try{return !!(navigator.share&&navigator.canShare&&navigator.canShare(o))}catch(_){return false}};
@@ -2958,7 +2958,8 @@ $("vwpp").onclick=()=>{const B=$("vwpp"),R0="Enviar no WhatsApp";
   if(!liberaVis()){flash(B,R0,"Feche o pedido ou use Sem pedido");return}
   salvar();const t=textoChecklist();copiaFundo(t);
   const fs=shArquivos(),so=Date.now()-shDe<20000;shDe=0;B.textContent=R0;
-  if((visita.fo||[]).length&&fs.length<(visita.fo||[]).length&&!so){shPrep(visita.fo||[]);falhou();B.textContent="Preparando fotos… toque de novo";return}
+  if((visita.fo||[]).length&&fs.length<(visita.fo||[]).length&&!so&&!shPrepOk){shPrep(visita.fo||[]);shPrepOk=true;B.textContent="Preparando fotos… toque de novo";setTimeout(()=>{shPrepOk=false;if(B.textContent.startsWith("Preparando"))B.textContent=R0},20000);return}
+  shPrepOk=false;
   const falhou=()=>{shDe=Date.now();B.textContent="Toque de novo para enviar as fotos";setTimeout(()=>{if(shDe&&Date.now()-shDe>=19000){shDe=0;B.textContent=R0}},20000)};
   if(fs.length){
     if(!so&&podeShr({files:fs,text:t})){navigator.share({files:fs,text:t}).then(()=>aviso("Fotos enviadas. O texto do checklist também está copiado: se o WhatsApp não colocar o texto, é só colar.")).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
@@ -3681,7 +3682,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="213";
+const VER="214";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
