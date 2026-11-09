@@ -1504,7 +1504,7 @@ function aplicaAcesso(){const dono=false;/* gôndola retirada de todos os usuár
 const NAO_VENDE=/^(motorista|producao|expedicao|faturamento|admin)$/,vende=v=>!NAO_VENDE.test((v||{}).papel||"")||((v||{}).papel==="admin"&&(v||{}).vendeu===true);
 const rotPDev=p=>p==="developer"?"Developer":rotP(p);
 const abaPro=()=>!!perfil&&/^(promotor|developer)$/.test(perfil.papel||"");const rotAbaEnt=()=>abaPro()?"Ocorrência":"Entrega";
-const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Promotor":p==="supervisor"?"Vendedor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
+const rotP=p=>p==="faturamento"?"Faturamento":p==="admin"?"Diretor":p==="producao"?"Produção":p==="expedicao"?"Expedição":p==="developer"?"Promotor":p==="supervisor"?"Supervisor":p==="promotor"?"Promotor":p==="motorista"?"Motorista":"Vendedor";
 
 // ===== Cadastro e pedido entregues pela empresa: entram uma única vez na conta indicada =====
 const SEEDS=[];/* pedidos entregues pela empresa já aplicados; lista esvaziada para não recriar pedidos excluídos */
@@ -1871,7 +1871,7 @@ function supGerencia(){const L=$("sgacc");if(!L)return;L.innerHTML="";const me=f
     r.innerHTML="<span class='gn'><b>"+esc(nomeV(uid))+"</b>"+" · "+rotPDev(v.papel).toLowerCase()+"<small>"+esc(v.email||"")+(v.trocarSenha?" · aguardando 1º acesso":"")+"<br><span class='pr' data-u='"+esc(uid)+"'>"+presTxt(v)+"</span>"+(v.disp?" · "+esc(v.dispNome||"aparelho")+" conectado":"")+(v.ativo===false?" · <span class='off'>"+(v.pendente?"pedido de acesso":"desativado")+"</span>":"")+"</small></span>";
     const mx=uid!==me&&(dono||v.papel!=="developer");
     const sel=document.createElement("select");sel.className="sec";sel.setAttribute("aria-label","Perfil");
-    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Vendedor + painel e expedição"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
+    [["vendedor","Vendedor"],["promotor","Promotor"],["motorista","Motorista"],["producao","Produção"],["expedicao","Expedição"],["faturamento","Faturamento"],["supervisor","Supervisor"],["admin","Diretor"]].forEach(([k,t])=>{const o=document.createElement("option");o.value=k;o.textContent=t;sel.appendChild(o)});
     sel.value=["promotor","motorista","producao","expedicao","faturamento","supervisor","admin"].includes(v.papel)?v.papel:"vendedor";
     const rs=document.createElement("button");rs.className="sec";rs.textContent="Redefinir senha";
     rs.onclick=async()=>{if(!v.email)return;if(rs.dataset.c!=="1"){rs.dataset.c="1";rs.textContent="Enviar e-mail?";setTimeout(()=>{rs.dataset.c="";rs.textContent="Redefinir senha"},3000);return}
@@ -3657,7 +3657,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="208";
+const VER="209";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
