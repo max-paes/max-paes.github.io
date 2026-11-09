@@ -2958,12 +2958,13 @@ $("vwpp").onclick=()=>{const B=$("vwpp"),R0="Enviar no WhatsApp";
   if(!liberaVis()){flash(B,R0,"Feche o pedido ou use Sem pedido");return}
   salvar();const t=textoChecklist();copiaFundo(t);
   const fs=shArquivos(),so=Date.now()-shDe<20000;shDe=0;B.textContent=R0;
+  if((visita.fo||[]).length&&fs.length<(visita.fo||[]).length&&!so){shPrep(visita.fo||[]);falhou();B.textContent="Preparando fotos… toque de novo";return}
   const falhou=()=>{shDe=Date.now();B.textContent="Toque de novo para enviar as fotos";setTimeout(()=>{if(shDe&&Date.now()-shDe>=19000){shDe=0;B.textContent=R0}},20000)};
   if(fs.length){
     if(!so&&podeShr({files:fs,text:t})){navigator.share({files:fs,text:t}).then(()=>aviso("Fotos enviadas. O texto do checklist também está copiado: se o WhatsApp não colocar o texto, é só colar.")).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
     if(podeShr({files:fs})){navigator.share({files:fs}).then(()=>aviso("Fotos enviadas. O texto do checklist está copiado: cole no WhatsApp.")).catch(e=>{if(e&&e.name==="AbortError")return;aviso("Não deu para enviar as fotos direto. Elas estão na galeria do celular: anexe no WhatsApp. O texto já está copiado.")});return}
     aviso("Este celular não deixou enviar as fotos direto. Elas estão na galeria: anexe no WhatsApp. O texto já está copiado.")}
-  if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;abreWa(t)});return}
+  if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
   abreWa(t)};
 function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.pdf&&podeCompart());$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
 function rotGf(m){const n=Object.values(state[m]).filter(v=>v>0).length;return (m==="troca"?"Troca":"Pedido")+" · "+(n?n+(n===1?" item":" itens"):"vazio")}
@@ -3680,7 +3681,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="212";
+const VER="213";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
