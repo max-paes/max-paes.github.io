@@ -491,6 +491,9 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
       <p class="msg" style="margin:0">Copie e cole na conversa do WhatsApp.</p></div>
   </div>
   <div id="ent" hidden></div>
+  <div class="card" id="obscard"><b id="obst">Observação do pedido</b>
+    <label class="vl">Sai no documento, no lugar da lista de fracionados<textarea id="obs" rows="3" maxlength="400" placeholder="Ex.: 20 un. fracionadas de BOLO DE MILHO" autocomplete="off"></textarea></label>
+  </div>
   <div class="card" id="asscard"><b>Assinatura do cliente</b><img id="assimg" alt="Assinatura" hidden><button id="ass">Assinar</button></div>
 </main>
 <div class="bar">
@@ -686,6 +689,8 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   </div>
   <button id="gpr" class="gprb" aria-pressed="false">Preços no documento: Não</button>
   <p class="msg" style="margin:6px 2px 0;font-size:12px">Com preços, o documento mostra valor unitário e total de cada item, usando a tabela da loja no cadastro.</p>
+  <button id="gob" class="gprb" aria-pressed="true">Observação no documento: Sim</button>
+  <p class="msg" style="margin:6px 2px 0;font-size:12px">A observação é a que você escreveu na tela do Pedido ou da Troca. O documento mostra as caixas e os itens fracionados em números e, abaixo, a observação.</p>
 </div></div>
 <div class="ov fs" id="fs"><button id="fsx">Fechar</button><img id="fsimg" alt="JPG em tela cheia"></div>
 <div class="ov" id="sg"><div id="sgin">
@@ -709,6 +714,7 @@ const LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAE8CAYAAADt+is0AA
 const COR={"PÃO HAMBURGUER 400g":"#e8892b","PÃO HOT DOG 400g":"#d96a6a","PÃO BRIOCHE 400g":"#5b86c4","PÃO BRIOCHE C/ GERGELIM 400g":"#c9a23c"};
 const CAMPOS=["cliente","endereco","comprador"],KEY="maxpaes:v2";
 const state={pedido:{},troca:{},gondola:{}},assin={pedido:"",troca:""};
+const obs={pedido:"",troca:""};const U0s=v=>typeof v==="string"?v.slice(0,400):"";const obsDe=o=>({pedido:U0s((o||{}).pedido),troca:U0s((o||{}).troca)});
 const sigOk=m=>!!assin[m];
 let mode="pedido",curId=null,hist=[];
 const HKEY="maxpaes:hist:v1",CKEY="maxpaes:clientes:v1";
@@ -1527,7 +1533,7 @@ function cadDe(nome){if(!nome||!String(nome).trim())return null;
   const hit=CAD.filter(r=>{const f=cadTk(r[0].replace(/^COMPRE MAX/,"COMPREMAX"));return t.every(w=>f.includes(w))&&f.length-t.length<=1});
   return hit.length===1?cadObj(hit[0]):null}
 let cadNv={};try{const j=JSON.parse(lsG("mpv:cadnv")||"{}");if(j&&typeof j==="object")cadNv=j}catch(_){}
-let docPreco=lsG("mpv:docpreco")==="1",clIni=false;
+let docPreco=lsG("mpv:docpreco")==="1",docObs=lsG("mpv:docobs")!=="0",clIni=false;
 const CAD_BASE=CAD.length;
 function cadSync(){CAD.length=CAD_BASE;Object.keys(cadNv).filter(k=>(cadNv[k]||{}).novo).sort((a,b)=>a-b).forEach(k=>{const c=cadNv[k].c||{},r=[c.fan||"",c.raz||"",c.doc||"",c.rua||"",c.num||"",c.bairro||"",Array.isArray(c.ali)?c.ali:[]];r.i=k;CAD.push(r)});CADK=null}
 const cadId=r=>r.i||String(CAD.indexOf(r)+1),cadRow=id=>CAD.find(r=>cadId(r)===String(id));
@@ -2186,12 +2192,12 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.
   $("sdp").hidden=!(soma(e.pedido)>0);$("sdtr").hidden=!(soma(e.troca)>0);$("sddu").hidden=!(soma(e.pedido)>0&&soma(e.troca)>0);if(!silencioso)$("sdm").textContent="";
   $("sdt").classList.add("on")}
 async function comEntrada(e,fn){
-  const bk={p:state.pedido,t:state.troca,g:state.gondola,v:visita,a:{...assin},f:CAMPOS.map(i=>$(i).value),d:$("data").value,cur:curId,st:stPed,fe:fechEm};
+  const bk={p:state.pedido,t:state.troca,g:state.gondola,v:visita,a:{...assin},o:{...obs},f:CAMPOS.map(i=>$(i).value),d:$("data").value,cur:curId,st:stPed,fe:fechEm};
   bloqueio=true;clearTimeout(tSalvar);tSalvar=null;
   docVend={nome:e.vendedor||"",papel:(e.uid&&sup.vend[e.uid]&&sup.vend[e.uid].papel)||(perfil&&perfil.papel)||"vendedor"};
-  try{state.pedido={...e.pedido};state.troca={...e.troca};state.gondola={...e.gondola};visita=normVis(e.visita);assin.pedido=e.assin.pedido||"";assin.troca=e.assin.troca||"";
+  try{state.pedido={...e.pedido};state.troca={...e.troca};state.gondola={...e.gondola};visita=normVis(e.visita);assin.pedido=e.assin.pedido||"";assin.troca=e.assin.troca||"";Object.assign(obs,obsDe(e.obs));
     $("cliente").value=e.cliente;$("endereco").value=e.endereco;$("comprador").value=e.comprador;$("data").value=e.data;return await fn()}
-  finally{state.pedido=bk.p;state.troca=bk.t;state.gondola=bk.g;visita=bk.v;Object.assign(assin,bk.a);CAMPOS.forEach((i,n)=>$(i).value=bk.f[n]);$("data").value=bk.d;curId=bk.cur;stPed=bk.st;fechEm=bk.fe;docVend=null;bloqueio=false}}
+  finally{state.pedido=bk.p;state.troca=bk.t;state.gondola=bk.g;visita=bk.v;Object.assign(assin,bk.a);Object.assign(obs,bk.o);CAMPOS.forEach((i,n)=>$(i).value=bk.f[n]);$("data").value=bk.d;curId=bk.cur;stPed=bk.st;fechEm=bk.fe;docVend=null;bloqueio=false}}
 async function supJpg(m){const e=entDe(sup.det);if(!e)return;const b=m==="troca"?$("sdtr"):$("sdp"),r=b.textContent;b.textContent="Gerando…";
   try{try{await document.fonts.load("800 28px Archivo")}catch(_){}
     await comEntrada(e,async()=>{const sig=sigOk(m)?await carregaImg(assin[m]):null,logo=await carregaImg(LOGO);const c=desenhar(sig,logo,m);
@@ -2397,7 +2403,7 @@ function salvar(){
   clearTimeout(tSalvar);tSalvar=null;
   registrar();
   const f=Object.fromEntries(CAMPOS.map(i=>[i,$(i).value]));f.data=$("data").value;
-  try{localStorage.setItem(KEY,JSON.stringify({state,assin,vis:visita,mode,cur:curId,f}))}
+  try{localStorage.setItem(KEY,JSON.stringify({state,assin,obs,vis:visita,mode,cur:curId,f}))}
   catch(e){aviso("Memória do celular cheia: as últimas alterações podem não ficar salvas. Abra o Histórico, faça um backup e exclua pedidos antigos.")}
 }
 function agenda(){clearTimeout(tSalvar);tSalvar=setTimeout(salvar,400)}
@@ -2408,6 +2414,7 @@ function carregar(){
     if(!s||!s.state)return;
     state.pedido=renI(s.state.pedido||{});state.troca=renI(s.state.troca||{});state.gondola=renI(s.state.gondola||{});
     assin.pedido=(s.assin&&s.assin.pedido)||"";assin.troca=(s.assin&&s.assin.troca)||"";
+    Object.assign(obs,obsDe(s.obs));
     Object.entries(s.f||{}).forEach(([k,v])=>{if(CAMPOS.includes(k))$(k).value=U(v)});
     if(s.vis)visita=normVis(s.vis);
     if(s.f&&s.f.data)$("data").value=s.f.data;
@@ -2442,7 +2449,7 @@ function contar(){try{spRender()}catch(e){}
 function render(){
   const gond=mode==="gondola",vis=mode==="visita",ent=mode==="entrega";entVigia();
   ["pedido","troca","gondola","visita","entrega"].forEach(m=>$("t-"+m).setAttribute("aria-selected",mode===m));
-  $("list").hidden=vis||ent;$("asscard").hidden=gond||vis||ent;$("vis").hidden=!vis;$("ent").hidden=!ent;
+  $("list").hidden=vis||ent;$("asscard").hidden=gond||vis||ent;obsPinta();$("vis").hidden=!vis;$("ent").hidden=!ent;
   if(ent){$("list").innerHTML="";renderVisBar();renderEnt();contar();$("edbar").hidden=!curId;pintaFat();return}
   $("list").innerHTML="";renderVisBar();
   if(vis){renderVis();contar();salvar();$("edbar").hidden=!curId;pintaFat();apoio();gondSum();return}
@@ -2508,6 +2515,12 @@ function gondSum(){
   if(!$("cliente").value.trim())l("Informe o cliente para calcular o giro com base no último pedido.");
   if(ks.length)l(ks.length+(ks.length===1?" item contado":" itens contados")+(z.length?" · zerados: "+z.length:"")+(par.length?" · parados ou com estoque alto: "+par.length:""),z.length||par.length?"warn":"");
 }
+function obsPinta(){const C=$("obscard");if(!C)return;
+  const on=mode==="pedido"||mode==="troca";C.hidden=!on;if(!on)return;
+  $("obst").textContent="Observação "+(mode==="troca"?"da troca":"do pedido");
+  if(document.activeElement!==$("obs"))$("obs").value=obs[mode]||"";
+}
+$("obs").addEventListener("input",()=>{if(mode!=="pedido"&&mode!=="troca")return;obs[mode]=$("obs").value;agenda()});
 function renderAssin(){
   const g=assin[mode];
   $("assimg").hidden=!g;if(g&&$("assimg").getAttribute("src")!==g)$("assimg").src=g;
@@ -2541,7 +2554,7 @@ window.addEventListener("pagehide",salvar);
 const temItens=()=>[state.pedido,state.troca].some(o=>Object.values(o).some(v=>v>0))||Object.keys(state.gondola).length>0||!!visita.ini;
 function limparTudo(){
   if(tSalvar)salvar();
-  curId=null;cliSel=false;state.pedido={};state.troca={};state.gondola={};visita=novaVis();assin.pedido="";assin.troca="";stPed="rascunho";eraFat=false;snapFat=null;fechEm=0;
+  curId=null;cliSel=false;state.pedido={};state.troca={};state.gondola={};visita=novaVis();assin.pedido="";assin.troca="";obs.pedido="";obs.troca="";stPed="rascunho";eraFat=false;snapFat=null;fechEm=0;
   CAMPOS.forEach(i=>$(i).value="");$("data").value=hojeISO();mode="pedido";render();
 }
 let confirma=false;
@@ -2549,7 +2562,7 @@ function marcaFechado(){salvar();pintaFat()}
 function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const ok=!!curId;b.hidden=false;b.disabled=false;
   const trv=ok&&entFin;
   document.body.classList.toggle("trv",trv);
-  CAMPOS.forEach(i=>{const el=$(i);if(el)el.readOnly=trv});$("data").readOnly=trv;trancaCli();
+  CAMPOS.forEach(i=>{const el=$(i);if(el)el.readOnly=trv});$("data").readOnly=trv;$("obs").readOnly=trv;trancaCli();
   const fe=ok&&stPed!=="rascunho"&&stPed!=="alterando";
   const tx=$("edtx");if(tx)tx.textContent=entFin&&ok?"Entrega finalizada pelo motorista: o pedido está travado.":entRota&&ok?"Em rota: o motorista já saiu da empresa com este pedido.":stPed==="alterado"&&ok?"Pedido fechado e alterado depois: a fábrica e a supervisão veem o aviso.":fe?"Pedido fechado. Se mudar algo, fica marcado como alterado.":"Pedido salvo no histórico. As alterações são salvas sozinhas.";
   if(entFin&&ok){b.className="on";b.textContent="✅ Entregue";return}
@@ -2587,7 +2600,7 @@ const semSt=o=>{const n=q=>Object.keys(q||{}).filter(k=>q[k]>0).sort().map(k=>k+
 function hashTxt(t){let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return (h>>>0).toString(36)}
 const assinaCt=()=>hashTxt(semSt(conteudo()));
 function conteudo(){
-  return {status:stPed,fat:!!eraFat,snap:snapFat||"",fechadoEm:fechEm,vendedor:perfil?perfil.nome:"",cliente:$("cliente").value.trim(),endereco:$("endereco").value.trim(),comprador:$("comprador").value.trim(),data:$("data").value,pedido:lim(state.pedido),troca:lim(state.troca),gondola:{...state.gondola},visita:JSON.parse(JSON.stringify(visita)),assin:{pedido:assin.pedido,troca:assin.troca}};
+  return {status:stPed,fat:!!eraFat,snap:snapFat||"",fechadoEm:fechEm,vendedor:perfil?perfil.nome:"",cliente:$("cliente").value.trim(),endereco:$("endereco").value.trim(),comprador:$("comprador").value.trim(),data:$("data").value,pedido:lim(state.pedido),troca:lim(state.troca),gondola:{...state.gondola},visita:JSON.parse(JSON.stringify(visita)),assin:{pedido:assin.pedido,troca:assin.troca},obs:{pedido:obs.pedido,troca:obs.troca}};
 }
 function salvarHist(){
   const tenta=()=>{try{localStorage.setItem(HKEY,JSON.stringify(hist));return true}catch(e){return false}};
@@ -2606,7 +2619,7 @@ function salvarHist(){
           :"Memória do celular cheia: este pedido não pôde ser salvo no histórico. Abra o Histórico, faça um backup e exclua pedidos antigos.");
   return ok;
 }
-function normEnt(e){e.cliente=U(e.cliente);e.endereco=U(e.endereco);e.comprador=U(e.comprador);e.visita=normVis(e.visita);e.pedido=renI(e.pedido||{});e.troca=renI(e.troca||{});e.gondola=renI(e.gondola||{});e.assin={pedido:(e.assin&&e.assin.pedido)||"",troca:(e.assin&&e.assin.troca)||""};delete e.asnap;e.ts=Number(e.ts)||0;return e}
+function normEnt(e){e.cliente=U(e.cliente);e.endereco=U(e.endereco);e.comprador=U(e.comprador);e.visita=normVis(e.visita);e.pedido=renI(e.pedido||{});e.troca=renI(e.troca||{});e.gondola=renI(e.gondola||{});e.assin={pedido:(e.assin&&e.assin.pedido)||"",troca:(e.assin&&e.assin.troca)||""};e.obs=obsDe(e.obs);delete e.asnap;e.ts=Number(e.ts)||0;return e}
 function carregarHist(){
   try{const h=JSON.parse(localStorage.getItem(HKEY)||"[]");if(Array.isArray(h))hist=h.filter(e=>e&&e.id).map(normEnt).sort((a,b)=>b.ts-a.ts)}catch(e){}
 }
@@ -2670,6 +2683,7 @@ function abrirPedido(id,btn){
   const e=hist.find(h=>h.id===id);if(!e)return;
   state.pedido={...e.pedido};state.troca={...e.troca};state.gondola={...(e.gondola||{})};visita=normVis(e.visita);
   assin.pedido=(e.assin&&e.assin.pedido)||"";assin.troca=(e.assin&&e.assin.troca)||"";
+  Object.assign(obs,obsDe(e.obs));
   stPed=e.status||"rascunho";eraFat=!!e.fat;snapFat=e.snap||null;fechEm=e.fechadoEm||0;
   $("cliente").value=e.cliente||"";$("endereco").value=e.endereco||"";$("comprador").value=e.comprador||"";
   $("data").value=e.data||hojeISO();
@@ -2819,14 +2833,31 @@ function cabecalho(x,W,P,logo,tit,campos,dTxt){
 }
 const rotDoc=p=>p==="supervisor"?"Vendedor":(p==="promotor"||p==="developer")?"Promotor":"Vendedor";
 let docVend=null;
-function caixasDe(o){let cx=0;const fr=[];ITENS.forEach(n=>{const k=CX[n],v=o[n]||0;if(!k||v<=0)return;cx+=Math.floor(v/k);if(v%k)fr.push([n,v%k])});return{cx,fr}}
-function blocoCaixas(x,o,P,tw,y,so){const {cx,fr}=caixasDe(o),h=76+fr.length*34;if(so)return h;
+function caixasDe(o){let cx=0,fu=0,fi=0;ITENS.forEach(n=>{const k=CX[n],v=o[n]||0;if(!k||v<=0)return;cx+=Math.floor(v/k);if(v%k){fu+=v%k;fi++}});return{cx,fu,fi}}
+/* quebra o texto da observação em linhas que cabem na largura do documento */
+let scTxt=null;
+function quebraTxt(t,fnt,w,max){const sc=scTxt||(scTxt=document.createElement("canvas").getContext("2d"));sc.font=fnt;const out=[];
+  String(t||"").replace(/\r/g,"").split("\n").forEach(par=>{let z=par.trim();
+    while(z&&out.length<max){
+      if(sc.measureText(z).width<=w){out.push(z);break}
+      let i=z.length;while(i>1&&sc.measureText(z.slice(0,i)).width>w)i--;
+      let j=z.lastIndexOf(" ",i);if(j<=0)j=i;
+      out.push(z.slice(0,j).trim());z=z.slice(j).trim();
+    }});
+  return out.slice(0,max)}
+const obsDoc=m=>docObs?String(obs[m]||"").trim():"";
+function blocoCaixas(x,o,P,tw,y,so,txt){const {cx,fu,fi}=caixasDe(o);
+  const ls=String(txt||"").trim()?quebraTxt(txt,"700 24px "+FT,tw-40,8):[];
+  const h=76+(ls.length?26+32*ls.length:0);if(so)return h;
   x.fillStyle="#f1f5fc";rr(x,P,y+14,tw,h-14,14);x.fill();x.strokeStyle=AZ;x.lineWidth=2;rr(x,P,y+14,tw,h-14,14);x.stroke();
-  x.textAlign="left";x.fillStyle=AZ;x.font="800 26px "+FT;x.fillText("CAIXAS: "+cx+(cx===1?" caixa":" caixas")+(fr.length?" + fracionados":""),P+20,y+54);
-  x.fillStyle=TX;x.font="700 24px "+FT;fr.forEach(([n,r],i)=>{x.fillText(n+" - "+r,P+20,y+54+34*(i+1))});return h}
+  x.textAlign="left";x.fillStyle=AZ;x.font="800 26px "+FT;
+  x.fillText("CAIXAS: "+cx+(cx===1?" caixa":" caixas")+(fi?" + "+fu+(fu===1?" item":" itens")+" fracionado"+(fu===1?"":"s"):""),P+20,y+54);
+  if(ls.length){x.fillStyle=AZ;x.font="800 20px "+FT;x.fillText("OBSERVAÇÃO:",P+20,y+88);
+    x.fillStyle=TX;x.font="700 24px "+FT;ls.forEach((l,i)=>x.fillText(l,P+20,y+88+32*(i+1)))}
+  return h}
 function desenhar(sig,logo,m=mode){
   const q=state[m],lista=ITENS.filter(n=>q[n]>0);
-  const pr=docPreco&&m!=="troca",W=900,P=32,RH=58,T=306+52*camposDoc().length,EX=blocoCaixas(null,q,0,0,0,true)+10,H=T+56+Math.max(lista.length,1)*RH+220+EX+(pr?84:0);
+  const pr=docPreco&&m!=="troca",W=900,P=32,RH=58,T=306+52*camposDoc().length,OB=obsDoc(m),EX=blocoCaixas(null,q,0,W-2*P,0,true,OB)+10,H=T+56+Math.max(lista.length,1)*RH+220+EX+(pr?84:0);
   const c=document.createElement("canvas");c.width=W;c.height=H;
   const x=c.getContext("2d");
   x.fillStyle="#fff";x.fillRect(0,0,W,H);
@@ -2857,7 +2888,7 @@ function desenhar(sig,logo,m=mode){
   if(pr){const bw=420,by=T+56+th+14;x.fillStyle="#f1f5fc";rr(x,P+tw-bw,by,bw,60,14);x.fill();x.strokeStyle=AZ;x.lineWidth=2;rr(x,P+tw-bw,by,bw,60,14);x.stroke();
     x.fillStyle=AZ;x.textAlign="left";x.font="800 22px "+FT;x.fillText(m==="troca"?"TOTAL DA TROCA":"TOTAL DO PEDIDO",P+tw-bw+18,by+38);
     x.textAlign="right";x.font="800 28px "+FT;x.fillText(R2(tot),P+tw-16,by+40)}
-  blocoCaixas(x,q,P,tw,yb,false);const fy=yb+150+EX;
+  blocoCaixas(x,q,P,tw,yb,false,OB);const fy=yb+150+EX;
   if(sig){const bw=380,bh=120,k=Math.min(bw/sig.width,bh/sig.height),w=sig.width*k,h=sig.height*k;x.drawImage(sig,P+40+(bw-w)/2,fy-h-4,w,h)}
   x.strokeStyle=TX;x.lineWidth=2;x.beginPath();x.moveTo(P+40,fy);x.lineTo(P+420,fy);x.stroke();
   x.fillStyle=AZ;x.font="800 18px "+FT;x.textAlign="center";x.fillText("Assinatura",P+230,fy+28);
@@ -2968,7 +2999,9 @@ function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.p
 function rotGf(m){const n=Object.values(state[m]).filter(v=>v>0).length;return (m==="troca"?"Troca":"Pedido")+" · "+(n?n+(n===1?" item":" itens"):"vazio")}
 function gprPinta(){const b=$("gpr");b.setAttribute("aria-pressed",docPreco?"true":"false");b.textContent="Preços no documento: "+(docPreco?"Sim":"Não")}
 $("gpr").onclick=()=>{docPreco=!docPreco;lsS("mpv:docpreco",docPreco?"1":"0");gprPinta()};
-$("garq").onclick=()=>{if(!liberaDoc()){fatAviso("Feche o pedido para gerar o documento");return}gprPinta();clNuvemIni();$("gp").textContent=rotGf("pedido");$("gt").textContent=rotGf("troca");$("dup").textContent="Pedido + Troca · folha A4";$("gf").classList.add("on")};
+function gobPinta(){const b=$("gob"),t=(obs.pedido||"").trim()||(obs.troca||"").trim();b.setAttribute("aria-pressed",docObs?"true":"false");b.textContent="Observação no documento: "+(docObs?"Sim":"Não")+(docObs&&!t?" (nenhuma escrita)":"")}
+$("gob").onclick=()=>{docObs=!docObs;lsS("mpv:docobs",docObs?"1":"0");gobPinta()};
+$("garq").onclick=()=>{if(!liberaDoc()){fatAviso("Feche o pedido para gerar o documento");return}gprPinta();gobPinta();clNuvemIni();$("gp").textContent=rotGf("pedido");$("gt").textContent=rotGf("troca");$("dup").textContent="Pedido + Troca · folha A4";$("gf").classList.add("on")};
 $("gfx").onclick=()=>$("gf").classList.remove("on");
 $("gp").onclick=async()=>{if(!(await gerar($("gp"),rotGf("pedido"),"pedido")))return;marcaFechado();$("gf").classList.remove("on");abrirPrev("JPG do pedido pronto. Toque em Salvar JPG ou Tela cheia.")};
 $("gt").onclick=async()=>{if(!(await gerar($("gt"),rotGf("troca"),"troca")))return;marcaFechado();$("gf").classList.remove("on");abrirPrev("JPG da troca pronto. Toque em Salvar JPG ou Tela cheia.")};
@@ -3691,7 +3724,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="217";
+const VER="218";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
