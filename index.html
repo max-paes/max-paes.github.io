@@ -492,7 +492,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   </div>
   <div id="ent" hidden></div>
   <div class="card" id="obscard"><b id="obst">Observação do pedido</b>
-    <label class="vl">Sai no documento, no lugar da lista de fracionados<textarea id="obs" rows="3" maxlength="400" placeholder="Ex.: 20 un. fracionadas de BOLO DE MILHO" autocomplete="off"></textarea></label>
+    <textarea id="obs" rows="3" maxlength="400" autocomplete="off"></textarea>
   </div>
   <div class="card" id="asscard"><b>Assinatura do cliente</b><img id="assimg" alt="Assinatura" hidden><button id="ass">Assinar</button></div>
 </main>
@@ -3724,7 +3724,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="218";
+const VER="219";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
