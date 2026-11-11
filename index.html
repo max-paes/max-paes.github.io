@@ -688,7 +688,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
     <button id="dup">Pedido + Troca</button>
   </div>
   <button id="gpr" class="gprb" aria-pressed="false">Preços no documento: Não</button>
-  <p class="msg" style="margin:6px 2px 0;font-size:12px">Com preços, o documento mostra valor unitário e total de cada item, usando a tabela da loja no cadastro.</p>
+  <p id="gprm" class="msg" style="margin:6px 2px 0;font-size:12px">Com preços, o documento mostra valor unitário e total de cada item, usando a tabela da loja no cadastro.</p>
   <button id="gob" class="gprb" aria-pressed="true">Observação no documento: Sim</button>
   <p class="msg" style="margin:6px 2px 0;font-size:12px">A observação é a que você escreveu na tela do Pedido ou da Troca. O documento mostra as caixas e os itens fracionados em números e, abaixo, a observação.</p>
 </div></div>
@@ -1528,12 +1528,19 @@ const CAD=[["AGUIAR MERCADINHO","C A FRANCA MERCADINHO","20.082.690/0001-82","RU
 const CAD_STOP=new Set(["super","supermercado","mercadinho","mercantil","mini","mercado","ltda","lj","loja","comercial","de","da","do","alimentos","me","eireli","o","a"]);
 const cadTk=t=>chave2(t).split(" ").filter(w=>w&&!CAD_STOP.has(w)).map(w=>w.replace(/^compre$/,"compremax"));
 let CADK=null;
+/* todos os nomes que valem para a loja: o do cadastro, o da lista fixa e os apelidos */
+function cadNomes(r){const o=(cadNv[cadId(r)]||{}).c||{},al=Array.isArray(o.ali)?o.ali:[];return [o.fan||r[0],r[0],...(r[6]||[]),...al].filter(Boolean)}
+const cadFan=r=>((cadNv[cadId(r)]||{}).c||{}).fan||r[0];
 function cadDe(nome){if(!nome||!String(nome).trim())return null;
-  if(!CADK){CADK=new Map();CAD.forEach(r=>{[r[0],...r[6]].forEach(n=>{CADK.set(chave2(n),r);CADK.set(chave2(canon(n)),r)})})}
-  const r=CADK.get(chave2(canon(nome)))||CADK.get(chave2(nome));if(r)return cadObj(r);
+  if(!CADK){CADK=new Map();CAD.forEach(r=>{cadNomes(r).forEach(n=>{CADK.set(chave2(n),r);CADK.set(chave2(canon(n)),r)})})}
+  const k=chave2(canon(nome)),r=CADK.get(k)||CADK.get(chave2(nome));if(r)return cadObj(r);
   const t=cadTk(canon(nome)).join(" ").replace(/compremax (\w)/,"compremax $1").split(" ").filter(Boolean);if(!t.length)return null;
-  const hit=CAD.filter(r=>{const f=cadTk(r[0].replace(/^COMPRE MAX/,"COMPREMAX"));return t.every(w=>f.includes(w))&&f.length-t.length<=1});
-  return hit.length===1?cadObj(hit[0]):null}
+  const hit=CAD.filter(r=>{const f=cadTk(cadFan(r).replace(/^COMPRE MAX/,"COMPREMAX"));return t.every(w=>f.includes(w))&&f.length-t.length<=1});
+  if(hit.length===1)return cadObj(hit[0]);
+  /* duas lojas parecidas (ex.: AGUIAR MERCADINHO e MERCADO AGUIAR): fica com a de nome mais próximo */
+  if(hit.length>1){const pt=hit.filter(r=>cadNomes(r).some(nm=>{const f=chave2(canon(nm));return f===k||k.startsWith(f+" ")||f.startsWith(k+" ")}));
+    if(pt.length===1)return cadObj(pt[0])}
+  return null}
 let cadNv={};try{const j=JSON.parse(lsG("mpv:cadnv")||"{}");if(j&&typeof j==="object")cadNv=j}catch(_){}
 let docPreco=lsG("mpv:docpreco")==="1",docObs=false,clIni=false;
 const CAD_BASE=CAD.length;
@@ -3003,7 +3010,13 @@ $("vwpp").onclick=()=>{const B=$("vwpp"),R0="Enviar no WhatsApp";
   abreWa(t)};
 function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.pdf&&podeCompart());$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
 function rotGf(m){const n=Object.values(state[m]).filter(v=>v>0).length;return (m==="troca"?"Troca":"Pedido")+" · "+(n?n+(n===1?" item":" itens"):"vazio")}
-function gprPinta(){const b=$("gpr");b.setAttribute("aria-pressed",docPreco?"true":"false");b.textContent="Preços no documento: "+(docPreco?"Sim":"Não")}
+function tabLoja(){const n=$("cliente").value.trim(),cd=n?cadDe(n):null;
+  if(!n)return "Informe a loja no pedido para usar a tabela dela.";
+  if(!cd)return "“"+n+"” não está no cadastro das lojas: o documento usa a sua tabela de preços.";
+  const p=(cadNv[cd.id]||{}).p||{},q=Object.keys(p).filter(k=>p[k]>0).length;
+  return q?"Usando a tabela da loja "+cd.id+" · "+cd.fan+" ("+q+(q===1?" preço cadastrado":" preços cadastrados")+").":"A loja "+cd.id+" · "+cd.fan+" está sem preços no cadastro: o documento usa a sua tabela de preços.";}
+function gprPinta(){const b=$("gpr");b.setAttribute("aria-pressed",docPreco?"true":"false");b.textContent="Preços no documento: "+(docPreco?"Sim":"Não");
+  const m=$("gprm");if(m)m.textContent=docPreco?tabLoja():"Com preços, o documento mostra valor unitário e total de cada item, usando a tabela da loja no cadastro.";}
 $("gpr").onclick=()=>{docPreco=!docPreco;lsS("mpv:docpreco",docPreco?"1":"0");gprPinta()};
 function gobPinta(){const b=$("gob"),t=(obs.pedido||"").trim()||(obs.troca||"").trim();b.setAttribute("aria-pressed",docObs?"true":"false");b.textContent="Observação no documento: "+(docObs?"Sim":"Não")+(docObs&&!t?" (nenhuma escrita)":"")}
 $("gob").onclick=()=>{docObs=!docObs;gobPinta()};
@@ -3730,7 +3743,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="222";
+const VER="223";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
