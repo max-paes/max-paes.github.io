@@ -757,10 +757,10 @@ const lojaBairro=o=>(String(o.end||"").split("–").pop()||"").trim();
 /* mantém o nome que o vendedor já usa para a loja (agenda e rota continuam valendo) */
 function nomeSug(o){const c=clientes.find(x=>String(x.loja||"")===String(o.id))||clientes.find(x=>{const d=cadDe(x.nome);return d&&d.id===o.id});
   return c?c.nome:o.fan}
-function escolheSug(o){const S=$("sug"),nome=nomeSug(o);$("cliente").value=nome;cliSel=true;lojaId=o.id;
+function escolheSug(o){const S=$("sug"),nome=nomeSug(o);$("cliente").value=nome;cliSel=true;lojaId=o.id;lojaDoc=soDig(o.doc);
   const c=cliDe(nome);if(c)preencheCli(c,true);
   if(!$("endereco").value.trim()&&lojaBairro(o))$("endereco").value=lojaBairro(o);
-  lembraCli(nome,$("endereco").value,"",false);const c2=cliDe(nome);if(c2){c2.loja=o.id;salvaCli();marcaCfg()}
+  lembraCli(nome,$("endereco").value,"",false);const c2=cliDe(nome);if(c2){c2.loja=o.id;if(lojaDoc)c2.lojadoc=lojaDoc;salvaCli();marcaCfg()}
   S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda();try{spRender()}catch(_){}}
 function mostraSug(){
   const S=$("sug"),t=$("cliente").value,lj=sugLojas(t),
@@ -885,7 +885,7 @@ $("cliente").addEventListener("input",()=>{
 });
 $("cliente").addEventListener("focus",mostraSug);
 $("cliente").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("cliente")){$("sug").hidden=true;const k=norm($("cliente").value);if(k&&!cliSel&&clientes.some(x=>norm(x.nome)===k))cliSel=true;trancaCli()}},150));
-$("clitrb").onclick=()=>{if(curId)return;cliSel=false;CAMPOS.forEach(i=>$(i).value="");lojaId="";trancaCli();apoio();try{spRender()}catch(_){}$("cliente").focus()};
+$("clitrb").onclick=()=>{if(curId)return;cliSel=false;CAMPOS.forEach(i=>$(i).value="");lojaId="";lojaDoc="";trancaCli();apoio();try{spRender()}catch(_){}$("cliente").focus()};
 ["input","change"].forEach(ev=>$("cliente").addEventListener(ev,ligaLoja));
 $("cliente").addEventListener("keydown",e=>{if(e.key==="Escape")$("sug").hidden=true});
 $("data").addEventListener("input",apoio);["input","change"].forEach(ev=>{$("cliente").addEventListener(ev,()=>{try{spRender()}catch(e){}});$("data").addEventListener(ev,()=>{try{spRender()}catch(e){}})});
@@ -1562,7 +1562,7 @@ function cadDe(nome){if(!nome||!String(nome).trim())return null;
   return null}
 let cadNv={};try{const j=JSON.parse(lsG("mpv:cadnv")||"{}");if(j&&typeof j==="object")cadNv=j}catch(_){}
 let docPreco=lsG("mpv:docpreco")==="1",docObs=false,clIni=false;
-let lojaId="";/* loja do cadastro escolhida para este pedido */
+let lojaId="",lojaDoc="";/* loja escolhida para este pedido: código e CNPJ */
 const CAD_BASE=CAD.length;
 function cadSync(){CAD.length=CAD_BASE;Object.keys(cadNv).filter(k=>(cadNv[k]||{}).novo).sort((a,b)=>a-b).forEach(k=>{const c=cadNv[k].c||{},r=[c.fan||"",c.raz||"",c.doc||"",c.rua||"",c.num||"",c.bairro||"",Array.isArray(c.ali)?c.ali:[]];r.i=k;CAD.push(r)});CADK=null}
 const cadId=r=>r.i||String(CAD.indexOf(r)+1),cadRow=id=>CAD.find(r=>cadId(r)===String(id));
@@ -1571,11 +1571,27 @@ const cadObj=r=>{const id=cadId(r),o=(cadNv[id]||{}).c||{};
   return{id,fan:o.fan||r[0],raz:o.raz||r[1],doc:o.doc||r[2],end:(o.rua??r[3])+", "+((o.num??r[4])||"S/N")+" – "+(o.bairro??r[5])}};
 /* preço de um produto para a loja digitada no pedido; se a loja não tem, usa a tabela de preços do próprio usuário */
 /* a loja do pedido: a escolhida na busca; se não escolheram, a que o nome encontrar */
-function lojaAtual(){const r=lojaId?cadRow(lojaId):null;if(r)return cadObj(r);const n=$("cliente").value.trim();return n?cadDe(n):null}
+const soDig=t=>String(t||"").replace(/\D/g,"");
+/* acha a loja pelo CNPJ, mesmo que o código mude */
+function lojaPorDoc(d){d=soDig(d);if(d.length<11)return null;const r=CAD.find(x=>soDig(cadObj(x).doc)===d);return r?cadObj(r):null}
+function lojaAtual(){const r=lojaId?cadRow(lojaId):null;if(r)return cadObj(r);
+  const d=lojaDoc?lojaPorDoc(lojaDoc):null;if(d)return d;
+  const n=$("cliente").value.trim();return n?cadDe(n):null}
+/* preços da loja: os do cadastro dela e, se não houver, os de qualquer ficha com o mesmo CNPJ */
+function precosDaLoja(cd){if(!cd)return null;
+  const p=(cadNv[cd.id]||{}).p;if(p&&Object.keys(p).some(k=>p[k]>0))return p;
+  const d=soDig(cd.doc);if(d.length<11)return null;
+  for(const r of CAD){const o=cadObj(r);if(o.id===cd.id||soDig(o.doc)!==d)continue;
+    const q=(cadNv[o.id]||{}).p;if(q&&Object.keys(q).some(k=>q[k]>0))return q}
+  return null}
 function cliDe(n){const k=norm(canon(String(n||"").trim()));return k?clientes.find(x=>norm(x.nome)===k):null}
-function ligaLoja(){const n=$("cliente").value.trim();if(!n){lojaId="";return}
-  const c=cliDe(n);if(c&&c.loja&&cadRow(c.loja))lojaId=String(c.loja);else{const cd=cadDe(n);lojaId=cd?cd.id:""}}
-function precoDoc(item){const cd=lojaAtual(),pl=cd&&(cadNv[cd.id]||{}).p;const v=pl&&pl[item]>0?pl[item]:precos[item];return v>0?v:0}
+function ligaLoja(){const n=$("cliente").value.trim();if(!n){lojaId="";lojaDoc="";return}
+  const c=cliDe(n);
+  if(c&&c.loja&&cadRow(c.loja))lojaId=String(c.loja);
+  else if(c&&c.lojadoc&&lojaPorDoc(c.lojadoc))lojaId=lojaPorDoc(c.lojadoc).id;
+  else{const cd=cadDe(n);lojaId=cd?cd.id:""}
+  lojaDoc=soDig((lojaAtual()||{}).doc)}
+function precoDoc(item){const pl=precosDaLoja(lojaAtual());const v=pl&&pl[item]>0?pl[item]:precos[item];return v>0?v:0}
 function clNuvemIni(){if(clIni||!fbDb)return;clIni=true;
   try{fbDb.collection("obsent").doc("_cadastro").onSnapshot(sn=>{const d=sn.exists?(sn.data()||{}):{},n={};
     Object.keys(d).forEach(k=>{if(/^l\d+$/.test(k)){try{n[k.slice(1)]=JSON.parse(d[k])}catch(_){}}});
@@ -2226,12 +2242,12 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.
   $("sdp").hidden=!(soma(e.pedido)>0);$("sdtr").hidden=!(soma(e.troca)>0);$("sddu").hidden=!(soma(e.pedido)>0&&soma(e.troca)>0);if(!silencioso)$("sdm").textContent="";
   $("sdt").classList.add("on")}
 async function comEntrada(e,fn){
-  const bk={p:state.pedido,t:state.troca,g:state.gondola,v:visita,a:{...assin},o:{...obs},lj:lojaId,f:CAMPOS.map(i=>$(i).value),d:$("data").value,cur:curId,st:stPed,fe:fechEm};
+  const bk={p:state.pedido,t:state.troca,g:state.gondola,v:visita,a:{...assin},o:{...obs},lj:lojaId,ljd:lojaDoc,f:CAMPOS.map(i=>$(i).value),d:$("data").value,cur:curId,st:stPed,fe:fechEm};
   bloqueio=true;clearTimeout(tSalvar);tSalvar=null;
   docVend={nome:e.vendedor||"",papel:(e.uid&&sup.vend[e.uid]&&sup.vend[e.uid].papel)||(perfil&&perfil.papel)||"vendedor"};
-  try{state.pedido={...e.pedido};state.troca={...e.troca};state.gondola={...e.gondola};visita=normVis(e.visita);assin.pedido=e.assin.pedido||"";assin.troca=e.assin.troca||"";Object.assign(obs,obsDe(e.obs));lojaId=e.loja||"";
+  try{state.pedido={...e.pedido};state.troca={...e.troca};state.gondola={...e.gondola};visita=normVis(e.visita);assin.pedido=e.assin.pedido||"";assin.troca=e.assin.troca||"";Object.assign(obs,obsDe(e.obs));lojaId=e.loja||"";lojaDoc=e.lojadoc||"";
     $("cliente").value=e.cliente;$("endereco").value=e.endereco;$("comprador").value=e.comprador;$("data").value=e.data;return await fn()}
-  finally{state.pedido=bk.p;state.troca=bk.t;state.gondola=bk.g;visita=bk.v;Object.assign(assin,bk.a);Object.assign(obs,bk.o);lojaId=bk.lj||"";CAMPOS.forEach((i,n)=>$(i).value=bk.f[n]);$("data").value=bk.d;curId=bk.cur;stPed=bk.st;fechEm=bk.fe;docVend=null;bloqueio=false}}
+  finally{state.pedido=bk.p;state.troca=bk.t;state.gondola=bk.g;visita=bk.v;Object.assign(assin,bk.a);Object.assign(obs,bk.o);lojaId=bk.lj||"";lojaDoc=bk.ljd||"";CAMPOS.forEach((i,n)=>$(i).value=bk.f[n]);$("data").value=bk.d;curId=bk.cur;stPed=bk.st;fechEm=bk.fe;docVend=null;bloqueio=false}}
 async function supJpg(m){const e=entDe(sup.det);if(!e)return;const b=m==="troca"?$("sdtr"):$("sdp"),r=b.textContent;b.textContent="Gerando…";
   try{try{await fonteOk()}catch(_){}
     await comEntrada(e,async()=>{const sig=sigOk(m)?await carregaImg(assin[m]):null,logo=await carregaImg(LOGO);const c=desenhar(sig,logo,m);
@@ -2439,7 +2455,7 @@ function salvar(){
   clearTimeout(tSalvar);tSalvar=null;
   registrar();
   const f=Object.fromEntries(CAMPOS.map(i=>[i,$(i).value]));f.data=$("data").value;
-  try{localStorage.setItem(KEY,JSON.stringify({state,assin,obs,loja:lojaId,vis:visita,mode,cur:curId,f}))}
+  try{localStorage.setItem(KEY,JSON.stringify({state,assin,obs,loja:lojaId,lojadoc:lojaDoc,vis:visita,mode,cur:curId,f}))}
   catch(e){aviso("Memória do celular cheia: as últimas alterações podem não ficar salvas. Abra o Histórico, faça um backup e exclua pedidos antigos.")}
 }
 function agenda(){clearTimeout(tSalvar);tSalvar=setTimeout(salvar,400)}
@@ -2450,7 +2466,7 @@ function carregar(){
     if(!s||!s.state)return;
     state.pedido=renI(s.state.pedido||{});state.troca=renI(s.state.troca||{});state.gondola=renI(s.state.gondola||{});
     assin.pedido=(s.assin&&s.assin.pedido)||"";assin.troca=(s.assin&&s.assin.troca)||"";
-    Object.assign(obs,obsDe(s.obs));lojaId=typeof s.loja==="string"?s.loja:"";
+    Object.assign(obs,obsDe(s.obs));lojaId=typeof s.loja==="string"?s.loja:"";lojaDoc=typeof s.lojadoc==="string"?s.lojadoc:"";
     Object.entries(s.f||{}).forEach(([k,v])=>{if(CAMPOS.includes(k))$(k).value=U(v)});
     if(s.vis)visita=normVis(s.vis);
     if(s.f&&s.f.data)$("data").value=s.f.data;
@@ -2590,7 +2606,7 @@ window.addEventListener("pagehide",salvar);
 const temItens=()=>[state.pedido,state.troca].some(o=>Object.values(o).some(v=>v>0))||Object.keys(state.gondola).length>0||!!visita.ini;
 function limparTudo(){
   if(tSalvar)salvar();
-  curId=null;cliSel=false;state.pedido={};state.troca={};state.gondola={};visita=novaVis();assin.pedido="";assin.troca="";obs.pedido="";obs.troca="";docObs=false;lojaId="";stPed="rascunho";eraFat=false;snapFat=null;fechEm=0;
+  curId=null;cliSel=false;state.pedido={};state.troca={};state.gondola={};visita=novaVis();assin.pedido="";assin.troca="";obs.pedido="";obs.troca="";docObs=false;lojaId="";lojaDoc="";stPed="rascunho";eraFat=false;snapFat=null;fechEm=0;
   CAMPOS.forEach(i=>$(i).value="");$("data").value=hojeISO();mode="pedido";render();
 }
 let confirma=false;
@@ -2636,7 +2652,7 @@ const semSt=o=>{const n=q=>Object.keys(q||{}).filter(k=>q[k]>0).sort().map(k=>k+
 function hashTxt(t){let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return (h>>>0).toString(36)}
 const assinaCt=()=>hashTxt(semSt(conteudo()));
 function conteudo(){
-  return {status:stPed,fat:!!eraFat,snap:snapFat||"",fechadoEm:fechEm,vendedor:perfil?perfil.nome:"",cliente:$("cliente").value.trim(),endereco:$("endereco").value.trim(),comprador:$("comprador").value.trim(),data:$("data").value,pedido:lim(state.pedido),troca:lim(state.troca),gondola:{...state.gondola},visita:JSON.parse(JSON.stringify(visita)),assin:{pedido:assin.pedido,troca:assin.troca},obs:{pedido:obs.pedido,troca:obs.troca},loja:lojaId||""};
+  return {status:stPed,fat:!!eraFat,snap:snapFat||"",fechadoEm:fechEm,vendedor:perfil?perfil.nome:"",cliente:$("cliente").value.trim(),endereco:$("endereco").value.trim(),comprador:$("comprador").value.trim(),data:$("data").value,pedido:lim(state.pedido),troca:lim(state.troca),gondola:{...state.gondola},visita:JSON.parse(JSON.stringify(visita)),assin:{pedido:assin.pedido,troca:assin.troca},obs:{pedido:obs.pedido,troca:obs.troca},loja:lojaId||"",lojadoc:lojaDoc||""};
 }
 function salvarHist(){
   const tenta=()=>{try{localStorage.setItem(HKEY,JSON.stringify(hist));return true}catch(e){return false}};
@@ -2655,7 +2671,7 @@ function salvarHist(){
           :"Memória do celular cheia: este pedido não pôde ser salvo no histórico. Abra o Histórico, faça um backup e exclua pedidos antigos.");
   return ok;
 }
-function normEnt(e){e.cliente=U(e.cliente);e.endereco=U(e.endereco);e.comprador=U(e.comprador);e.visita=normVis(e.visita);e.pedido=renI(e.pedido||{});e.troca=renI(e.troca||{});e.gondola=renI(e.gondola||{});e.assin={pedido:(e.assin&&e.assin.pedido)||"",troca:(e.assin&&e.assin.troca)||""};e.obs=obsDe(e.obs);e.loja=typeof e.loja==="string"?e.loja:"";delete e.asnap;e.ts=Number(e.ts)||0;return e}
+function normEnt(e){e.cliente=U(e.cliente);e.endereco=U(e.endereco);e.comprador=U(e.comprador);e.visita=normVis(e.visita);e.pedido=renI(e.pedido||{});e.troca=renI(e.troca||{});e.gondola=renI(e.gondola||{});e.assin={pedido:(e.assin&&e.assin.pedido)||"",troca:(e.assin&&e.assin.troca)||""};e.obs=obsDe(e.obs);e.loja=typeof e.loja==="string"?e.loja:"";e.lojadoc=typeof e.lojadoc==="string"?e.lojadoc:"";delete e.asnap;e.ts=Number(e.ts)||0;return e}
 function carregarHist(){
   try{const h=JSON.parse(localStorage.getItem(HKEY)||"[]");if(Array.isArray(h))hist=h.filter(e=>e&&e.id).map(normEnt).sort((a,b)=>b.ts-a.ts)}catch(e){}
 }
@@ -2719,7 +2735,7 @@ function abrirPedido(id,btn){
   const e=hist.find(h=>h.id===id);if(!e)return;
   state.pedido={...e.pedido};state.troca={...e.troca};state.gondola={...(e.gondola||{})};visita=normVis(e.visita);
   assin.pedido=(e.assin&&e.assin.pedido)||"";assin.troca=(e.assin&&e.assin.troca)||"";
-  Object.assign(obs,obsDe(e.obs));docObs=false;lojaId=e.loja||"";
+  Object.assign(obs,obsDe(e.obs));docObs=false;lojaId=e.loja||"";lojaDoc=e.lojadoc||"";
   stPed=e.status||"rascunho";eraFat=!!e.fat;snapFat=e.snap||null;fechEm=e.fechadoEm||0;
   $("cliente").value=e.cliente||"";$("endereco").value=e.endereco||"";$("comprador").value=e.comprador||"";
   $("data").value=e.data||hojeISO();
@@ -3038,8 +3054,8 @@ function rotGf(m){const n=Object.values(state[m]).filter(v=>v>0).length;return (
 function tabLoja(){const n=$("cliente").value.trim(),cd=n?lojaAtual():null;
   if(!n)return "Informe a loja no pedido para usar a tabela dela.";
   if(!cd)return "“"+n+"” não está no cadastro das lojas: o documento usa a sua tabela de preços.";
-  const p=(cadNv[cd.id]||{}).p||{},q=Object.keys(p).filter(k=>p[k]>0).length;
-  return q?"Usando a tabela da loja "+cd.id+" · "+cd.fan+" ("+q+(q===1?" preço cadastrado":" preços cadastrados")+").":"A loja "+cd.id+" · "+cd.fan+" está sem preços no cadastro: o documento usa a sua tabela de preços.";}
+  const p=precosDaLoja(cd)||{},q=Object.keys(p).filter(k=>p[k]>0).length;
+  return q?"Usando a tabela da loja "+cd.id+" · "+cd.fan+(cd.doc?" (CNPJ "+cd.doc+")":"")+": "+q+(q===1?" preço cadastrado":" preços cadastrados")+".":"A loja "+cd.id+" · "+cd.fan+(cd.doc?" (CNPJ "+cd.doc+")":"")+" está sem preços no cadastro: o documento usa a sua tabela de preços.";}
 function gprPinta(){const b=$("gpr");b.setAttribute("aria-pressed",docPreco?"true":"false");b.textContent="Preços no documento: "+(docPreco?"Sim":"Não");
   const m=$("gprm");if(m)m.textContent=docPreco?tabLoja():"Com preços, o documento mostra valor unitário e total de cada item, usando a tabela da loja no cadastro.";}
 $("gpr").onclick=()=>{docPreco=!docPreco;lsS("mpv:docpreco",docPreco?"1":"0");gprPinta()};
@@ -3768,7 +3784,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="225";
+const VER="226";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
