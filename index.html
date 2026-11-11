@@ -1582,7 +1582,7 @@ function lojaAtual(){const r=lojaId?cadRow(lojaId):null;if(r)return cadObj(r);
 /* tabelas de preço já combinadas com a loja, guardadas pelo CNPJ.
    Valem quando a loja ainda não tem preços no cadastro; o que for salvo na ficha manda mais. */
 const PRECO_CNPJ={
-  "11554739000161":{"PÃO HAMBURGUER 400g":4.60,"PÃO HAMBURGUER 500g":5.90,"PÃO COCO 500g":7.00,
+  "11554739000161":{"PÃO HAMBURGUER 400g":4.60,"PÃO HOT DOG 400g":4.60,"PÃO HAMBURGUER 500g":5.90,"PÃO COCO 500g":7.00,
     "PÃO DE FORMA 500g":5.80,"PÃO DE FORMA INTEGRAL 500g":5.80,"PÃO BOLÃO COM GERGELIM 500g":6.00,
     "PÃO BOLÃO C/6 UNID. 550g":6.00,"PÃO BRIOCHE 400g":7.00,"BOLO 500g":7.60}
 };
@@ -3856,7 +3856,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="230";
+const VER="231";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
