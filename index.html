@@ -429,7 +429,8 @@ body.trv #edbar{border-color:#0b7a75}
 #camr{width:54px;height:54px;border-radius:50%;border:0;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff;color:#fff;font:800 26px Archivo,sans-serif;padding:0}#camr[hidden]{display:none}
 #camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
 #vh,#mt{z-index:30}#cfgv{z-index:48}#clv{z-index:40}
-#clv .clit{display:block;width:100%;text-align:left;margin:0 0 6px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Archivo,sans-serif}#clv .clit small{color:var(--mute);font-weight:500}#clv .clit:active{background:var(--hit)}
+#ljv{z-index:60}
+#clv .clit,#ljv .clit{display:block;width:100%;text-align:left;margin:0 0 6px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Archivo,sans-serif}#clv .clit small,#ljv .clit small{color:var(--mute);font-weight:500}#clv .clit:active,#ljv .clit:active{background:var(--hit)}
 #clnv{flex:none;padding:0 14px;border-radius:10px;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}#clnv:active{background:var(--hit)}
 #clv .rr{border-bottom:0}#clv input{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font:500 15px Archivo,sans-serif}#clv input::placeholder{color:var(--mute)}#clv input:disabled{opacity:.7}
 body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none!important}body:has(#ucb:not([hidden])) main{padding-bottom:150px}
@@ -567,6 +568,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   <div class="acts" style="margin-top:10px"><button id="mts">Salvar metas</button></div><p class="msg" id="mtr" style="margin:6px 2px 0"></p>
 </div></div>
 <div class="ov" id="clv" role="dialog" aria-modal="true" aria-labelledby="clt"><div class="box" style="max-width:560px"><div class="hhead"><b id="clt">Cadastro das lojas</b><button id="clx">Fechar</button></div><div id="clb"></div></div></div>
+<div class="ov" id="ljv" role="dialog" aria-modal="true" aria-labelledby="ljt"><div class="box" style="max-width:520px"><div class="hhead"><b id="ljt">Escolher a loja</b><button id="ljx">Fechar</button></div><input id="ljq" type="search" placeholder="Buscar por nome, bairro ou CNPJ" autocomplete="off" style="width:100%"><div id="ljl" style="max-height:58vh;overflow:auto;margin-top:8px"></div></div></div>
 <div class="ov" id="cadv" role="dialog" aria-modal="true" aria-labelledby="cadt"><div class="box" style="max-width:520px"><h2 id="cadt">Cadastro das lojas</h2><p id="cadm" class="msg">Lendo as lojas de todos os usuários…</p><div id="cadl" style="max-height:60vh;overflow:auto"></div><div class="acts"><button id="cadf">Fechar</button></div></div></div>
 <div class="ov" id="ucv" role="dialog" aria-modal="true" aria-labelledby="uct"><div class="box" style="max-width:420px">
   <div class="hhead"><b id="uct">Usar o app como</b><button id="ucx">Fechar</button></div>
@@ -583,7 +585,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 <div class="ov" id="sdt"><div class="box">
   <div class="hhead"><b id="sdtt">Detalhe</b><button id="sdx">Fechar</button></div>
   <div id="sdc"></div>
-  <div class="acts" style="margin-top:10px"><button id="sdp">JPG do pedido</button><button id="sdtr">JPG da troca</button><button id="sddu">Pedido + Troca · folha A4</button><button id="sdcp">Copiar resumo</button><button id="sdoc">Ocorrência</button></div>
+  <div class="acts" style="margin-top:10px"><button id="sdp">JPG do pedido</button><button id="sdtr">JPG da troca</button><button id="sddu">Pedido + Troca · folha A4</button><button id="sdcp">Copiar resumo</button><button id="sdoc">Ocorrência</button><button id="sdlj" class="sec" hidden>Trocar a loja</button><button id="sdel" class="sec" hidden>Excluir pedido</button></div>
   <p class="msg" id="sdm" style="margin:6px 2px 0"></p>
 </div></div>
 <div class="ov" id="mot" role="dialog" aria-modal="true" aria-labelledby="mott"><div class="sw">
@@ -2225,6 +2227,32 @@ $("mts").onclick=async()=>{const b=$("mts"),m=$("mtr");b.disabled=true;m.textCon
     try{await fbDb.collection("vendedores").doc(u).set({meta:v},{merge:true});ok++}catch(e){er++}}
   m.textContent=er?"Não consegui salvar "+er+" meta(s). Confira a internet.":ok?"Metas salvas.":"Nada mudou.";b.disabled=false;supRender()};$("vhq").oninput=vhRender;
 const supDoc=k=>sup.docs[k]||(sup.hv||{})[k];
+let ljCb=null;
+function ljAbre(cb){ljCb=cb;try{clNuvemIni()}catch(_){}$("ljq").value="";ljItens("");$("ljv").classList.add("on")}
+function ljItens(q){const k=chave2(q||""),dig=String(q||"").replace(/\D/g,""),el=$("ljl");if(!el)return;
+  const L=CAD.map(r=>cadObj(r)).filter(o=>!k||chave2(o.fan+" "+o.raz+" "+o.end).includes(k)||(dig.length>2&&soDig(o.doc).includes(dig)));
+  el.innerHTML=L.map(o=>{const np=Object.keys(((cadNv[o.id]||{}).p)||{}).length;
+    return "<button class='rr clit' data-i='"+o.id+"'><span class='t'><b>"+esc(o.id+" · "+o.fan)+"</b><br><small>"+esc(lojaBairro(o))+" · "+(np?np+" preços":"sem preços")+(o.doc?" · "+esc(o.doc):"")+"</small></span></button>"}).join("")||"<p class='msg'>Nenhuma loja encontrada.</p>";
+  el.querySelectorAll(".clit").forEach(b=>b.onclick=()=>{$("ljv").classList.remove("on");const o=cadObj(cadRow(b.dataset.i));if(ljCb)ljCb(o)})}
+$("ljx").onclick=()=>$("ljv").classList.remove("on");$("ljq").oninput=e=>ljItens(e.target.value);
+/* transferir o pedido para outra loja e excluir pedido: só na conta do desenvolvedor */
+async function supGrava(k,e,extra){const x=supDoc(k);if(!x)return;const j=JSON.stringify(e);
+  await fbDb.collection("vendedores/"+x.uid+"/docs").doc(x.id).set({j,...(extra||{})},{merge:true});
+  sup.docs[k]={...x,j,...(extra||{})}}
+$("sdlj").onclick=()=>{const k=sup.det;if(!k)return;
+  ljAbre(async o=>{const e=entDe(k);if(!e||!o)return;const m=$("sdm");m.textContent="Transferindo…";
+    e.loja=o.id;e.lojadoc=soDig(o.doc);e.cliente=o.fan;if(lojaBairro(o))e.endereco=lojaBairro(o);
+    try{await supGrava(k,e,{cliente:e.cliente});
+      try{const x=supDoc(k);await fbDb.collection("entrega").doc(x.uid+"_"+x.id).update({c:e.cliente,en:e.endereco||""})}catch(_){}
+      supDetalhe(k,true);$("sdm").textContent="Pedido transferido para "+o.id+" · "+o.fan+".";try{supRender()}catch(_){}}
+    catch(err){m.textContent="Não consegui transferir ("+((err&&(err.code||err.message))||"erro")+")."}})};
+$("sdel").onclick=async()=>{const b=$("sdel"),k=sup.det,x=k?supDoc(k):null;if(!x)return;
+  if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmar exclusão?";setTimeout(()=>{if(b.dataset.c==="1"){b.dataset.c="";b.textContent="Excluir pedido"}},4000);return}
+  b.dataset.c="";b.textContent="Excluir pedido";$("sdm").textContent="Excluindo…";
+  try{await fbDb.collection("vendedores/"+x.uid+"/docs").doc(x.id).delete();
+    delete sup.docs[k];if(sup.hv)delete sup.hv[k];sup.det=null;
+    $("sdt").classList.remove("on");try{supRender()}catch(_){}}
+  catch(err){$("sdm").textContent="Não consegui excluir ("+((err&&(err.code||err.message))||"erro")+")."}};
 function entDe(k){const x=supDoc(k);if(!x)return null;try{return normEnt(JSON.parse(x.j))}catch(e){return null}}
 function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.det=k;
   $("sdtt").textContent=e.cliente+" · "+dBR(e.data);ocMarca($("sdoc"),"Ocorrência",(sup.ent||{})[k.replace("/","_")]);
@@ -2239,6 +2267,7 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.
   $("sdc").innerHTML=h;
   {const fb=fiBloco((v.fo||[]).map(id=>({u:x.uid,f:"v_"+id})));if(fb)$("sdc").appendChild(fb)}
   (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a)return;if(!sn.exists){a.innerHTML="<small class='fim'>foto expirada</small>";return}const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();fiMarca([{u:x.uid,f:"v_"+id}]);const A=[...document.querySelectorAll("#sdfo a")].filter(z=>z.querySelector("img")),L=A.map(z=>z.querySelector("img").src);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const z=A[n];if(!z)return;z.querySelector("img").src=u;fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+z.dataset.f).set({j:u},{merge:true}).catch(()=>{})})}}).catch(()=>{})});
+  $("sdlj").hidden=!ehDev();$("sdel").hidden=!ehDev();$("sdel").dataset.c="";$("sdel").textContent="Excluir pedido";
   $("sdp").hidden=!(soma(e.pedido)>0);$("sdtr").hidden=!(soma(e.troca)>0);$("sddu").hidden=!(soma(e.pedido)>0&&soma(e.troca)>0);if(!silencioso)$("sdm").textContent="";
   $("sdt").classList.add("on")}
 async function comEntrada(e,fn){
@@ -3784,7 +3813,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="226";
+const VER="227";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
