@@ -1,6 +1,6 @@
 // Max Pães · Vendedor — funciona sem internet.
 // A página abre na hora pelo cache e é atualizada em segundo plano.
-const CACHE = "mpv-v229";
+const CACHE = "mpv-v230";
 // as fontes ficam num cache à parte: não são baixadas de novo a cada versão
 const FONTES = "mpv-fontes";
 const BASE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./logo-app.webp"];

@@ -1579,13 +1579,22 @@ function lojaPorDoc(d){d=soDig(d);if(d.length<11)return null;const r=CAD.find(x=
 function lojaAtual(){const r=lojaId?cadRow(lojaId):null;if(r)return cadObj(r);
   const d=lojaDoc?lojaPorDoc(lojaDoc):null;if(d)return d;
   const n=$("cliente").value.trim();return n?cadDe(n):null}
-/* preços da loja: os do cadastro dela e, se não houver, os de qualquer ficha com o mesmo CNPJ */
+/* tabelas de preço já combinadas com a loja, guardadas pelo CNPJ.
+   Valem quando a loja ainda não tem preços no cadastro; o que for salvo na ficha manda mais. */
+const PRECO_CNPJ={
+  "11554739000161":{"PÃO HAMBURGUER 400g":4.60,"PÃO HAMBURGUER 500g":5.90,"PÃO COCO 500g":7.00,
+    "PÃO DE FORMA 500g":5.80,"PÃO DE FORMA INTEGRAL 500g":5.80,"PÃO BOLÃO COM GERGELIM 500g":6.00,
+    "PÃO BOLÃO C/6 UNID. 550g":6.00,"PÃO BRIOCHE 400g":7.00,"BOLO 500g":7.60}
+};
+/* preços da loja: os do cadastro dela; senão os de outra ficha com o mesmo CNPJ; senão a tabela do CNPJ */
 function precosDaLoja(cd){if(!cd)return null;
-  const p=(cadNv[cd.id]||{}).p;if(p&&Object.keys(p).some(k=>p[k]>0))return p;
-  const d=soDig(cd.doc);if(d.length<11)return null;
-  for(const r of CAD){const o=cadObj(r);if(o.id===cd.id||soDig(o.doc)!==d)continue;
-    const q=(cadNv[o.id]||{}).p;if(q&&Object.keys(q).some(k=>q[k]>0))return q}
-  return null}
+  const val=o=>{const r={};Object.keys(o||{}).forEach(k=>{if(o[k]>0)r[k]=o[k]});return Object.keys(r).length?r:null};
+  const d=soDig(cd.doc),base=d.length>=11?(PRECO_CNPJ[d]||null):null;
+  const jun=q=>q?(base?{...base,...q}:q):null;
+  const p=val((cadNv[cd.id]||{}).p);if(p)return jun(p);
+  if(d.length>=11)for(const r of CAD){const o=cadObj(r);if(o.id===cd.id||soDig(o.doc)!==d)continue;
+    const q=val((cadNv[o.id]||{}).p);if(q)return jun(q)}
+  return base}
 function cliDe(n){const k=norm(canon(String(n||"").trim()));return k?clientes.find(x=>norm(x.nome)===k):null}
 function ligaLoja(){const n=$("cliente").value.trim();if(!n){lojaId="";lojaDoc="";return}
   const c=cliDe(n);
@@ -3847,7 +3856,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="229";
+const VER="230";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
