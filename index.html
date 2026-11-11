@@ -2353,6 +2353,23 @@ function ucAbre(){try{$("spmd").hidden=true}catch(_){}const p=perfil&&perfil.pap
 /* cadastro das lojas (painel): dados da loja e preços de cada produto para a loja */
 let clSel=null;
 const clPodeEditar=()=>ehSup();
+/* lê uma lista colada ("Pão Hamb 400 - 4,60") e acha o produto certo */
+const PAL_IGN=new Set(["de","do","da","com","c","s","e","un","und","unid","unidade","unidades","pao","paes","g","gr","kg","tipo"]);
+const colaTk=t=>chave2(String(t||"").replace(/[^\p{L}\p{N}]+/gu," ")).split(" ").map(x=>x.trim()).filter(x=>x&&!PAL_IGN.has(x));
+function achaItem(nome){const t=colaTk(nome);if(!t.length)return -1;
+  let melhor=-1,sobra=99,emp=false;
+  ITENS.forEach((n,i)=>{const f=colaTk(n);if(!t.every(w=>f.some(y=>y===w||y.startsWith(w))))return;
+    const ex=f.length-t.length;if(ex<sobra){sobra=ex;melhor=i;emp=false}else if(ex===sobra)emp=true});
+  return emp?-1:melhor}
+function colaPrecos(txt){const achou=[],falhou=[],vistos={};
+  String(txt||"").split(/\n+/).forEach(l=>{const li=l.trim();if(!li)return;
+    const m=li.match(/^(.*?)[\s:\-–—=]*R?\$?\s*(\d{1,4}(?:[.,]\d{1,2})?)\s*$/);
+    if(!m||!m[1].trim()){falhou.push(li);return}
+    const v=clNum(m[2]),i=achaItem(m[1]);
+    if(i<0||!(v>0)){falhou.push(li);return}
+    if(vistos[i]){falhou.push(li+" (produto repetido)");return}
+    vistos[i]=1;achou.push([i,v])});
+  return {achou,falhou}}
 const clMoeda=v=>v>0?"R$ "+v.toFixed(2).replace(".",","):"";
 function clMask(i){i.oninput=()=>{const t=i.value.replace(/[^\d,]/g,"").replace(/(,.*?),/g,"$1");i.value=t?"R$ "+t:""};i.onfocus=()=>{if(!i.value)i.value="R$ "};i.onblur=()=>{const v=clNum(i.value);i.value=clMoeda(v)}}
 const clNum=t=>{const v=parseFloat(String(t).replace(/[^\d,.-]/g,"").replace(/\.(?=.*[.,])/g,"").replace(",","."));return v>0?Math.round(v*100)/100:0};
@@ -2372,10 +2389,16 @@ function clFicha(id){clSel=id;const nova=id==="novo",r=nova?["","","","","","",[
     campo("fan","Nome fantasia",c.fan||r[0])+campo("raz","Razão social",c.raz||r[1])+campo("doc","CNPJ/CPF",c.doc||r[2])+campo("rua","Rua",c.rua??r[3])+campo("num","Número",c.num??r[4])+campo("bairro","Bairro",c.bairro??r[5])+
     (eNovo?campo("ali","Outros nomes que o vendedor usa (separe por vírgula)",(r[6]||[]).join(", ")):"<p class='msg' style='margin:6px 0 0;font-size:12px'>Nomes que o app reconhece para esta loja: "+esc([r[0]].concat(r[6]).join(" · "))+"</p>")+
     "<b style='display:block;margin:14px 0 4px'>Preços dos produtos para esta loja</b>"+
+    (ed?"<div style='margin:0 0 8px'><div class='acts' style='margin:0'><button type='button' id='clcol' class='sec'>Colar lista de preços</button></div><div id='clcolx' hidden style='margin-top:6px'><textarea id='clcolt' rows='5' placeholder='Cole aqui, uma linha por produto. Ex.:&#10;Pão Hamb 400 - 4,60&#10;Bolo - 7,60' style='width:100%'></textarea><div class='acts' style='margin-top:6px'><button type='button' id='clcola'>Aplicar na lista</button></div><p id='clcolm' class='msg' style='margin:4px 2px 0;font-size:12px'></p></div></div>":"")+
     ITENS.map((n,i)=>"<div style='display:flex;gap:8px;align-items:center;margin:4px 0'><span style='flex:1;min-width:0;font-size:14px'>"+esc(n)+"</span><input data-p='"+i+"' inputmode='decimal' placeholder='R$ 0,00' value='"+clMoeda(p[n])+"'"+dis+" style='width:96px;text-align:right'></div>").join("")+"</div>"+
     "<div class='acts'>"+(ed?"<button id='clsv'>Salvar</button><button id='clgr' class='sec'>Preencher com a tabela geral</button>":"")+"<button id='clvl' class='sec'>Voltar</button></div><p id='clms' class='msg'></p>";
   $("clvl").onclick=()=>clLista("");
   if(!ed)return;document.querySelectorAll("#clb [data-p]").forEach(clMask);
+  $("clcol").onclick=()=>{const x=$("clcolx");x.hidden=!x.hidden;if(!x.hidden)$("clcolt").focus()};
+  $("clcola").onclick=()=>{const R=colaPrecos($("clcolt").value);
+    R.achou.forEach(([i,v])=>{const el=document.querySelector("#clb [data-p='"+i+"']");if(el)el.value=clMoeda(v)});
+    $("clcolm").innerHTML=(R.achou.length?"<b>"+R.achou.length+(R.achou.length===1?" preço preenchido":" preços preenchidos")+".</b> Confira e toque em Salvar.":"Nenhum produto reconhecido.")+
+      (R.falhou.length?"<br>Não reconheci: "+R.falhou.map(esc).join("; "):"")};
   $("clgr").onclick=()=>{const T=precoTab()||precos;let n=0;document.querySelectorAll("#clb [data-p]").forEach(i=>{if(!clNum(i.value)&&T[ITENS[+i.dataset.p]]>0){i.value=clMoeda(T[ITENS[+i.dataset.p]]);n++}});$("clms").textContent=n?n+" preços preenchidos. Toque em Salvar.":"Nenhum preço na tabela geral para preencher."};
   $("clsv").onclick=async()=>{const b=$("clsv");b.disabled=true;const nc={},np={};
     document.querySelectorAll("#clb [data-c]").forEach(i=>{const k=i.dataset.c,v=i.value.trim();if(k==="ali"){nc.ali=v.split(",").map(t=>t.trim()).filter(Boolean);return}
@@ -3824,7 +3847,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="228";
+const VER="229";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
