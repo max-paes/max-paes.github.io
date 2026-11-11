@@ -585,7 +585,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 <div class="ov" id="sdt"><div class="box">
   <div class="hhead"><b id="sdtt">Detalhe</b><button id="sdx">Fechar</button></div>
   <div id="sdc"></div>
-  <div class="acts" style="margin-top:10px"><button id="sdp">JPG do pedido</button><button id="sdtr">JPG da troca</button><button id="sddu">Pedido + Troca · folha A4</button><button id="sdcp">Copiar resumo</button><button id="sdoc">Ocorrência</button><button id="sdlj" class="sec" hidden>Trocar a loja</button><button id="sdel" class="sec" hidden>Excluir pedido</button></div>
+  <div class="acts" style="margin-top:10px"><button id="sdp">JPG do pedido</button><button id="sdtr">JPG da troca</button><button id="sddu">Pedido + Troca · folha A4</button><button id="sdcp">Copiar resumo</button><button id="sdoc">Ocorrência</button><button id="sdpr" class="sec" hidden>Preços no documento: Não</button><button id="sdlj" class="sec" hidden>Trocar a loja</button><button id="sdel" class="sec" hidden>Excluir pedido</button></div>
   <p class="msg" id="sdm" style="margin:6px 2px 0"></p>
 </div></div>
 <div class="ov" id="mot" role="dialog" aria-modal="true" aria-labelledby="mott"><div class="sw">
@@ -2235,6 +2235,16 @@ function ljItens(q){const k=chave2(q||""),dig=String(q||"").replace(/\D/g,""),el
     return "<button class='rr clit' data-i='"+o.id+"'><span class='t'><b>"+esc(o.id+" · "+o.fan)+"</b><br><small>"+esc(lojaBairro(o))+" · "+(np?np+" preços":"sem preços")+(o.doc?" · "+esc(o.doc):"")+"</small></span></button>"}).join("")||"<p class='msg'>Nenhuma loja encontrada.</p>";
   el.querySelectorAll(".clit").forEach(b=>b.onclick=()=>{$("ljv").classList.remove("on");const o=cadObj(cadRow(b.dataset.i));if(ljCb)ljCb(o)})}
 $("ljx").onclick=()=>$("ljv").classList.remove("on");$("ljq").oninput=e=>ljItens(e.target.value);
+/* loja de um pedido guardado (código, CNPJ ou nome), sem depender da tela de vendas */
+function lojaDeEnt(e){if(!e)return null;const r=e.loja?cadRow(e.loja):null;if(r)return cadObj(r);
+  const d=e.lojadoc?lojaPorDoc(e.lojadoc):null;if(d)return d;return e.cliente?cadDe(e.cliente):null}
+/* botão de preços nas telas que só visualizam o pedido (painel, faturamento, expedição, motorista) */
+function sdPrPinta(e){const b=$("sdpr");if(!b)return;const cd=lojaDeEnt(e),p=precosDaLoja(cd)||{},q=Object.keys(p).filter(k=>p[k]>0).length;
+  b.hidden=!q;if(!q)return;b.setAttribute("aria-pressed",docPreco?"true":"false");
+  b.textContent="Preços no documento: "+(docPreco?"Sim":"Não")}
+$("sdpr").onclick=()=>{const e=entDe(sup.det);docPreco=!docPreco;lsS("mpv:docpreco",docPreco?"1":"0");sdPrPinta(e);
+  const cd=lojaDeEnt(e),p=precosDaLoja(cd)||{},q=Object.keys(p).filter(k=>p[k]>0).length;
+  $("sdm").textContent=docPreco?"O documento vai sair com os preços de "+cd.id+" · "+cd.fan+" ("+q+(q===1?" preço":" preços")+").":"O documento vai sair sem preços."};
 /* transferir o pedido para outra loja e excluir pedido: só na conta do desenvolvedor */
 async function supGrava(k,e,extra){const x=supDoc(k);if(!x)return;const j=JSON.stringify(e);
   await fbDb.collection("vendedores/"+x.uid+"/docs").doc(x.id).set({j,...(extra||{})},{merge:true});
@@ -2267,6 +2277,7 @@ function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.
   $("sdc").innerHTML=h;
   {const fb=fiBloco((v.fo||[]).map(id=>({u:x.uid,f:"v_"+id})));if(fb)$("sdc").appendChild(fb)}
   (v.fo||[]).forEach(id=>{fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+id).get().then(sn=>{const a=document.querySelector("#sdfo a[data-f='"+id+"']");if(!a)return;if(!sn.exists){a.innerHTML="<small class='fim'>foto expirada</small>";return}const d=(sn.data()||{}).j;const im=document.createElement("img");im.src=d;im.alt="Foto da visita";a.innerHTML="";a.appendChild(im);a.onclick=ev=>{ev.preventDefault();fiMarca([{u:x.uid,f:"v_"+id}]);const A=[...document.querySelectorAll("#sdfo a")].filter(z=>z.querySelector("img")),L=A.map(z=>z.querySelector("img").src);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const z=A[n];if(!z)return;z.querySelector("img").src=u;fbDb.collection("vendedores/"+x.uid+"/fotos").doc("v_"+z.dataset.f).set({j:u},{merge:true}).catch(()=>{})})}}).catch(()=>{})});
+  sdPrPinta(e);
   $("sdlj").hidden=!ehDev();$("sdel").hidden=!ehDev();$("sdel").dataset.c="";$("sdel").textContent="Excluir pedido";
   $("sdp").hidden=!(soma(e.pedido)>0);$("sdtr").hidden=!(soma(e.troca)>0);$("sddu").hidden=!(soma(e.pedido)>0&&soma(e.troca)>0);if(!silencioso)$("sdm").textContent="";
   $("sdt").classList.add("on")}
@@ -3813,7 +3824,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="227";
+const VER="228";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
