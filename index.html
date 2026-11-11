@@ -2292,12 +2292,14 @@ function clFicha(id){clSel=id;const nova=id==="novo",r=nova?["","","","","","",[
   $("clsv").onclick=async()=>{const b=$("clsv");b.disabled=true;const nc={},np={};
     document.querySelectorAll("#clb [data-c]").forEach(i=>{const k=i.dataset.c,v=i.value.trim();if(k==="ali"){nc.ali=v.split(",").map(t=>t.trim()).filter(Boolean);return}
       if(eNovo){nc[k]=v;return}const orig={fan:r[0],raz:r[1],doc:r[2],rua:r[3],num:r[4],bairro:r[5]}[k];if(v!==String(orig))nc[k]=v});
-    if(nova){if(!nc.fan){$("clms").textContent="Informe o nome da loja.";b.disabled=false;return}
-      const ja=cadDe(nc.fan);if(ja){$("clms").textContent="Já existe a loja "+ja.id+" · "+ja.fan+". Abra a loja na lista para alterar.";b.disabled=false;return}
+    let avisoNv="";
+    if(nova){/* cadastro livre: nada bloqueia, só avisamos se já houver loja parecida */
+      const ja=nc.fan?cadDe(nc.fan):null;if(ja)avisoNv=" Atenção: já existe a loja "+ja.id+" · "+ja.fan+" com nome parecido.";
+      if(!nc.fan)avisoNv=" Atenção: ficou sem nome; abra a loja na lista para completar.";
       id=String(Math.max(0,...CAD.map(x=>+cadId(x)))+1)}
     document.querySelectorAll("#clb [data-p]").forEach(i=>{const v=clNum(i.value);if(v>0)np[ITENS[+i.dataset.p]]=v});
     const reg={c:nc,p:np,ts:Date.now()};if(eNovo)reg.novo=1;
-    try{await fbDb.collection("obsent").doc("_cadastro").set({["l"+id]:JSON.stringify(reg)},{merge:true});cadNv[id]=reg;cadSync();lsS("mpv:cadnv",JSON.stringify(cadNv));if(nova){clFicha(id);$("clms").textContent="Loja cadastrada com o código "+id+".";return}$("clms").textContent="Salvo. Os usuários recebem os preços na próxima vez que abrirem o app."}
+    try{await fbDb.collection("obsent").doc("_cadastro").set({["l"+id]:JSON.stringify(reg)},{merge:true});cadNv[id]=reg;cadSync();lsS("mpv:cadnv",JSON.stringify(cadNv));if(nova){clFicha(id);$("clms").textContent="Loja cadastrada com o código "+id+"."+avisoNv;return}$("clms").textContent="Salvo. Os usuários recebem os preços na próxima vez que abrirem o app."}
     catch(e){$("clms").textContent="Não foi possível salvar ("+(e.code||e.message)+"). Confira a internet e tente de novo."}
     b.disabled=false}}
 $("clx").onclick=()=>$("clv").classList.remove("on");
@@ -3728,7 +3730,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="221";
+const VER="222";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
