@@ -1,11 +1,13 @@
 // Max Pães · Vendedor — funciona sem internet.
 // A página abre na hora pelo cache e é atualizada em segundo plano.
-const CACHE = "mpv-v220";
+const CACHE = "mpv-v221";
+// as fontes ficam num cache à parte: não são baixadas de novo a cada versão
+const FONTES = "mpv-fontes";
 const BASE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./logo-app.webp"];
 // resposta "limpa": uma cópia marcada como redirecionada não pode abrir a página (o Chrome recusa)
 const limpa = r => (r && r.redirected) ? r.blob().then(b => new Response(b, { status: r.status, statusText: r.statusText, headers: r.headers })) : Promise.resolve(r);
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => Promise.all(BASE.map(u => fetch(u, { cache: "reload" }).then(limpa).then(r => { if (r && r.ok) return c.put(u === "./" ? "./index.html" : u, r); }).catch(() => {}))))); });
-self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== FONTES).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("message", e => { if (e.data && e.data.tipo === "atualizar") self.skipWaiting(); });
 self.addEventListener("fetch", e => {
   const r = e.request, u = new URL(r.url);
@@ -24,8 +26,10 @@ self.addEventListener("fetch", e => {
     e.respondWith(Promise.race([rede.catch(() => copia().then(c => c || Response.error())), espera.then(c => c || rede)]).then(x => x || rede));
     return;
   }
-  if (u.origin === location.origin || /gstatic\.com|fonts\.googleapis\.com|fonts\.gstatic\.com/.test(u.host)) {
-    e.respondWith(caches.match(r).then(hit => hit || fetch(r).then(res => { if (res.ok || res.type === "opaque") { const c = res.clone(); caches.open(CACHE).then(k => k.put(r, c)); } return res; })));
+  const fonte = /gstatic\.com|fonts\.googleapis\.com|fonts\.gstatic\.com/.test(u.host);
+  if (u.origin === location.origin || fonte) {
+    const onde = fonte ? FONTES : CACHE;
+    e.respondWith(caches.match(r).then(hit => hit || fetch(r).then(res => { if (res.ok || res.type === "opaque") { const c = res.clone(); caches.open(onde).then(k => k.put(r, c)); } return res; })));
   }
 });
 
