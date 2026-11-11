@@ -40,7 +40,6 @@ main{padding:10px 12px;max-width:640px;margin:0 auto}
 .head .full{grid-column:1/-1}
 .head label{min-width:0}.head input{width:100%;min-width:0}
 #cliente.trc{background:var(--line);color:var(--ink,inherit);font-weight:700}
-#cadlj{grid-column:1/-1;margin:-2px 2px 4px;font-size:12px;color:var(--mute);display:flex;gap:8px;align-items:center;flex-wrap:wrap}#cadlj[hidden]{display:none}#cadljb{background:none;border:0;padding:0;color:var(--azul,#1f4fa8);font-weight:700;text-decoration:underline;font-size:12px;cursor:pointer}
 #clitr{grid-column:1/-1;margin:-4px 2px 2px;font-size:12px;color:var(--mute);display:flex;gap:8px;align-items:center;flex-wrap:wrap}#clitr[hidden]{display:none}#clitrb{background:none;border:0;padding:0;color:var(--azul,#1f4fa8);font-weight:700;text-decoration:underline;font-size:12px;cursor:pointer}
 input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}
 .list{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -430,7 +429,7 @@ body.trv #edbar{border-color:#0b7a75}
 #camr{width:54px;height:54px;border-radius:50%;border:0;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff;color:#fff;font:800 26px Archivo,sans-serif;padding:0}#camr[hidden]{display:none}
 #camx2,#camok{width:70px;height:70px;border-radius:50%;border:0;font:800 30px Archivo,sans-serif;color:#fff;padding:0}#camx2{background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 3px #fff}#camok{background:#1a8f4c}#camx2[hidden],#camok[hidden],#camt[hidden]{display:none}
 #vh,#mt{z-index:30}#cfgv{z-index:48}#clv{z-index:40}
-#clv .clit,#ljv .clit{display:block;width:100%;text-align:left;margin:0 0 6px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Archivo,sans-serif}#clv .clit small,#ljv .clit small{color:var(--mute);font-weight:500}#clv .clit:active,#ljv .clit:active{background:var(--hit)}
+#clv .clit{display:block;width:100%;text-align:left;margin:0 0 6px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Archivo,sans-serif}#clv .clit small{color:var(--mute);font-weight:500}#clv .clit:active{background:var(--hit)}
 #clnv{flex:none;padding:0 14px;border-radius:10px;border:1.5px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}#clnv:active{background:var(--hit)}
 #clv .rr{border-bottom:0}#clv input{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font:500 15px Archivo,sans-serif}#clv input::placeholder{color:var(--mute)}#clv input:disabled{opacity:.7}
 body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none!important}body:has(#ucb:not([hidden])) main{padding-bottom:150px}
@@ -459,7 +458,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   <div class="ed" id="aviso" role="alert" hidden><span id="avtx" class="warn"></span><button id="avx">OK</button></div>
   <div class="ed" id="edbar" hidden><span id="edtx">Pedido salvo no histórico. As alterações são salvas sozinhas.</span></div>
   <div class="head">
-    <label class="full">Cliente<input id="cliente" autocomplete="off" autocorrect="off" spellcheck="false"></label><div id="sug" class="sug" role="listbox" aria-label="Clientes sugeridos" hidden></div><div id="clitr" hidden><button type="button" id="clitrb">Trocar loja</button></div><div id="cadlj" hidden><span id="cadljt"></span><button type="button" id="cadljb">escolher</button></div>
+    <label class="full">Cliente<input id="cliente" autocomplete="off" autocorrect="off" spellcheck="false"></label><div id="sug" class="sug" role="listbox" aria-label="Clientes sugeridos" hidden></div><div id="clitr" hidden><button type="button" id="clitrb">Trocar loja</button></div>
     <label class="full">Endereço<input id="endereco" autocomplete="off"></label>
     <label>Data<input id="data" type="date"></label>
     <label>Comprador<input id="comprador" autocomplete="off"></label>
@@ -568,7 +567,6 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
   <div class="acts" style="margin-top:10px"><button id="mts">Salvar metas</button></div><p class="msg" id="mtr" style="margin:6px 2px 0"></p>
 </div></div>
 <div class="ov" id="clv" role="dialog" aria-modal="true" aria-labelledby="clt"><div class="box" style="max-width:560px"><div class="hhead"><b id="clt">Cadastro das lojas</b><button id="clx">Fechar</button></div><div id="clb"></div></div></div>
-<div class="ov" id="ljv" role="dialog" aria-modal="true" aria-labelledby="ljt"><div class="box" style="max-width:520px"><div class="hhead"><b id="ljt">Loja do cadastro</b><button id="ljx">Fechar</button></div><p class="msg" style="margin:0 2px 8px;font-size:12px">A loja escolhida fica guardada neste cliente: o documento e os preços passam a sair sempre dela.</p><input id="ljq" type="search" placeholder="Buscar por nome, bairro ou CNPJ" autocomplete="off" style="width:100%"><div id="ljl" style="max-height:58vh;overflow:auto;margin-top:8px"></div></div></div>
 <div class="ov" id="cadv" role="dialog" aria-modal="true" aria-labelledby="cadt"><div class="box" style="max-width:520px"><h2 id="cadt">Cadastro das lojas</h2><p id="cadm" class="msg">Lendo as lojas de todos os usuários…</p><div id="cadl" style="max-height:60vh;overflow:auto"></div><div class="acts"><button id="cadf">Fechar</button></div></div></div>
 <div class="ov" id="ucv" role="dialog" aria-modal="true" aria-labelledby="uct"><div class="box" style="max-width:420px">
   <div class="hhead"><b id="uct">Usar o app como</b><button id="ucx">Fechar</button></div>
@@ -751,11 +749,29 @@ function sugestoes(t){
   return clientes.filter(c=>{const k=norm(c.nome);if(k===alvo)return false;const nw=k.split(/[\s\-\/.,]+/).filter(Boolean).map(z);return ws.every(w=>nw.some(x=>x.startsWith(w)))})
     .sort((a,b)=>(norm(b.nome).startsWith(ws[0])-norm(a.nome).startsWith(ws[0]))||a.nome.localeCompare(b.nome,"pt-BR")).slice(0,4);
 }
+/* lojas do cadastro que combinam com o que foi digitado */
+function sugLojas(t){const k=chave2(t);if(!k)return [];const ws=k.split(" ").filter(Boolean);if(!ws.length)return [];
+  return CAD.map(r=>({o:cadObj(r),r})).filter(x=>{const nw=chave2(x.o.fan+" "+x.o.raz+" "+x.o.end+" "+(x.r[6]||[]).join(" ")).split(" ").filter(Boolean);
+    return ws.every(w=>nw.some(y=>y.startsWith(w)))}).map(x=>x.o).slice(0,5)}
+const lojaBairro=o=>(String(o.end||"").split("–").pop()||"").trim();
+/* mantém o nome que o vendedor já usa para a loja (agenda e rota continuam valendo) */
+function nomeSug(o){const c=clientes.find(x=>String(x.loja||"")===String(o.id))||clientes.find(x=>{const d=cadDe(x.nome);return d&&d.id===o.id});
+  return c?c.nome:o.fan}
+function escolheSug(o){const S=$("sug"),nome=nomeSug(o);$("cliente").value=nome;cliSel=true;lojaId=o.id;
+  const c=cliDe(nome);if(c)preencheCli(c,true);
+  if(!$("endereco").value.trim()&&lojaBairro(o))$("endereco").value=lojaBairro(o);
+  lembraCli(nome,$("endereco").value,"",false);const c2=cliDe(nome);if(c2){c2.loja=o.id;salvaCli();marcaCfg()}
+  S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda();try{spRender()}catch(_){}}
 function mostraSug(){
-  const S=$("sug"),l=sugestoes($("cliente").value);S.innerHTML="";S.hidden=!l.length;
-  l.forEach(c=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");b.textContent=c.nome;
+  const S=$("sug"),t=$("cliente").value,lj=sugLojas(t),
+    cl=sugestoes(t).filter(c=>!lj.some(o=>chave2(canon(nomeSug(o)))===chave2(canon(c.nome)))).slice(0,3);
+  S.innerHTML="";S.hidden=!(lj.length+cl.length);
+  lj.forEach(o=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");
+    b.innerHTML=esc(nomeSug(o))+(lj.length>1&&lojaBairro(o)?"<span style='opacity:.6'> · "+esc(lojaBairro(o))+"</span>":"");
+    b.addEventListener("pointerdown",e=>e.preventDefault());b.onclick=()=>escolheSug(o);S.appendChild(b)});
+  cl.forEach(c=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");b.textContent=c.nome;
     b.addEventListener("pointerdown",e=>e.preventDefault());
-    b.onclick=()=>{$("cliente").value=c.nome;cliSel=true;preencheCli(c,true);S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda()};
+    b.onclick=()=>{$("cliente").value=c.nome;cliSel=true;lojaId=(cadDe(c.nome)||{}).id||"";preencheCli(c,true);S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda()};
     S.appendChild(b)});
 }
 function preencheCli(c,forca){
@@ -869,8 +885,7 @@ $("cliente").addEventListener("input",()=>{
 });
 $("cliente").addEventListener("focus",mostraSug);
 $("cliente").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("cliente")){$("sug").hidden=true;const k=norm($("cliente").value);if(k&&!cliSel&&clientes.some(x=>norm(x.nome)===k))cliSel=true;trancaCli()}},150));
-$("clitrb").onclick=()=>{if(curId)return;cliSel=false;CAMPOS.forEach(i=>$(i).value="");lojaId="";pintaLoja();trancaCli();apoio();try{spRender()}catch(_){}$("cliente").focus()};
-$("cadljb").onclick=ljAbre;$("ljx").onclick=()=>$("ljv").classList.remove("on");$("ljq").oninput=e=>ljItens(e.target.value);
+$("clitrb").onclick=()=>{if(curId)return;cliSel=false;CAMPOS.forEach(i=>$(i).value="");lojaId="";trancaCli();apoio();try{spRender()}catch(_){}$("cliente").focus()};
 ["input","change"].forEach(ev=>$("cliente").addEventListener(ev,ligaLoja));
 $("cliente").addEventListener("keydown",e=>{if(e.key==="Escape")$("sug").hidden=true});
 $("data").addEventListener("input",apoio);["input","change"].forEach(ev=>{$("cliente").addEventListener(ev,()=>{try{spRender()}catch(e){}});$("data").addEventListener(ev,()=>{try{spRender()}catch(e){}})});
@@ -1547,7 +1562,7 @@ function cadDe(nome){if(!nome||!String(nome).trim())return null;
   return null}
 let cadNv={};try{const j=JSON.parse(lsG("mpv:cadnv")||"{}");if(j&&typeof j==="object")cadNv=j}catch(_){}
 let docPreco=lsG("mpv:docpreco")==="1",docObs=false,clIni=false;
-let lojaId="";/* loja do cadastro amarrada a este pedido */
+let lojaId="";/* loja do cadastro escolhida para este pedido */
 const CAD_BASE=CAD.length;
 function cadSync(){CAD.length=CAD_BASE;Object.keys(cadNv).filter(k=>(cadNv[k]||{}).novo).sort((a,b)=>a-b).forEach(k=>{const c=cadNv[k].c||{},r=[c.fan||"",c.raz||"",c.doc||"",c.rua||"",c.num||"",c.bairro||"",Array.isArray(c.ali)?c.ali:[]];r.i=k;CAD.push(r)});CADK=null}
 const cadId=r=>r.i||String(CAD.indexOf(r)+1),cadRow=id=>CAD.find(r=>cadId(r)===String(id));
@@ -1555,26 +1570,11 @@ cadSync();
 const cadObj=r=>{const id=cadId(r),o=(cadNv[id]||{}).c||{};
   return{id,fan:o.fan||r[0],raz:o.raz||r[1],doc:o.doc||r[2],end:(o.rua??r[3])+", "+((o.num??r[4])||"S/N")+" – "+(o.bairro??r[5])}};
 /* preço de um produto para a loja digitada no pedido; se a loja não tem, usa a tabela de preços do próprio usuário */
-/* a loja do pedido: primeiro a que ficou amarrada, senão a que o nome encontrar */
+/* a loja do pedido: a escolhida na busca; se não escolheram, a que o nome encontrar */
 function lojaAtual(){const r=lojaId?cadRow(lojaId):null;if(r)return cadObj(r);const n=$("cliente").value.trim();return n?cadDe(n):null}
 function cliDe(n){const k=norm(canon(String(n||"").trim()));return k?clientes.find(x=>norm(x.nome)===k):null}
-function ligaLoja(){const n=$("cliente").value.trim();if(!n){lojaId="";pintaLoja();return}
-  const c=cliDe(n);if(c&&c.loja&&cadRow(c.loja))lojaId=String(c.loja);else{const cd=cadDe(n);lojaId=cd?cd.id:""}
-  pintaLoja()}
-function pintaLoja(){const bx=$("cadlj");if(!bx)return;const n=$("cliente").value.trim();
-  if(!n){bx.hidden=true;return}
-  const cd=lojaAtual(),trv=document.body.classList.contains("trv");
-  bx.hidden=false;$("cadljt").textContent=cd?"Loja do cadastro: "+cd.id+" · "+cd.fan:"Loja fora do cadastro (documento sem CNPJ e sem preços da loja)";
-  $("cadljb").textContent=cd?"trocar":"escolher";$("cadljb").hidden=trv}
-function escolheLoja(id){lojaId=id?String(id):"";const n=$("cliente").value.trim();
-  if(n){lembraCli(n,"","",false);const c=cliDe(n);if(c){if(lojaId)c.loja=lojaId;else delete c.loja;salvaCli();marcaCfg()}}
-  pintaLoja();try{agenda()}catch(_){}}
-function ljAbre(){clNuvemIni();$("ljq").value="";ljItens("");$("ljv").classList.add("on")}
-function ljItens(q){const k=chave2(q||""),dig=String(q||"").replace(/\D/g,""),el=$("ljl");if(!el)return;
-  const L=CAD.map(r=>({o:cadObj(r),r})).filter(x=>!k||chave2(x.o.fan+" "+x.o.raz+" "+x.o.end+" "+x.o.doc+" "+(x.r[6]||[]).join(" ")).includes(k)||(dig.length>2&&String(x.o.doc||"").replace(/\D/g,"").includes(dig)));
-  el.innerHTML=(lojaId?"<button class='rr clit' data-i=''><span class='t'><b>Tirar a loja deste cliente</b><br><small>usa só o nome digitado</small></span></button>":"")+
-    L.map(x=>"<button class='rr clit' data-i='"+x.o.id+"'><span class='t'><b>"+(x.o.id===lojaId?"✓ ":"")+esc(x.o.id+" · "+x.o.fan)+"</b><br><small>"+esc(x.o.end)+(x.o.doc?" · "+esc(x.o.doc):"")+"</small></span></button>").join("")||"<p class='msg'>Nenhuma loja encontrada.</p>";
-  el.querySelectorAll(".clit").forEach(b=>b.onclick=()=>{escolheLoja(b.dataset.i);$("ljv").classList.remove("on")})}
+function ligaLoja(){const n=$("cliente").value.trim();if(!n){lojaId="";return}
+  const c=cliDe(n);if(c&&c.loja&&cadRow(c.loja))lojaId=String(c.loja);else{const cd=cadDe(n);lojaId=cd?cd.id:""}}
 function precoDoc(item){const cd=lojaAtual(),pl=cd&&(cadNv[cd.id]||{}).p;const v=pl&&pl[item]>0?pl[item]:precos[item];return v>0?v:0}
 function clNuvemIni(){if(clIni||!fbDb)return;clIni=true;
   try{fbDb.collection("obsent").doc("_cadastro").onSnapshot(sn=>{const d=sn.exists?(sn.data()||{}):{},n={};
@@ -2485,7 +2485,7 @@ function contar(){try{spRender()}catch(e){}
 function render(){
   const gond=mode==="gondola",vis=mode==="visita",ent=mode==="entrega";entVigia();
   ["pedido","troca","gondola","visita","entrega"].forEach(m=>$("t-"+m).setAttribute("aria-selected",mode===m));
-  $("list").hidden=vis||ent;$("asscard").hidden=gond||vis||ent;obsPinta();try{pintaLoja()}catch(_){}$("vis").hidden=!vis;$("ent").hidden=!ent;
+  $("list").hidden=vis||ent;$("asscard").hidden=gond||vis||ent;obsPinta();$("vis").hidden=!vis;$("ent").hidden=!ent;
   if(ent){$("list").innerHTML="";renderVisBar();renderEnt();contar();$("edbar").hidden=!curId;pintaFat();return}
   $("list").innerHTML="";renderVisBar();
   if(vis){renderVis();contar();salvar();$("edbar").hidden=!curId;pintaFat();apoio();gondSum();return}
@@ -3768,7 +3768,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="224";
+const VER="225";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
