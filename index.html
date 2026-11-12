@@ -403,7 +403,10 @@ body.trv #edbar{border-color:#0b7a75}
 .me .nb span{background:var(--hit);border-radius:12px;padding:2px 9px;font-size:12px;font-weight:700}
 #rm,#md{z-index:30}
 .fb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.fb img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
-.fb .th{display:flex;flex-direction:column;align-items:center;gap:4px}.fb .th button{padding:3px 10px;border-radius:10px;font-size:12px;line-height:1.2}
+.fb .th{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;touch-action:manipulation}
+.th img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+.th.arr{opacity:.7;transform:scale(1.08);filter:drop-shadow(0 6px 12px rgba(0,0,0,.4));z-index:5}
+.thn{position:absolute;top:2px;left:2px;min-width:18px;height:18px;border-radius:9px;background:var(--azul,#1f4fa8);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;padding:0 4px;pointer-events:none}.fb .th button{padding:3px 10px;border-radius:10px;font-size:12px;line-height:1.2}
 #spk .kpe{cursor:pointer}
 .mvo{float:right;display:flex;gap:6px;margin-left:8px}.mvo button{width:40px;height:36px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font-size:15px;font-weight:800}
 .pi{background:rgba(31,111,235,.08);border:1px solid rgba(31,111,235,.3);border-radius:10px;padding:8px 10px;font-size:13px;margin:8px 0;line-height:1.45}
@@ -487,6 +490,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
       <div class="lt"><span class="n">Pedido<small id="vauto_pd" class="gi"></small></span><div class="sn" data-k="pd"><button>Sim</button><button class="nao">Não</button></div></div>
     </div>
     <div class="card"><b>📷 Fotos da visita</b><div id="vfotos" class="fb"></div><input id="vfi" type="file" accept="image/*" capture="environment" hidden>
+      <p id="vfdica" class="msg" hidden style="margin:0 0 4px">Segure e arraste uma foto para mudar a ordem. É nessa ordem que elas vão no WhatsApp.</p>
       <p class="msg" style="margin:0">Tire quantas fotos precisar. A supervisão e a direção veem no painel.</p></div>
     <div class="card"><b>Mensagem para o WhatsApp</b><pre id="vtxt" class="vtxt"></pre><button id="vwpp" class="agj">Enviar no WhatsApp</button><button id="vcopy" class="agj">Copiar texto</button>
       <p class="msg" style="margin:0">Copie e cole na conversa do WhatsApp.</p></div>
@@ -1300,16 +1304,41 @@ const SH={};
 function shPrep(ids){(ids||[]).forEach(id=>{if(SH[id]!==undefined)return;const h=HQ.m[id];if(!(h&&h.size)){if(HQ.m[id]===null)setTimeout(()=>shPrep([id]),800);return}
   SH[id]=null;(async()=>{try{const bm=await createImageBitmap(h),m=2048,k=Math.min(1,m/Math.max(bm.width,bm.height)),c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);
     c.getContext("2d").drawImage(bm,0,0,c.width,c.height);try{bm.close()}catch(_){}const b=await new Promise(r=>c.toBlob(r,"image/jpeg",0.9));SH[id]=b&&b.size?b:h}catch(_){SH[id]=h}})()})}
+/* arrastar as miniaturas para mudar a ordem (a mesma que vai para o WhatsApp) */
+const ARR={id:"",el:null,t:0,ok:false,x:0,y:0,recem:0};
+function arrInicia(w,id,e){ARR.el=w;ARR.id=id;ARR.ok=false;ARR.x=e.clientX;ARR.y=e.clientY;
+  clearTimeout(ARR.t);ARR.t=setTimeout(()=>{if(!ARR.el)return;ARR.ok=true;w.classList.add("arr");
+    try{if(navigator.vibrate)navigator.vibrate(15)}catch(_){}try{w.setPointerCapture(e.pointerId)}catch(_){}},320)}
+function arrMove(e){if(!ARR.el)return;
+  if(!ARR.ok){if(Math.abs(e.clientX-ARR.x)>8||Math.abs(e.clientY-ARR.y)>8){clearTimeout(ARR.t);ARR.el=null}return}
+  const B=$("vfotos");if(!B)return;
+  if(!B.contains(ARR.el)){const n=[...B.querySelectorAll(".th")].find(t=>t.dataset.id===ARR.id);if(!n){arrFim();return}ARR.el=n;n.classList.add("arr")}const out=[...B.querySelectorAll(".th")].filter(t=>t!==ARR.el);
+  let idx=out.length;
+  for(let i=0;i<out.length;i++){const r=out[i].getBoundingClientRect();
+    if(e.clientY<r.top){idx=i;break}
+    if(e.clientY<=r.bottom&&e.clientX<r.left+r.width/2){idx=i;break}}
+  const ref=out[idx]||null;
+  if(ref){if(ARR.el.nextElementSibling!==ref)B.insertBefore(ARR.el,ref)}
+  else if(B.lastElementChild!==ARR.el)B.appendChild(ARR.el);
+  const nova=[...B.querySelectorAll(".th")].map(t=>t.dataset.id).filter(Boolean);
+  if(nova.join("|")!==(visita.fo||[]).join("|"))visita.fo=nova;
+  B.querySelectorAll(".th").forEach((t,i)=>{const n=t.querySelector(".thn");if(n)n.textContent=i+1})}
+function arrFim(){clearTimeout(ARR.t);if(ARR.el)ARR.el.classList.remove("arr");
+  const foi=ARR.ok;ARR.el=null;ARR.ok=false;
+  if(foi){ARR.recem=Date.now();try{salvar()}catch(_){}try{atualizaTxt()}catch(_){}try{visFotos()}catch(_){}}}
 function visFotos(){const B=$("vfotos");if(!B)return;try{hqCarrega(visita.fo||[]);setTimeout(()=>shPrep(visita.fo||[]),300)}catch(_){}B.innerHTML="";const ids=visita.fo||[],uid=visUid();
-  ids.forEach(id=>{const w=document.createElement("div");w.className="th";
+  ids.forEach((id,pos)=>{const w=document.createElement("div");w.className="th";w.dataset.id=id;
+    w.addEventListener("pointerdown",e=>{if(e.button&&e.button!==0)return;arrInicia(w,id,e)});
+
     if(!vfoto[id]){vfoto[id]="…";filaGet(id).then(q=>{if(q&&q.j){vfoto[id]=q.j;if(mode==="visita")visFotos();return}if(!uid){vfoto[id]="";return}fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).get().then(sn=>{vfoto[id]=sn.exists?(sn.data()||{}).j:"";if(mode==="visita")visFotos()}).catch(()=>{vfoto[id]=""})})}
-    const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.onclick=()=>{const K=(visita.fo||[]).filter(k=>vfoto[k]&&vfoto[k]!=="…"),L=K.map(k=>vfoto[k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;vfoto[id]=u;const uid=visUid();if(uid)fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:u},{merge:true}).catch(()=>{});try{visFotos()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
+    const d=vfoto[id];if(d&&d!=="…"){const im=document.createElement("img");im.src=d;im.alt="Foto da visita";im.draggable=false;im.onclick=()=>{if(Date.now()-ARR.recem<400)return;const K=(visita.fo||[]).filter(k=>vfoto[k]&&vfoto[k]!=="…"),L=K.map(k=>vfoto[k]);verFotos(L,Math.max(0,L.indexOf(d)),(n,u)=>{const id=K[n];if(!id)return;vfoto[id]=u;const uid=visUid();if(uid)fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).set({j:u},{merge:true}).catch(()=>{});try{visFotos()}catch(_){}})};w.appendChild(im)}else{const im=document.createElement("div");im.style.cssText="width:64px;height:64px;border-radius:8px;background:var(--line)";w.appendChild(im)}
     const x=document.createElement("button");const pend=FDEL.k==="v"+id&&Date.now()-FDEL.t<4000;x.textContent=pend?"Confirmar?":"🗑 Excluir";
     x.onclick=()=>{if(!(FDEL.k==="v"+id&&Date.now()-FDEL.t<4000)){FDEL.k="v"+id;FDEL.t=Date.now();x.textContent="Confirmar?";setTimeout(()=>{if(FDEL.k==="v"+id&&x.isConnected)x.textContent="🗑 Excluir"},4000);return}
       FDEL.k="";w.remove();visita.fo=(visita.fo||[]).filter(y=>y!==id);delete vfoto[id];delete HQ.m[id];hqDb().then(db=>db.transaction("fila","readwrite").objectStore("fila").delete(id)).catch(()=>{});
       try{if(uid){fbDb.collection("vendedores/"+uid+"/fotos").doc("v_"+id).delete().catch(()=>{});fiTira(uid,"v_"+id)}}catch(e){diag(e,"fotoExclui")}
       try{salvar()}catch(e){diag(e,"fotoExclui")}visFotos();try{atualizaTxt()}catch(_){}};
-    w.appendChild(x);B.appendChild(w)});
+    w.appendChild(x);if(ids.length>1){const n=document.createElement("span");n.className="thn";n.textContent=pos+1;w.appendChild(n)}B.appendChild(w)});
+  {const dc=$("vfdica");if(dc)dc.hidden=ids.length<2}
   if(ids.length){const n=document.createElement("small");n.className="fin";n.textContent="As fotos são apagadas "+FOTO_DIAS+" dias depois que a direção as visualiza.";B.appendChild(n)}
   if(ids.length<999){const b=document.createElement("button");b.textContent="📷 Fotos da visita"+(ids.length?" ("+ids.length+")":"");b.onclick=()=>{if(!$("cliente").value.trim()){$("cliente").focus();window.scrollTo(0,0);return}camAbrir(999-(visita.fo||[]).length,async f=>{await visFoto(f);visFotos();atualizaTxt()},()=>$("vfi").click())};B.appendChild(b)}}
 /* foto aparece na hora (prévia direto do arquivo); a cópia leve é feita e enviada em segundo plano */
@@ -1403,6 +1432,10 @@ $("camln").onclick=async()=>{if(!CAM.devs||CAM.devs.length<2)return;const i=CAM.
  v.addEventListener("pointerup",fim);v.addEventListener("pointercancel",e=>{P.delete(e.pointerId);pin=null;tapXY=null})}
 /* guarda o arquivo original da câmera (qualidade máxima) na galeria do celular, pasta Download */
 function salvaNoCel(f,base){try{const t=new Date(),nm=("MaxPaes_"+(base||"foto")+"_"+isoD(t)+"_"+String(t.getHours()).padStart(2,"0")+"-"+String(t.getMinutes()).padStart(2,"0")+"-"+String(t.getSeconds()).padStart(2,"0")+"_"+Math.floor(Math.random()*900+100)).replace(/[^\w\-]+/g,"_")+".jpg",u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=nm;a.style.display="none";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}catch(e){}}
+$("vfotos").addEventListener("touchmove",e=>{if(ARR.ok)e.preventDefault()},{passive:false});
+document.addEventListener("pointermove",arrMove,true);
+document.addEventListener("pointerup",arrFim,true);
+document.addEventListener("pointercancel",()=>{if(!ARR.ok)arrFim()},true);
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";L.forEach(f=>salvaNoCel(f,U($("cliente").value.trim())));for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 async function copiaTexto(t){
   let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
@@ -3856,7 +3889,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="231";
+const VER="232";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
