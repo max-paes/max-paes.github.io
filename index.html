@@ -238,7 +238,7 @@ textarea{min-height:80px;resize:vertical}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{color:#ff9a8f}}
 :root[data-theme="dark"] .warn{color:#ff9a8f}
 #aviso{border-color:#b3261e;align-items:flex-start}
-.sug{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin-top:-2px}
+.sug{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin-top:-2px;max-height:42vh;overflow:auto}
 .sug button{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 12px;border-radius:999px;border:1.5px solid var(--brand);background:var(--card);color:var(--brand);font:700 14px Archivo,sans-serif}
 .dias{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
 .dias button{flex:1 1 0;min-width:0;padding:9px 2px;border-radius:10px;border:2px solid var(--brand);background:transparent;color:var(--brand);font:800 14px Archivo,sans-serif}
@@ -756,10 +756,26 @@ function sugestoes(t){
   return clientes.filter(c=>{const k=norm(c.nome);if(k===alvo)return false;const nw=k.split(/[\s\-\/.,]+/).filter(Boolean).map(z);return ws.every(w=>nw.some(x=>x.startsWith(w)))})
     .sort((a,b)=>(norm(b.nome).startsWith(ws[0])-norm(a.nome).startsWith(ws[0]))||a.nome.localeCompare(b.nome,"pt-BR")).slice(0,4);
 }
-/* lojas do cadastro que combinam com o que foi digitado */
-function sugLojas(t){const k=chave2(t);if(!k)return [];const ws=k.split(" ").filter(Boolean);if(!ws.length)return [];
-  return CAD.map(r=>({o:cadObj(r),r})).filter(x=>{const nw=chave2(x.o.fan+" "+x.o.raz+" "+x.o.end+" "+(x.r[6]||[]).join(" ")).split(" ").filter(Boolean);
-    return ws.every(w=>nw.some(y=>y.startsWith(w)))}).map(x=>x.o).slice(0,5)}
+/* parecido o bastante: aceita uma letra trocada, faltando ou sobrando */
+function pertoPal(a,b){if(a===b)return true;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;
+  let i=0,j=0,d=0;while(i<la&&j<lb){if(a[i]===b[j]){i++;j++;continue}if(++d>1)return false;
+    if(la>lb)i++;else if(lb>la)j++;else{i++;j++}}
+  if(i<la||j<lb)d++;return d<=1}
+/* lojas do cadastro que combinam com o que foi digitado (nome, apelido, bairro, razão social ou CNPJ) */
+function sugLojas(t){const k=chave2(t);const ws=k.split(" ").filter(Boolean);const dig=soDig(t);
+  if(!ws.length&&dig.length<3)return [];
+  const lista=CAD.map(r=>{const o=cadObj(r);
+    return {o,txt:chave2(o.fan+" "+(o.raz||"")+" "+(o.end||"")+" "+((r[6]||[]).join(" "))),doc:soDig(o.doc)}});
+  const nota=x=>{let p=0;const pal=x.txt.split(" ").filter(Boolean);
+    for(const w of ws){
+      if(pal.some(y=>y===w)){p+=4;continue}
+      if(pal.some(y=>y.startsWith(w))){p+=3;continue}
+      if(x.txt.includes(w)){p+=2;continue}
+      if(w.length>=4&&pal.some(y=>pertoPal(y,w)||(y.length>=4&&y.includes(w.slice(0,-1))))){p+=1;continue}
+      return -1}
+    return p};
+  return lista.map(x=>({x,p:(dig.length>2&&x.doc.includes(dig))?99:nota(x)})).filter(z=>z.p>=0)
+    .sort((a,b)=>b.p-a.p||a.x.o.fan.localeCompare(b.x.o.fan)).map(z=>z.x.o).slice(0,14)}
 const lojaBairro=o=>(String(o.end||"").split("–").pop()||"").trim();
 /* mantém o nome que o vendedor já usa para a loja (agenda e rota continuam valendo) */
 function nomeSug(o){const c=clientes.find(x=>String(x.loja||"")===String(o.id))||clientes.find(x=>{const d=cadDe(x.nome);return d&&d.id===o.id});
@@ -3901,7 +3917,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="233";
+const VER="234";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
