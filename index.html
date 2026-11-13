@@ -743,7 +743,8 @@ function trancaCli(){const el=$("cliente"),bx=$("clitr");if(!el||!bx)return;cons
 function salvaCli(){try{localStorage.setItem(CKEY,JSON.stringify(clientes))}catch(e){}}
 function lembraCli(nome,end,comp,save=true){
   nome=U(nome).trim();if(!nome)return;nome=canon(nome);const k=norm(nome);
-  let c=clientes.find(x=>norm(x.nome)===k);if(!c){c={nome,endereco:"",comprador:""};clientes.push(c)}
+  let c=clientes.find(x=>norm(x.nome)===k);
+  if(!c){if(soBusca()&&!cadDe(nome))return;c={nome,endereco:"",comprador:""};clientes.push(c)}
   c.nome=nome;if(end)c.endereco=U(end).trim();if(comp)c.comprador=U(comp).trim();
   if(save){salvaCli();listaCli();marcaCfg()}
 }
@@ -770,7 +771,8 @@ function escolheSug(o){const S=$("sug"),nome=nomeSug(o);$("cliente").value=nome;
   S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda();try{spRender()}catch(_){}}
 function mostraSug(){
   const S=$("sug"),t=$("cliente").value,lj=sugLojas(t),
-    cl=sugestoes(t).filter(c=>!lj.some(o=>chave2(canon(nomeSug(o)))===chave2(canon(c.nome)))).slice(0,3);
+    cl=sugestoes(t).filter(c=>!lj.some(o=>chave2(canon(nomeSug(o)))===chave2(canon(c.nome))))
+      .filter(c=>!soBusca()||!!cadDe(c.nome)).slice(0,3);
   S.innerHTML="";S.hidden=!(lj.length+cl.length);
   lj.forEach(o=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");
     b.innerHTML=esc(nomeSug(o))+(lj.length>1&&lojaBairro(o)?"<span style='opacity:.6'> · "+esc(lojaBairro(o))+"</span>":"");
@@ -893,6 +895,12 @@ $("cliente").addEventListener("focus",mostraSug);
 $("cliente").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("cliente")){$("sug").hidden=true;const k=norm($("cliente").value);if(k&&!cliSel&&clientes.some(x=>norm(x.nome)===k))cliSel=true;trancaCli()}},150));
 $("clitrb").onclick=()=>{if(curId)return;cliSel=false;CAMPOS.forEach(i=>$(i).value="");lojaId="";lojaDoc="";trancaCli();apoio();try{spRender()}catch(_){}$("cliente").focus()};
 ["input","change"].forEach(ev=>$("cliente").addEventListener(ev,ligaLoja));
+$("cliente").addEventListener("blur",()=>{setTimeout(()=>{
+  if(!soBusca()||document.activeElement===$("cliente"))return;
+  const el=$("cliente"),n=el.value.trim();if(!n||nomeConhecido(n))return;
+  el.value="";lojaId="";lojaDoc="";cliSel=false;trancaCli();apoio();try{agenda()}catch(_){}
+  aviso("Escolha a loja na lista que aparece ao digitar. Neste perfil não dá para usar um nome novo.");
+},180)});
 $("cliente").addEventListener("keydown",e=>{if(e.key==="Escape")$("sug").hidden=true});
 $("data").addEventListener("input",apoio);["input","change"].forEach(ev=>{$("cliente").addEventListener(ev,()=>{try{spRender()}catch(e){}});$("data").addEventListener(ev,()=>{try{spRender()}catch(e){}})});
 const AGKEY="maxpaes:agenda:v1",DIAS=["","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],DCURTO=["","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -2293,7 +2301,7 @@ async function supGrava(k,e,extra){const x=supDoc(k);if(!x)return;const j=JSON.s
   sup.docs[k]={...x,j,...(extra||{})}}
 $("sdlj").onclick=()=>{const k=sup.det;if(!k)return;
   ljAbre(async o=>{const e=entDe(k);if(!e||!o)return;const m=$("sdm");m.textContent="Transferindo…";
-    e.loja=o.id;e.lojadoc=soDig(o.doc);e.cliente=o.fan;if(lojaBairro(o))e.endereco=lojaBairro(o);
+    e.loja=o.id;e.lojadoc=soDig(o.doc);e.cliente=nomeSug(o)||o.fan;if(lojaBairro(o))e.endereco=lojaBairro(o);
     try{await supGrava(k,e,{cliente:e.cliente});
       try{const x=supDoc(k);await fbDb.collection("entrega").doc(x.uid+"_"+x.id).update({c:e.cliente,en:e.endereco||""})}catch(_){}
       supDetalhe(k,true);$("sdm").textContent="Pedido transferido para "+o.id+" · "+o.fan+".";try{supRender()}catch(_){}}
@@ -2728,6 +2736,10 @@ function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const
   b.className="";b.textContent="Fechar pedido"}
 /* Usuários que só enviam checklist, geram documento ou finalizam visita depois de "Fechar pedido" ou "Sem pedido" com motivo */
 const EXIGE_FECHAR=["MARIANE"];
+/* perfis que só podem usar lojas que aparecem na busca (nada de nome novo) */
+const SO_BUSCA=["MARIANE"];
+const soBusca=()=>!!(perfil&&!ESP&&SO_BUSCA.some(n=>norm(perfil.nome||"").startsWith(norm(n))));
+const nomeConhecido=n=>{const t=String(n||"").trim();return !t||!!cadDe(t)||(!soBusca()&&!!cliDe(t))};
 const exigeFechar=()=>!!(perfil&&!ESP&&EXIGE_FECHAR.some(n=>norm(perfil.nome||"").startsWith(norm(n))));
 const pedFechado=()=>!!(curId&&(entRota||entFin||!/^(rascunho|alterando)$/.test(stPed||"rascunho")));
 function semPedMarcado(){const cli=($("cliente").value||"").trim();if(!cli)return false;const dt=$("data").value||hojeISO(),k=norm(cli),m=(motivos[dt]||{})[k];return (visitas[dt]||{})[k]===true&&!!m&&m!==OUTRO_DIA}
@@ -3889,7 +3901,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="232";
+const VER="233";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
