@@ -1633,6 +1633,10 @@ function cadDe(nome){if(!nome||!String(nome).trim())return null;
 let cadNv={};try{const j=JSON.parse(lsG("mpv:cadnv")||"{}");if(j&&typeof j==="object")cadNv=j}catch(_){}
 let docPreco=lsG("mpv:docpreco")==="1",docObs=false,clIni=false;
 let lojaId="",lojaDoc="";/* loja escolhida para este pedido: código e CNPJ */
+/* lojas da mesma rede que ainda não tinham ficha; o código 101/102 não briga com os cadastrados na nuvem */
+CAD.push(["MARBOX 01","SUPERMERCADO RMC LTDA","","","","",["MAR BOX 01","MAR BOX 1","MARBOX 1","MAR BOX"]],
+         ["MARBOX 02","SUPERMERCADO RMC LTDA","","","","",["MAR BOX 02","MAR BOX 2","MARBOX 2"]]);
+CAD[CAD.length-2].i="101";CAD[CAD.length-1].i="102";
 const CAD_BASE=CAD.length;
 function cadSync(){CAD.length=CAD_BASE;Object.keys(cadNv).filter(k=>(cadNv[k]||{}).novo).sort((a,b)=>a-b).forEach(k=>{const c=cadNv[k].c||{},r=[c.fan||"",c.raz||"",c.doc||"",c.rua||"",c.num||"",c.bairro||"",Array.isArray(c.ali)?c.ali:[]];r.i=k;CAD.push(r)});CADK=null}
 const cadId=r=>r.i||String(CAD.indexOf(r)+1),cadRow=id=>CAD.find(r=>cadId(r)===String(id));
@@ -3959,7 +3963,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="237";
+const VER="238";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
