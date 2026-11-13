@@ -764,18 +764,26 @@ function pertoPal(a,b){if(a===b)return true;const la=a.length,lb=b.length;if(Mat
 /* lojas do cadastro que combinam com o que foi digitado (nome, apelido, bairro, razão social ou CNPJ) */
 function sugLojas(t){const k=chave2(t);const ws=k.split(" ").filter(Boolean);const dig=soDig(t);
   if(!ws.length&&dig.length<3)return [];
-  const lista=CAD.map(r=>{const o=cadObj(r);
-    return {o,txt:chave2(o.fan+" "+(o.raz||"")+" "+(o.end||"")+" "+((r[6]||[]).join(" "))),doc:soDig(o.doc)}});
+  const lista=CAD.map(r=>{const o=cadObj(r),ali=(r[6]||[]).join(" "),
+    nome=chave2(o.fan+" "+ali),txt=chave2(o.fan+" "+(o.raz||"")+" "+(o.end||"")+" "+ali);
+    return {o,npal:nome.split(" ").filter(Boolean),txt,col:txt.replace(/\s+/g,""),doc:soDig(o.doc)}});
+  const kcol=k.replace(/\s+/g,"");
   const nota=x=>{let p=0;const pal=x.txt.split(" ").filter(Boolean);
     for(const w of ws){
-      if(pal.some(y=>y===w)){p+=4;continue}
-      if(pal.some(y=>y.startsWith(w))){p+=3;continue}
+      if(x.npal.some(y=>y===w)){p+=6;continue}
+      if(x.npal.some(y=>y.startsWith(w))){p+=5;continue}
+      /* com 1 ou 2 letras procura só no nome da loja, senão viria quase tudo */
+      if(w.length<3)return -1;
+      if(pal.some(y=>y===w)){p+=3;continue}
+      if(pal.some(y=>y.startsWith(w))){p+=2;continue}
       if(x.txt.includes(w)){p+=2;continue}
+      /* nome escrito junto ou separado: MARBOX = MAR BOX, COMPREMAX = COMPRE MAX */
+      if(x.col.includes(w)){p+=2;continue}
       if(w.length>=4&&pal.some(y=>pertoPal(y,w)||(y.length>=4&&y.includes(w.slice(0,-1))))){p+=1;continue}
       return -1}
     return p};
-  return lista.map(x=>({x,p:(dig.length>2&&x.doc.includes(dig))?99:nota(x)})).filter(z=>z.p>=0)
-    .sort((a,b)=>b.p-a.p||a.x.o.fan.localeCompare(b.x.o.fan)).map(z=>z.x.o).slice(0,14)}
+  return lista.map(x=>({x,p:(dig.length>2&&x.doc.includes(dig))?99:(kcol.length>=3&&x.col.includes(kcol)?Math.max(3,nota(x)):nota(x))})).filter(z=>z.p>=0)
+    .sort((a,b)=>b.p-a.p||a.x.o.fan.localeCompare(b.x.o.fan)).map(z=>z.x.o)}
 const lojaBairro=o=>(String(o.end||"").split("–").pop()||"").trim();
 /* mantém o nome que o vendedor já usa para a loja (agenda e rota continuam valendo) */
 function nomeSug(o){const c=clientes.find(x=>String(x.loja||"")===String(o.id))||clientes.find(x=>{const d=cadDe(x.nome);return d&&d.id===o.id});
@@ -3917,7 +3925,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="234";
+const VER="235";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
