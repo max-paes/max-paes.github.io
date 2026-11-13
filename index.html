@@ -2453,8 +2453,39 @@ const clNum=t=>{const v=parseFloat(String(t).replace(/[^\d,.-]/g,"").replace(/\.
 function clAbre(){try{$("spmd").hidden=true}catch(_){}clNuvemIni();$("clv").classList.add("on");clLista("")}
 function clLista(q){clSel=null;$("clt").textContent="Cadastro das lojas";
   $("clb").innerHTML="<div style='display:flex;gap:8px;margin:6px 0 8px'><input id='clq' type='search' placeholder='Buscar loja' autocomplete='off' style='flex:1;min-width:0'>"+(clPodeEditar()?"<button id='clnv'>+ Nova loja</button>":"")+"</div><div id='cll' style='max-height:62vh;overflow:auto'></div>";
+  if(clPodeEditar()){$("clb").insertAdjacentHTML("beforeend",
+    "<div style='margin-top:12px;border-top:1px solid var(--linha,#dde);padding-top:10px'>"+
+    "<b style='display:block;margin-bottom:4px'>Unificar na nuvem</b>"+
+    "<div class='acts' style='margin:0'><button type='button' id='clunb' class='sec'>Enviar todas as lojas para a nuvem</button></div>"+
+    "<p class='msg' id='clunm' style='font-size:12px;margin:4px 2px 8px'>Grava as "+CAD.length+" lojas na nuvem, com os dados de cada uma, para todos os usuários verem igual.</p>"+
+    "<div class='acts' style='margin:0'><button type='button' id='climp' class='sec'></button></div>"+
+    "<p class='msg' id='climpm' style='font-size:12px;margin:4px 2px 0'></p></div>");
+    $("clunb").onclick=()=>cadUnifica($("clunb"));$("climp").onclick=()=>cadImporta($("climp"));cadImpPinta()}
   if($("clnv"))$("clnv").onclick=()=>clFicha("novo");
   $("clq").value=q||"";$("clq").oninput=e=>clItens(e.target.value);clItens(q||"")}
+/* lojas que o vendedor usa mas que não existem no cadastro */
+function lojasFaltando(){const out=[];(clientes||[]).forEach(c=>{const n=String(c.nome||"").trim();if(!n||cadDe(n))return;
+  if(out.some(x=>chave2(canon(x.nome))===chave2(canon(n))))return;out.push(c)});return out}
+function cadImpPinta(){const b=$("climp"),m=$("climpm");if(!b)return;const L=lojasFaltando();
+  b.hidden=!L.length;b.textContent="Cadastrar "+L.length+(L.length===1?" loja usada que falta":" lojas usadas que faltam");
+  if(m)m.textContent=L.length?"Lojas que aparecem como cliente neste perfil e ainda não têm ficha: "+L.slice(0,6).map(x=>x.nome).join(", ")+(L.length>6?"…":""):"Todas as lojas usadas neste perfil já estão no cadastro."}
+async function cadGrava(pay){await fbDb.collection("obsent").doc("_cadastro").set(pay,{merge:true})}
+async function cadUnifica(b){if(!clPodeEditar()||!fbDb)return;const rot=b.textContent;b.disabled=true;b.textContent="Enviando…";
+  try{const pay={},ag=Date.now();
+    CAD.forEach(r=>{const id=cadId(r),at=cadNv[id]||{},c0=at.c||{};
+      const c={fan:c0.fan??r[0],raz:c0.raz??r[1],doc:c0.doc??r[2],rua:c0.rua??r[3],num:c0.num??r[4],bairro:c0.bairro??r[5],ali:Array.isArray(c0.ali)?c0.ali:(r[6]||[])};
+      const reg={c,p:at.p||{},ts:ag};if(at.novo)reg.novo=1;pay["l"+id]=JSON.stringify(reg)});
+    await cadGrava(pay);$("clunm").textContent="Pronto: "+Object.keys(pay).length+" lojas gravadas na nuvem.";b.textContent="Enviado";}
+  catch(e){$("clunm").textContent="Não consegui enviar ("+((e&&(e.code||e.message))||"erro")+").";b.textContent=rot}
+  setTimeout(()=>{b.disabled=false;b.textContent=rot},2500)}
+async function cadImporta(b){if(!clPodeEditar()||!fbDb)return;const L=lojasFaltando();if(!L.length)return;
+  const rot=b.textContent;b.disabled=true;b.textContent="Cadastrando…";
+  try{let id=Math.max(0,...CAD.map(x=>+cadId(x)||0));const pay={},ag=Date.now();
+    L.forEach(c=>{id++;pay["l"+id]=JSON.stringify({c:{fan:U(canon(c.nome)).trim(),raz:"",doc:"",rua:"",num:"",bairro:U(c.endereco||"").trim(),ali:[]},p:{},ts:ag,novo:1})});
+    await cadGrava(pay);$("climpm").textContent="Pronto: "+L.length+" lojas cadastradas. Abra cada uma para completar CNPJ, endereço e preços.";
+    setTimeout(()=>{clItens($("clq")?$("clq").value:"");cadImpPinta()},600)}
+  catch(e){$("climpm").textContent="Não consegui cadastrar ("+((e&&(e.code||e.message))||"erro")+").";}
+  setTimeout(()=>{b.disabled=false;b.textContent=rot},2500)}
 function clItens(q){const k=chave2(q||""),el=$("cll");if(!el)return;
   const L=CAD.map(r=>({id:cadId(r),r,o:cadObj(r)})).filter(x=>!k||chave2(x.o.fan+" "+x.o.raz+" "+x.o.end+" "+x.r[6].join(" ")).includes(k));
   el.innerHTML=L.map(x=>{const np=Object.keys(((cadNv[x.id]||{}).p)||{}).length;return "<button class='rr clit' data-i='"+x.id+"'><span class='t'><b>"+x.id+" · "+esc(x.o.fan)+"</b><br><small>"+esc(x.r[5])+" · "+(np?np+" preços":"sem preços")+"</small></span></button>"}).join("")||"<p class='msg'>Nenhuma loja encontrada.</p>";
@@ -3928,7 +3959,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="236";
+const VER="237";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
