@@ -751,10 +751,13 @@ function lembraCli(nome,end,comp,save=true){
 function listaCli(){if(document.activeElement===$("cliente"))mostraSug()}
 function sugestoes(t){
   const z=w=>w.replace(/^0+(?=\d)/,"");
-  const ws=norm(t).split(" ").filter(Boolean).map(z);if(!ws.length)return [];
-  const alvo=norm(t);
-  return clientes.filter(c=>{const k=norm(c.nome);if(k===alvo)return false;const nw=k.split(/[\s\-\/.,]+/).filter(Boolean).map(z);return ws.every(w=>nw.some(x=>x.startsWith(w)))})
-    .sort((a,b)=>(norm(b.nome).startsWith(ws[0])-norm(a.nome).startsWith(ws[0]))||a.nome.localeCompare(b.nome,"pt-BR")).slice(0,4);
+  const alvo=norm(t),ws=alvo.split(" ").filter(Boolean).map(z);if(!ws.length)return [];
+  const col=alvo.replace(/[\s\-\/.,]+/g,"");
+  return clientes.filter(c=>{const k=norm(c.nome);if(k===alvo)return false;
+    const kc=k.replace(/[\s\-\/.,]+/g,""),nw=k.split(/[\s\-\/.,]+/).filter(Boolean).map(z);
+    if(col.length>=3&&kc.includes(col))return true;
+    return ws.every(w=>nw.some(x=>x.startsWith(w))||(w.length>=3&&(k.includes(w)||kc.includes(w)))||(w.length>=4&&nw.some(x=>pertoPal(x,w))))})
+    .sort((a,b)=>(norm(b.nome).startsWith(ws[0])-norm(a.nome).startsWith(ws[0]))||a.nome.localeCompare(b.nome,"pt-BR")).slice(0,10);
 }
 /* parecido o bastante: aceita uma letra trocada, faltando ou sobrando */
 function pertoPal(a,b){if(a===b)return true;const la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;
@@ -795,13 +798,13 @@ function escolheSug(o){const S=$("sug"),nome=nomeSug(o);$("cliente").value=nome;
   S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda();try{spRender()}catch(_){}}
 function mostraSug(){
   const S=$("sug"),t=$("cliente").value,lj=sugLojas(t),
-    cl=sugestoes(t).filter(c=>!lj.some(o=>chave2(canon(nomeSug(o)))===chave2(canon(c.nome))))
-      .filter(c=>!soBusca()||!!cadDe(c.nome)).slice(0,3);
+    cl=sugestoes(t).filter(c=>!lj.some(o=>chave2(canon(nomeSug(o)))===chave2(canon(c.nome))));
   S.innerHTML="";S.hidden=!(lj.length+cl.length);
   lj.forEach(o=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");
     b.innerHTML=esc(nomeSug(o))+(lj.length>1&&lojaBairro(o)?"<span style='opacity:.6'> · "+esc(lojaBairro(o))+"</span>":"");
     b.addEventListener("pointerdown",e=>e.preventDefault());b.onclick=()=>escolheSug(o);S.appendChild(b)});
-  cl.forEach(c=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");b.textContent=c.nome;
+  cl.forEach(c=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","option");
+    b.innerHTML=esc(c.nome)+(cadDe(c.nome)?"":"<span style='opacity:.6'> · sem cadastro</span>");
     b.addEventListener("pointerdown",e=>e.preventDefault());
     b.onclick=()=>{$("cliente").value=c.nome;cliSel=true;lojaId=(cadDe(c.nome)||{}).id||"";preencheCli(c,true);S.hidden=true;$("cliente").blur();trancaCli();apoio();agenda()};
     S.appendChild(b)});
@@ -2763,7 +2766,7 @@ const EXIGE_FECHAR=["MARIANE"];
 /* perfis que só podem usar lojas que aparecem na busca (nada de nome novo) */
 const SO_BUSCA=["MARIANE"];
 const soBusca=()=>!!(perfil&&!ESP&&SO_BUSCA.some(n=>norm(perfil.nome||"").startsWith(norm(n))));
-const nomeConhecido=n=>{const t=String(n||"").trim();return !t||!!cadDe(t)||(!soBusca()&&!!cliDe(t))};
+const nomeConhecido=n=>{const t=String(n||"").trim();return !t||!!cadDe(t)||!!cliDe(t)};
 const exigeFechar=()=>!!(perfil&&!ESP&&EXIGE_FECHAR.some(n=>norm(perfil.nome||"").startsWith(norm(n))));
 const pedFechado=()=>!!(curId&&(entRota||entFin||!/^(rascunho|alterando)$/.test(stPed||"rascunho")));
 function semPedMarcado(){const cli=($("cliente").value||"").trim();if(!cli)return false;const dt=$("data").value||hojeISO(),k=norm(cli),m=(motivos[dt]||{})[k];return (visitas[dt]||{})[k]===true&&!!m&&m!==OUTRO_DIA}
@@ -3925,7 +3928,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="235";
+const VER="236";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
