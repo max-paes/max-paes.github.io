@@ -11,20 +11,23 @@ service cloud.firestore {
     function naoDev(u) { return !exists(/databases/$(database)/documents/vendedores/$(u)) || perfil(u).papel != 'developer'; }
     function equipe() { return supervisor() || (temPerfil() && perfil(request.auth.uid).papel in ['producao', 'expedicao', 'faturamento'] && perfil(request.auth.uid).get('ativo', true) != false); }
     function ativo() { return temPerfil() && perfil(request.auth.uid).get('ativo', true) != false; }
+    // Quem pode gerenciar acessos: supervisor, diretor ou developer, sempre com a conta ativa.
+    // Nenhum deles mexe em conta de developer (só a conta dona).
+    function gerente() { return supervisor() && ativo(); }
 
     // Perfil de cada usuário: só o dono (conta do Wesley) cria e altera acessos
     match /vendedores/{uid} {
       allow read: if logado() && (request.auth.uid == uid || equipe());
       // O dono cria acessos; quem entra sem perfil só consegue registrar um pedido (inativo)
-      allow create: if dono() || (admin() && request.resource.data.papel != 'developer') || (logado() && request.auth.uid == uid
+      allow create: if dono() || (gerente() && request.resource.data.papel != 'developer') || (logado() && request.auth.uid == uid
                       && request.resource.data.ativo == false
                       && request.resource.data.pendente == true
                       && request.resource.data.papel == 'vendedor');
       // Cada um atualiza o próprio perfil (ex.: troca de senha), mas não muda papel nem ativo
-      allow update: if dono() || (admin() && resource.data.papel != 'developer' && request.resource.data.papel != 'developer') || (logado() && request.auth.uid == uid
+      allow update: if dono() || (gerente() && resource.data.papel != 'developer' && request.resource.data.papel != 'developer') || (logado() && request.auth.uid == uid
                       && request.resource.data.papel == resource.data.papel
                       && request.resource.data.get('ativo', true) == resource.data.get('ativo', true));
-      allow delete: if dono() || (admin() && resource.data.papel != 'developer');
+      allow delete: if dono() || (gerente() && resource.data.papel != 'developer');
 
       // Fotos das telas coletadas pelo motorista
       match /fotos/{f} {
@@ -32,7 +35,7 @@ service cloud.firestore {
         // O developer pode agir na conta de um usuário (modo teste com a chave Gravando)
         allow write: if dono();
         allow read: if supervisor();
-        allow delete: if dono() || admin();
+        allow delete: if dono() || (gerente() && naoDev(uid));
       }
 
       // Pedidos, trocas, visitas, agenda e cadastro do vendedor
@@ -42,7 +45,7 @@ service cloud.firestore {
         allow read: if equipe();
         // O motorista abre o documento do pedido/troca que vai entregar (só pedidos, um por vez)
         allow get: if ativo() && perfil(request.auth.uid).papel == 'motorista' && doc.matches('p_.*');
-        allow delete: if dono() || (admin() && naoDev(uid));
+        allow delete: if dono() || (gerente() && naoDev(uid));
       }
     }
 
