@@ -11,7 +11,7 @@ service cloud.firestore {
     function naoDev(u) { return !exists(/databases/$(database)/documents/vendedores/$(u)) || perfil(u).papel != 'developer'; }
     function equipe() { return supervisor() || (temPerfil() && perfil(request.auth.uid).papel in ['producao', 'expedicao', 'faturamento'] && perfil(request.auth.uid).get('ativo', true) != false); }
     function ativo() { return temPerfil() && perfil(request.auth.uid).get('ativo', true) != false; }
-    // Quem pode gerenciar acessos: supervisor, diretor ou developer, sempre com a conta ativa.
+    // Quem pode gerenciar acessos: supervisor ou developer (o diretor não entra), sempre com a conta ativa.
     // Nenhum deles mexe em conta de developer (só a conta dona).
     function gerente() { return temPerfil() && ativo() && perfil(request.auth.uid).papel in ['supervisor', 'developer']; }
 
