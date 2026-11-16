@@ -13,7 +13,7 @@ service cloud.firestore {
     function ativo() { return temPerfil() && perfil(request.auth.uid).get('ativo', true) != false; }
     // Quem pode gerenciar acessos: supervisor, diretor ou developer, sempre com a conta ativa.
     // Nenhum deles mexe em conta de developer (só a conta dona).
-    function gerente() { return supervisor() && ativo(); }
+    function gerente() { return temPerfil() && ativo() && perfil(request.auth.uid).papel in ['supervisor', 'developer']; }
 
     // Perfil de cada usuário: só o dono (conta do Wesley) cria e altera acessos
     match /vendedores/{uid} {
@@ -70,7 +70,7 @@ service cloud.firestore {
     // Cadastro das lojas (dados e preços por loja): todos os usuários ativos leem; só o painel grava
     match /obsent/_cadastro {
       allow read: if logado() && ativo();
-      allow write: if supervisor() && ativo();
+      allow write: if gerente();
     }
 
     // Entrega e ocorrência de cada pedido: todos os usuários ativos leem e acrescentam;

@@ -2435,7 +2435,8 @@ function ucAbre(){try{$("spmd").hidden=true}catch(_){}const p=perfil&&perfil.pap
 
 /* cadastro das lojas (painel): dados da loja e preços de cada produto para a loja */
 let clSel=null;
-const clPodeEditar=()=>ehSup();
+/* cadastro de lojas: só o desenvolvedor e o supervisor */
+const clPodeEditar=()=>!!perfil&&!(typeof ESP!=="undefined"&&ESP&&!ESP.grava)&&(ehDev()||perfil.papel==="supervisor");
 /* lê uma lista colada ("Pão Hamb 400 - 4,60") e acha o produto certo */
 const PAL_IGN=new Set(["de","do","da","com","c","s","e","un","und","unid","unidade","unidades","pao","paes","g","gr","kg","tipo"]);
 const colaTk=t=>chave2(String(t||"").replace(/[^\p{L}\p{N}]+/gu," ")).split(" ").map(x=>x.trim()).filter(x=>x&&!PAL_IGN.has(x));
@@ -2800,9 +2801,8 @@ function pintaFat(){const b=$("fat");if(!b)return;$("edbar").hidden=!curId;const
   b.className="";b.textContent="Fechar pedido"}
 /* Usuários que só enviam checklist, geram documento ou finalizam visita depois de "Fechar pedido" ou "Sem pedido" com motivo */
 const EXIGE_FECHAR=["MARIANE"];
-/* perfis que só podem usar lojas que aparecem na busca (nada de nome novo) */
-const SO_BUSCA=["MARIANE"];
-const soBusca=()=>!!(perfil&&!ESP&&SO_BUSCA.some(n=>norm(perfil.nome||"").startsWith(norm(n))));
+/* só o desenvolvedor e o supervisor digitam nome livre; os demais escolhem a loja na busca */
+const soBusca=()=>!!perfil&&!(ehDev()||perfil.papel==="supervisor");
 const nomeConhecido=n=>{const t=String(n||"").trim();return !t||!!cadDe(t)||!!cliDe(t)};
 const exigeFechar=()=>!!(perfil&&!ESP&&EXIGE_FECHAR.some(n=>norm(perfil.nome||"").startsWith(norm(n))));
 const pedFechado=()=>!!(curId&&(entRota||entFin||!/^(rascunho|alterando)$/.test(stPed||"rascunho")));
@@ -3977,7 +3977,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="242";
+const VER="243";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
