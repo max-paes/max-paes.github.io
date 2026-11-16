@@ -3009,7 +3009,7 @@ const hmsg=t=>{$("hmsg").textContent=t;$("hmsg").hidden=false};
 $("hfx").onclick=()=>$("hs").classList.remove("on");
 $("data").addEventListener("input",salvar);
 
-const AZ="#1f4fa8",TX="#14213d",FT="Archivo,Arial,sans-serif";
+const LARANJA="#d2691e",AZ="#1f4fa8",TX="#14213d",FT="Archivo,Arial,sans-serif";
 function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
 
 function dataBR(){const [a,m,dd]=($("data").value||"").split("-");return a?dd+"/"+m+"/"+a:""}
@@ -3080,13 +3080,13 @@ function quebraTxt(t,fnt,w,max){const sc=scTxt||(scTxt=document.createElement("c
   return out.slice(0,max)}
 const obsDoc=m=>docObs?String(obs[m]||"").trim():"";
 function blocoCaixas(x,o,P,tw,y,so,txt){const {cx,fu,fi}=caixasDe(o);
-  const ls=String(txt||"").trim()?quebraTxt(txt,"700 24px "+FT,tw-40,8):[];
-  const h=76+(ls.length?26+32*ls.length:0);if(so)return h;
+  const ls=String(txt||"").trim()?quebraTxt(txt,"800 29px "+FT,tw-40,8):[];
+  const h=76+(ls.length?30+38*ls.length:0);if(so)return h;
   x.fillStyle="#f1f5fc";rr(x,P,y+14,tw,h-14,14);x.fill();x.strokeStyle=AZ;x.lineWidth=2;rr(x,P,y+14,tw,h-14,14);x.stroke();
   x.textAlign="left";x.fillStyle=AZ;x.font="800 26px "+FT;
   x.fillText("CAIXAS: "+cx+(cx===1?" caixa":" caixas")+(fi?" + "+fu+(fu===1?" item":" itens")+" fracionado"+(fu===1?"":"s"):""),P+20,y+54);
-  if(ls.length){x.fillStyle=AZ;x.font="800 20px "+FT;x.fillText("OBSERVAÇÃO:",P+20,y+88);
-    x.fillStyle=TX;x.font="700 24px "+FT;ls.forEach((l,i)=>x.fillText(l,P+20,y+88+32*(i+1)))}
+  if(ls.length){x.fillStyle=LARANJA;x.font="800 22px "+FT;x.fillText("OBSERVAÇÃO:",P+20,y+90);
+    x.font="800 29px "+FT;ls.forEach((l,i)=>x.fillText(l,P+20,y+90+38*(i+1)))}
   return h}
 function desenhar(sig,logo,m=mode){
   const q=state[m],lista=ITENS.filter(n=>q[n]>0);
@@ -3559,11 +3559,14 @@ function motRender(){const T=$("mot");if(!T.classList.contains("on"))return;
   if(reg.ini){const cb=card(),h=document.createElement("h3");h.textContent="Rota iniciada";const sp=document.createElement("span");sp.className="ms";sp.textContent="Depois da saída da empresa não dá para acrescentar lojas. Monte a rota antes de sair.";cb.append(h,sp);C.appendChild(cb)}
   if(!reg.ini){const SP=Object.entries(mot.ent||{}).map(([id,d])=>({id,...d})).filter(d=>d.ref&&(d.ped||0)>0&&d.sep&&!d.fin&&!naRota.has(d.ref)).sort((a,b)=>(a.d||"").localeCompare(b.d||"")||(a.c||"").localeCompare(b.c||"","pt-BR"));
    const cs=card(),h=document.createElement("h3");h.textContent="Pedidos separados para entregar ("+SP.length+")";cs.appendChild(h);
-   const sp=document.createElement("span");sp.className="ms";sp.textContent=SP.length?"Toque em + Puxar para colocar na sua rota. Depois use ▲ ▼ nos cards para ordenar.":"Nenhum pedido separado aguardando entrega. Os pedidos aparecem aqui quando a expedição marca como separado.";cs.appendChild(sp);
+   const sp=document.createElement("span");sp.className="ms";sp.textContent=SP.length?"Toque em + Puxar para colocar na sua rota. Depois use ▲ ▼ nos cards para ordenar. Pedido só libera depois de faturado.":"Nenhum pedido separado aguardando entrega. Os pedidos aparecem aqui quando a expedição marca como separado.";cs.appendChild(sp);
    SP.forEach(d=>{const r=document.createElement("div");r.className="rr";const t=document.createElement("span");t.className="t";t.style.cursor="pointer";
-     t.innerHTML="<b>"+esc(d.c||"(sem loja)")+"</b> · "+(d.ped||0)+" un."+(d.d!==mot.dia?" · de "+esc(dBR(d.d).slice(0,5)):"")+(d.sepEm?"<br><small style='color:var(--mute)'>✓ Separado "+esc(hhDe(d.sepEm))+"</small>":"");t.onclick=()=>motAbrePed(d.ref,null);
+     t.innerHTML="<b>"+esc(d.c||"(sem loja)")+"</b> · "+(d.ped||0)+" un."+(d.d!==mot.dia?" · de "+esc(dBR(d.d).slice(0,5)):"")+(d.sepEm?"<br><small style='color:var(--mute)'>✓ Separado "+esc(hhDe(d.sepEm))+"</small>":"")+
+       (d.fatd?(d.fatEm?"<br><small style='color:var(--mute)'>✓ Faturado "+esc(hhDe(d.fatEm))+"</small>":""):"<br><small style='color:#e08a1e;font-weight:700'>Aguarda faturamento</small>");t.onclick=()=>motAbrePed(d.ref,null);
      const bo=document.createElement("button");bo.className="sec";bo.textContent="Abrir";bo.onclick=()=>motAbrePed(d.ref,bo);
-     const bb=document.createElement("button");bb.textContent="+ Puxar";bb.onclick=()=>{bb.disabled=true;motAdd({cliente:d.c||"",ped:d.ped||0,ref:d.ref,pd:d.d||""})};r.append(t,bo,bb);cs.appendChild(r)});
+     const bb=document.createElement("button");bb.textContent="+ Puxar";
+     if(!d.fatd){bb.disabled=true;bb.style.opacity=".45";bb.title="Aguarda faturamento"}
+     bb.onclick=()=>{if(!d.fatd)return;bb.disabled=true;motAdd({cliente:d.c||"",ped:d.ped||0,ref:d.ref,pd:d.d||""})};r.append(t,bo,bb);cs.appendChild(r)});
    C.appendChild(cs)}
   // chegada na empresa = último check-out + observações do dia
   const c9=card(reg.fim?"ok":"");c9.innerHTML="<h3>Chegada na empresa</h3><span class='ms'>"+(reg.ini&&reg.fim?"Rota de "+fmtMin(minEnt(reg.ini,reg.fim)):"Último check-out: toque ao chegar na fábrica")+"</span>";
@@ -3748,6 +3751,8 @@ function fabRender(){if(!perfil)return;if(fab.modo==="producao"&&prEditando()){f
         abrirPrev("Lista de produção pronta. Salve o PDF para imprimir.")}catch(e){$("fabm").textContent="Não foi possível gerar a lista."}
       bj.textContent="Gerar lista (JPG/PDF)"};return}
   const fat=fab.modo==="faturamento",fin=e=>!!((fab.ent||{})[fabK(e)]||{}).fin,emr=e=>!!(((fab.ent||{})[fabK(e)]||{}).rota&&!fin(e)),noc=e=>ocLista((fab.ent||{})[fabK(e)]).filter(o=>!o.sis).length;
+  const enDe=e=>(fab.ent||{})[fabK(e)]||{};
+  const fatOk=e=>!!enDe(e).fatd,fatEm=e=>enDe(e).fatEm||0;
   const sepDe=e=>{const en=(fab.ent||{})[fabK(e)];if(en&&typeof en.sep==="boolean")return {on:en.sep,em:en.sepEm||0,por:en.sepPor||""};return (e.data===fab.dia?fab.sep:fab.sepAnt)[fabK(e)]||null};
   const rk={alterado:0,fechado:1,faturar:1,separando:1},sp=e=>fat?fin(e):!!(sepDe(e)&&sepDe(e).on);
   es.sort((a,b)=>(sp(a)-sp(b))||((rk[a.status]??9)-(rk[b.status]??9))||(a.cliente||"").localeCompare(b.cliente||"","pt-BR"));
@@ -3761,8 +3766,15 @@ function fabRender(){if(!perfil)return;if(fab.modo==="producao"&&prEditando()){f
     d.innerHTML="<div class='xh'><b>"+esc(e.cliente||"(sem nome)")+"</b><span class='xs'>"+(e.data!==fab.dia?"de "+esc(dBR(e.data).slice(0,5))+" · ":"")+esc(fin(e)?"✅ Entregue":emr(e)?"🚚 Em rota":STN[e.status]||"")+(noc(e)?" · 📝 "+noc(e):"")+"</span></div>"+
       "<div class='xs'>"+(fab.mx?"":esc(nomeV(e.uid))+" · ")+soma(e.pedido)+" un. · "+cx+(cx===1?" caixa":" caixas")+(e.endereco?" · "+esc(e.endereco):"")+"</div>"+
       "<details><summary>Itens ("+ns.length+")</summary><table class='tx'><tr><th>Produto</th><th class='n'>Unid.</th><th class='n'>Caixas</th></tr>"+ns.map(n=>"<tr><td>"+esc(n)+"</td><td class='n'>"+e.pedido[n]+"</td><td class='n'>"+esc(cxTxt(n,e.pedido[n]))+"</td></tr>").join("")+"</table></details>"+
-      "<div class='xa'>"+(fat?"":"<button class='"+(ok?"on":"")+"'>"+(ok?"✓ Separado"+(s.em?" "+new Date(s.em).toTimeString().slice(0,5):""):"Marcar separado")+"</button>")+"<button>Ocorrência</button><button>Abrir pedido</button></div>";
-    const bb=[...d.querySelectorAll(".xa button")],bo=bb.pop(),boc=bb.pop(),bs=bb.pop()||document.createElement("button");
+      "<div class='xa'>"+(fat?"":"<button data-b='sep' class='"+(ok?"on":"")+"'>"+(ok?"✓ Separado"+(s.em?" "+new Date(s.em).toTimeString().slice(0,5):""):"Marcar separado")+"</button>")+
+      (fat&&sepDe(e)&&sepDe(e).on&&!fin(e)?"<button data-b='fat' class='"+(fatOk(e)?"on":"")+"'>"+(fatOk(e)?"✓ Faturado"+(fatEm(e)?" "+hhDe(fatEm(e)):""):"Marcar faturado")+"</button>":"")+
+      "<button data-b='oc'>Ocorrência</button><button data-b='ab'>Abrir pedido</button></div>";
+    const bo=d.querySelector('[data-b="ab"]'),boc=d.querySelector('[data-b="oc"]'),bs=d.querySelector('[data-b="sep"]')||document.createElement("button"),bf=d.querySelector('[data-b="fat"]');
+    if(bf)bf.onclick=async()=>{const jaf=fatOk(e);
+      if(jaf&&bf.dataset.c!=="1"){bf.dataset.c="1";bf.textContent="Desmarcar?";setTimeout(()=>{bf.dataset.c="";fabRender()},3000);return}
+      bf.disabled=true;bf.dataset.c="";
+      try{await ocRef(fabK(e)).set({c:e.cliente||"",d:e.data||fab.dia,fatd:!jaf,fatEm:Date.now(),fatPor:(perfil&&perfil.nome)||""},{merge:true});}
+      catch(_){bf.disabled=false;$("fabm").textContent="Não foi possível salvar. Confira a internet ou as regras do banco."}};
     ocMarca(boc,"Ocorrência",(fab.ent||{})[fabK(e)]);boc.dataset.oc="1";bo.dataset.oc="1";boc.onclick=()=>{OCX=fab.modo;ocAbrir(fabK(e),{c:e.cliente,d:e.data},e.cliente)};
     bs.onclick=async()=>{if(ok&&bs.dataset.c!=="1"){bs.dataset.c="1";bs.textContent="Desmarcar?";setTimeout(()=>{bs.dataset.c="";fabRender()},3000);return}
       bs.disabled=true;try{const v={on:!ok,em:Date.now(),por:(perfil&&perfil.nome)||""};if(!fab.mx)await fbDb.collection("expedicao").doc(e.data||fab.dia).set({s:{[fabK(e)]:v}},{merge:true});const pe=ocRef(fabK(e)).set({c:e.cliente||"",d:e.data||fab.dia,sep:!!v.on,sepEm:v.em,sepPor:v.por},{merge:true});if(fab.mx)await pe;else pe.catch(()=>{});if(e.data!==fab.dia){fab.sepAnt[fabK(e)]=v;fabRender()}}
@@ -3965,7 +3977,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="241";
+const VER="242";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
