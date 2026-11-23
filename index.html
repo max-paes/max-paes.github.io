@@ -403,8 +403,8 @@ body.trv #edbar{border-color:#0b7a75}
 .me .nb span{background:var(--hit);border-radius:12px;padding:2px 9px;font-size:12px;font-weight:700}
 #rm,#md{z-index:30}
 .fb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.fb img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
-.fb .th{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;touch-action:manipulation}
-.th img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+.fb .th{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.th img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .th.arr{opacity:.7;transform:scale(1.08);filter:drop-shadow(0 6px 12px rgba(0,0,0,.4));z-index:5}
 .thn{position:absolute;top:2px;left:2px;min-width:18px;height:18px;border-radius:9px;background:var(--azul,#1f4fa8);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;padding:0 4px;pointer-events:none}.fb .th button{padding:3px 10px;border-radius:10px;font-size:12px;line-height:1.2}
 #spk .kpe{cursor:pointer}
@@ -1471,6 +1471,11 @@ $("vfotos").addEventListener("touchmove",e=>{if(ARR.ok)e.preventDefault()},{pass
 document.addEventListener("pointermove",arrMove,true);
 document.addEventListener("pointerup",arrFim,true);
 document.addEventListener("pointercancel",()=>{if(!ARR.ok)arrFim()},true);
+/* arrastar a foto nao pode abrir o menu de copiar/ver imagem do celular */
+const semMenu=e=>{const t=e.target;if(ARR.el||ARR.ok||(t&&t.closest&&t.closest(".fb .th")))e.preventDefault()};
+document.addEventListener("contextmenu",semMenu,true);
+document.addEventListener("selectstart",e=>{if(ARR.el||ARR.ok)e.preventDefault()},true);
+document.addEventListener("dragstart",semMenu,true);
 $("vfi").onchange=async()=>{const L=[...$("vfi").files].slice(0,999-(visita.fo||[]).length);$("vfi").value="";L.forEach(f=>salvaNoCel(f,U($("cliente").value.trim())));for(const f of L)await visFoto(f);visFotos();atualizaTxt()};
 async function copiaTexto(t){
   let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
@@ -3977,7 +3982,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="243";
+const VER="244";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
