@@ -1573,9 +1573,14 @@ function adotaDaNuvem(x){
   if(!ent||!ent.id||nv.tomb.has(ent.id))return false;
   ent.tsNuvem=+x.ts||0;
   const i=hist.findIndex(h=>h.id===ent.id);
+  const res=e=>JSON.stringify([e.pedido,e.troca,e.gondola,e.status,e.cliente,e.data,e.obs]);
+  const igual=i>=0&&res(hist[i])===res(ent);
   if(i<0)hist.push(ent);else hist[i]=ent;
   hist.sort((a,b)=>b.ts-a.ts);salvarHist();carregarCli();
-  if(curId===ent.id){clearTimeout(tSalvar);tSalvar=null;curId=null;abrirPedido(ent.id,{dataset:{c:"1",v:"1"},textContent:""})}
+  if(igual)return true;            /* mesmo conteúdo: não mexe na tela */
+  if(curId===ent.id){clearTimeout(tSalvar);tSalvar=null;curId=null;
+    abrirPedido(ent.id,{dataset:{c:"1",v:"1"},textContent:""});
+    setTimeout(()=>{clearTimeout(tSalvar);tSalvar=null},0)}
   render();if($("hs").classList.contains("on"))renderHist();
   return true}
 /* grava na nuvem, mas nunca por cima de uma versão mais nova feita em outro aparelho */
@@ -1587,7 +1592,7 @@ async function envia(id,e){
          sem base (pedido antigo, de antes desta versão): só vence se a nuvem for mais nova. */
       const conflito=base?(rts&&rts!==base&&rts!==meu):(rts>meu);
       if(conflito){
-        if(adotaDaNuvem(x))aviso("Este pedido foi atualizado na nuvem por outro aparelho. O app ficou com a versão da nuvem.");
+        adotaDaNuvem(x);
         return}}
   }catch(_){}
   return enviaAgora(id,e)}
@@ -4007,7 +4012,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="245";
+const VER="246";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
