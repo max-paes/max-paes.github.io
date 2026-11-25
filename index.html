@@ -1565,13 +1565,18 @@ function stNuvem(t){nv.msg=t;const e=$("nvst");if(e)e.textContent=t}
 function cfgTs(){if(typeof ESP!=="undefined"&&ESP)return ESP.cfgts||0;try{return +(localStorage.getItem("maxpaes:cfgts")||0)}catch(e){return 0}}
 function marcaCfg(){try{localStorage.setItem("maxpaes:cfgts",String(Date.now()))}catch(e){}nv.cfg=true;agendaNuvem()}
 function marcaPed(id){nv.pend.add(id);agendaNuvem()}
+/* base = a versao da nuvem que este aparelho ja baixou, por pedido */
+nv.base=(()=>{try{return JSON.parse(lsG("mpv:base")||"{}")||{}}catch(e){return {}}})();
+function poeBase(id,ts){if(!id)return;nv.base[id]=+ts||0;
+  try{const ids=new Set(hist.map(h=>h.id));Object.keys(nv.base).forEach(k=>{if(!ids.has(k)&&k!==id)delete nv.base[k]});
+    lsS("mpv:base",JSON.stringify(nv.base))}catch(e){}}
 function agendaNuvem(){if(!nv.db)return;clearTimeout(nv.t);nv.t=setTimeout(enviaNuvem,3000)}
 const colN=()=>nv.db.collection("vendedores/"+nv.uid+"/docs");
 /* traz para o app a versão que está na nuvem, por cima da local */
 function adotaDaNuvem(x){
   let ent=null;try{ent=normEnt(JSON.parse(x.j))}catch(_){return false}
   if(!ent||!ent.id||nv.tomb.has(ent.id))return false;
-  ent.tsNuvem=+x.ts||0;
+  poeBase(ent.id,x.ts);
   const i=hist.findIndex(h=>h.id===ent.id);
   const res=e=>JSON.stringify([e.pedido,e.troca,e.gondola,e.status,e.cliente,e.data,e.obs]);
   const igual=i>=0&&res(hist[i])===res(ent);
@@ -1587,7 +1592,7 @@ function adotaDaNuvem(x){
 async function envia(id,e){
   try{
     const snap=await colN().doc("p_"+id).get();
-    if(snap.exists){const x=snap.data()||{},rts=+x.ts||0,base=+(e.tsNuvem||0),meu=+e.ts||0;
+    if(snap.exists){const x=snap.data()||{},rts=+x.ts||0,base=+(nv.base[id]||0),meu=+e.ts||0;
       /* com a base conhecida: qualquer mudança feita por outro aparelho vence.
          sem base (pedido antigo, de antes desta versão): só vence se a nuvem for mais nova. */
       const conflito=base?(rts&&rts!==base&&rts!==meu):(rts>meu);
@@ -1599,7 +1604,7 @@ async function envia(id,e){
 function enviaAgora(id,e){let j=JSON.stringify({...e,tsNuvem:undefined});if(j.length>700000)j=JSON.stringify({...e,tsNuvem:undefined,assin:{pedido:"",troca:""}});
   try{if(e.status&&e.status!=="rascunho"&&soma(e.pedido)>0&&e.data){const f=o=>Object.fromEntries(Object.entries(o||{}).filter(([,q])=>q>0));
     nv.db.collection("entrega").doc(nv.uid+"_p_"+id).set({c:e.cliente||"",d:e.data,ped:soma(e.pedido),tro:soma(e.troca),vend:perfil?perfil.nome:"",st:e.status,fat:!!e.fat,en:e.endereco||"",cp:e.comprador||"",it:{p:f(e.pedido),t:f(e.troca)},ref:nv.uid+"/p_"+id,ix:Date.now()},{merge:true}).catch(()=>{})}}catch(_){}
-  const v=e.visita||{};e.tsNuvem=e.ts;return colN().doc("p_"+id).set({ts:e.ts,j,status:e.status||"rascunho",fat:!!e.fat,cliente:e.cliente||"",data:e.data||"",vendedor:perfil?perfil.nome:"",ini:v.ini||"",fim:v.fim||"",...(v.geo?{la:v.geo.la,lo:v.geo.lo}:{}),ped:soma(e.pedido),tro:soma(e.troca),fechadoEm:e.fechadoEm||0})}
+  const v=e.visita||{};poeBase(id,e.ts);return colN().doc("p_"+id).set({ts:e.ts,j,status:e.status||"rascunho",fat:!!e.fat,cliente:e.cliente||"",data:e.data||"",vendedor:perfil?perfil.nome:"",ini:v.ini||"",fim:v.fim||"",...(v.geo?{la:v.geo.la,lo:v.geo.lo}:{}),ped:soma(e.pedido),tro:soma(e.troca),fechadoEm:e.fechadoEm||0})}
 async function enviaNuvem(){
   if(!nv.db)return;
   const ps=[];
@@ -2641,8 +2646,9 @@ function aplicaDoc(d,ini){const x=d.data()||{};let r=null;
   if(d.id==="del"){(Array.isArray(x.ids)?x.ids:[]).forEach(i=>{i=String(i);if(nv.tomb.has(i))return;nv.tomb.add(i);const n0=hist.length;hist=hist.filter(h=>h.id!==i);if(hist.length!==n0){r=r||"mud";if(curId===i)r="limpa"}})}
   else if(d.id==="cfg"){if(!ini&&(+x.ts||0)>cfgTs()){try{aplicaCfg(JSON.parse(x.j));lsS("maxpaes:cfgts",String(x.ts));r="mud"}catch(_){}}}
   else if(d.id.startsWith("p_")){let e;try{e=normEnt(JSON.parse(x.j))}catch(_){return null}if(!e||!e.id||nv.tomb.has(e.id))return null;
-    const i=hist.findIndex(h=>h.id===e.id);e.tsNuvem=+x.ts||0;
-    if(i<0){hist.push(e);r="mud"}else if(e.ts>hist[i].ts){hist[i]=e;r=e.id===curId?e.id:"mud"}}
+    const i=hist.findIndex(h=>h.id===e.id);
+    if(i<0){hist.push(e);poeBase(e.id,x.ts);r="mud"}
+    else if(e.ts>hist[i].ts){hist[i]=e;poeBase(e.id,x.ts);r=e.id===curId?e.id:"mud"}}
   return r}
 function aposRemoto(rs){if(!rs.length)return;hist.sort((a,b)=>b.ts-a.ts);salvarHist();carregarCli();
   const re=rs.find(r=>r!=="mud");if(re){clearTimeout(tSalvar);tSalvar=null;if(re==="limpa")limparTudo();else{curId=null;abrirPedido(re,{dataset:{c:"1",v:"1"},textContent:""})}}
@@ -2901,7 +2907,8 @@ function registrar(){
       e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),ts:Date.now()};
       Object.assign(e,c);curId=e.id;hist.unshift(e);marcaPed(e.id);try{trancaCli()}catch(_){}
     }else{
-      const {id,ts,...resto}=e;
+      if("tsNuvem" in e)delete e.tsNuvem;
+      const {id,ts,tsNuvem,...resto}=e;
       if(JSON.stringify(resto)===JSON.stringify(c))return;
       if(semSt(resto)!==semSt(c)&&(resto.status==="fechado"||resto.status==="alterado"||resto.status==="faturar")&&c.status!=="rascunho"){if(resto.status==="separando"){c.status="separando"}else{if(resto.status==="faturar"||resto.fat){eraFat=true;c.fat=true}stPed=c.status="alterado";c.alteradoEm=Date.now();setTimeout(()=>{try{pintaFat()}catch(_){}},0)}}
       else if(resto.alteradoEm)c.alteradoEm=resto.alteradoEm;
@@ -4012,7 +4019,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="246";
+const VER="247";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
