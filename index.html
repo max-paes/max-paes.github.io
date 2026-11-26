@@ -193,6 +193,8 @@ html[data-fs="1"] body{zoom:1.12}html[data-fs="2"] body{zoom:1.25}html[data-fs="
 .hst{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;border:1.5px solid currentColor}
 .hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#8a4b00}:root[data-theme="dark"] .hst.sempedido{color:#f0a640}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hst.sempedido{color:#f0a640}}.hst.vd{color:#0e7c3a}.ocb{background:#b26a00!important;color:#fff!important;border-color:#b26a00!important}
 .ov .box{background:var(--card);border-radius:14px;padding:12px;max-width:560px;margin:0 auto}
+/* o computador do CPD não mostra o botão de configurações */
+body.pc .cfgb{display:none!important}
 /* computador da expedição: tudo cabendo na janela, sem rolar */
 body.pc .ov .box{max-width:1180px;padding:16px}
 body.pc #ov{overflow:hidden;padding:12px}
@@ -4103,7 +4105,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="251";
+const VER="252";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
