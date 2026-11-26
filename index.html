@@ -635,7 +635,13 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 </div></div>
 <div class="ov" id="cfgv" role="dialog" aria-modal="true" aria-labelledby="cfgt"><div class="box">
   <div class="hhead"><b id="cfgt">Configurações</b><button id="cfgx">Fechar</button></div>
-  <div class="cfs"><small>Conta</small><p id="cfq" class="cfn"></p><div class="acts"><button id="cfsen">Mudar senha</button><button id="cfsair">Sair da conta</button></div><button id="cfout" class="sec" hidden style="width:100%;margin-top:8px">📵 Sair dos outros aparelhos</button><button id="cfdevv" class="sec" hidden style="width:100%;margin-top:8px">↩ Voltar a Developer</button><button id="cfcad" class="sec" hidden style="width:100%;margin-top:8px">🏪 Conferir cadastro das lojas</button><p class="msg" id="cfoutm" style="margin:6px 2px 0"></p></div>
+  <div class="cfs"><small>Conta</small><p id="cfq" class="cfn"></p><div class="acts"><button id="cfsen">Mudar senha</button><button id="cfmail">Mudar e-mail</button><button id="cfsair">Sair da conta</button></div>
+    <div id="cfmf" hidden style="margin-top:8px">
+      <label style="display:block;font-size:12px;color:var(--mute)">Novo e-mail<input id="cfmn" type="email" inputmode="email" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" style="width:100%"></label>
+      <label style="display:block;font-size:12px;color:var(--mute);margin-top:6px">Sua senha de hoje<input id="cfms" type="password" autocomplete="current-password" style="width:100%"></label>
+      <button id="cfmok" style="width:100%;margin-top:8px">Salvar o novo e-mail</button>
+      <p class="msg" id="cfmm" style="margin:6px 0 0"></p>
+    </div><button id="cfout" class="sec" hidden style="width:100%;margin-top:8px">📵 Sair dos outros aparelhos</button><button id="cfdevv" class="sec" hidden style="width:100%;margin-top:8px">↩ Voltar a Developer</button><button id="cfcad" class="sec" hidden style="width:100%;margin-top:8px">🏪 Conferir cadastro das lojas</button><p class="msg" id="cfoutm" style="margin:6px 2px 0"></p></div>
   <div class="cfs" id="cfga" hidden><small>Acessos</small><div id="cfgah"></div></div>
   <div class="cfs" id="cfavs" hidden><small>Avisos</small><button id="cfav" class="sec" style="width:100%"></button><p class="msg" id="cfavm" style="margin:6px 2px 0"></p></div>
   <div class="cfs"><small>Tamanho do texto</small><div class="seg" id="cffs"><button data-f="0">Normal</button><button data-f="1">Grande</button><button data-f="2">Muito grande</button></div></div>
@@ -4105,7 +4111,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="252";
+const VER="253";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
@@ -4135,6 +4141,38 @@ function aplicaFs(){let f="0";try{f=localStorage.getItem("mpv:fs")||"0"}catch(e)
   document.querySelectorAll("#cffs button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.f===f))}
 document.querySelectorAll("#cffs button").forEach(b=>b.onclick=()=>{try{localStorage.setItem("mpv:fs",b.dataset.f)}catch(e){}aplicaFs()});aplicaFs();
 $("cfsen").onclick=()=>{$("cfgv").classList.remove("on");mostraLogin("mudar")};
+/* mudar o e-mail de entrada: a própria pessoa digita a senha dela */
+$("cfmail").onclick=()=>{const f=$("cfmf");f.hidden=!f.hidden;$("cfmm").textContent="";
+  if(!f.hidden){const u=fbAuth&&fbAuth.currentUser;$("cfmn").value="";$("cfms").value="";
+    $("cfmm").textContent=u?"Entrando hoje com "+u.email:"Conecte-se à internet para mudar o e-mail.";$("cfmn").focus()}};
+$("cfmok").onclick=async()=>{const m=$("cfmm"),b=$("cfmok"),u=fbAuth&&fbAuth.currentUser;
+  if(!u||!fbDb){m.textContent="Conecte-se à internet para mudar o e-mail.";return}
+  const novo=($("cfmn").value||"").trim().toLowerCase(),se=$("cfms").value||"";
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(novo)){m.textContent="Escreva o e-mail completo, como nome@maxpaes.com.br";return}
+  if(novo===(u.email||"").toLowerCase()){m.textContent="Esse já é o seu e-mail de entrada.";return}
+  if(!se){m.textContent="Digite a sua senha de hoje para confirmar.";return}
+  b.disabled=true;const r0=b.textContent;b.textContent="Mudando…";
+  try{
+    const cred=firebase.auth.EmailAuthProvider.credential(u.email,se);
+    await u.reauthenticateWithCredential(cred);
+    try{await u.updateEmail(novo)}
+    catch(e1){if(e1&&(e1.code==="auth/operation-not-allowed"||e1.code==="auth/unverified-email")){
+        await u.verifyBeforeUpdateEmail(novo);
+        m.className="msg ok";m.textContent="Enviei um link de confirmação para "+novo+". Abra o link nesse e-mail para a troca valer.";
+        b.disabled=false;b.textContent=r0;return}
+      throw e1}
+    await fbDb.collection("vendedores").doc(u.uid).set({email:novo},{merge:true}).catch(()=>{});
+    $("cfms").value="";$("cfmf").hidden=true;
+    try{$("cfq").textContent=(perfil&&perfil.nome?perfil.nome+" · ":"")+novo}catch(_){}
+    aviso("Pronto: a partir de agora entre com "+novo+". A senha continua a mesma.")}
+  catch(e){const c=(e&&e.code)||"";
+    m.className="msg";
+    m.textContent=c==="auth/wrong-password"||c==="auth/invalid-credential"?"Senha errada. Tente de novo."
+      :c==="auth/email-already-in-use"?"Esse e-mail já está em uso por outra conta."
+      :c==="auth/invalid-email"?"E-mail inválido."
+      :c==="auth/requires-recent-login"?"Saia e entre de novo no app, depois tente outra vez."
+      :"Não deu certo ("+(c||e.message)+")."}
+  finally{b.disabled=false;b.textContent=r0}};
 /* sair dos outros aparelhos: os aparelhos que entraram antes deste momento saem sozinhos; este continua */
 $("cfdevv").onclick=()=>{$("cfgv").classList.remove("on");if(typeof ESP!=="undefined"&&ESP){location.reload();return}if(perfil)perfil.ucBase=null;verComo("developer")};
 $("cfav").onclick=async()=>{if(avisosOn()){lsS("mpv:avisos","0");$("cfavm").textContent="Avisos desligados."}else{lsS("mpv:avisos","1");try{if(window.Notification&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}$("cfavm").textContent="Avisos ligados."}
