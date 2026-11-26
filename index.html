@@ -193,11 +193,21 @@ html[data-fs="1"] body{zoom:1.12}html[data-fs="2"] body{zoom:1.25}html[data-fs="
 .hst{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;border:1.5px solid currentColor}
 .hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#8a4b00}:root[data-theme="dark"] .hst.sempedido{color:#f0a640}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hst.sempedido{color:#f0a640}}.hst.vd{color:#0e7c3a}.ocb{background:#b26a00!important;color:#fff!important;border-color:#b26a00!important}
 .ov .box{background:var(--card);border-radius:14px;padding:12px;max-width:560px;margin:0 auto}
-/* computador da expedição: telas largas e botões grandes */
+/* computador da expedição: tudo cabendo na janela, sem rolar */
 body.pc .ov .box{max-width:1180px;padding:16px}
-body.pc #prev{width:100%}
-body.pc .acts button{flex:1 1 40%;padding:16px;font-size:17px;min-height:58px}
+body.pc #ov{overflow:hidden;padding:12px}
+body.pc #ov .box{max-width:none;width:100%;height:calc(100vh - 24px);display:flex;flex-direction:column;gap:6px;padding:12px;overflow:hidden}
+body.pc #ov #prev{flex:1 1 auto;min-height:0;width:100%;height:100%;object-fit:contain;background:#fff;border-radius:8px}
+body.pc #ov #msg{flex:0 0 auto;margin:0;font-size:14px}
+body.pc #ov .acts{flex:0 0 auto;gap:10px}
+body.pc #ov .acts button{flex:1 1 0;min-width:150px;padding:14px;font-size:18px;min-height:56px}
 body.pc #sp .box,body.pc #mex .box{max-width:1100px}
+/* painel da expedição aproveitando a largura do monitor */
+body.pc #fab .sw,body.pc #sp .sw{max-width:1560px;padding-left:20px;padding-right:20px}
+body.pc #fab #fabc{display:grid;grid-template-columns:repeat(auto-fill,minmax(470px,1fr));gap:12px;align-items:start}
+body.pc #fab #fabc>.rk,body.pc #fab #fabc>p,body.pc #fab #fabc>h3,body.pc #fab #fabc>.msg{grid-column:1/-1}
+body.pc #fab .xc{margin:0;height:100%}
+body.pc #fab .xa button{flex:1 1 auto;min-height:46px;font-size:15px}
 .ov img{width:100%;display:block;border-radius:8px;border:1px solid var(--line)}
 .msg{font-size:13px;color:var(--mute);margin:8px 2px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
@@ -4073,7 +4083,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="248";
+const VER="249";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
