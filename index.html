@@ -193,6 +193,11 @@ html[data-fs="1"] body{zoom:1.12}html[data-fs="2"] body{zoom:1.25}html[data-fs="
 .hst{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;border:1.5px solid currentColor}
 .hst.faturar{color:#0b7a75}.hst.separando{color:#1f4fa8}.hst.fechado{color:#1a8f4c}.hst.alterando{color:#b26a00}.hst.rascunho{color:var(--mute)}.hst.sempedido{color:#8a4b00}:root[data-theme="dark"] .hst.sempedido{color:#f0a640}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hst.sempedido{color:#f0a640}}.hst.vd{color:#0e7c3a}.ocb{background:#b26a00!important;color:#fff!important;border-color:#b26a00!important}
 .ov .box{background:var(--card);border-radius:14px;padding:12px;max-width:560px;margin:0 auto}
+/* computador da expedição: telas largas e botões grandes */
+body.pc .ov .box{max-width:1180px;padding:16px}
+body.pc #prev{width:100%}
+body.pc .acts button{flex:1 1 40%;padding:16px;font-size:17px;min-height:58px}
+body.pc #sp .box,body.pc #mex .box{max-width:1100px}
 .ov img{width:100%;display:block;border-radius:8px;border:1px solid var(--line)}
 .msg{font-size:13px;color:var(--mute);margin:8px 2px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
@@ -648,7 +653,7 @@ body:has(#cam.on) #vcb,body:has(#cam.on) #ucb,body:has(#sg.on) #ucb{display:none
 <div class="ov" id="ov"><div class="box">
   <img id="prev" alt="Prévia do pedido em JPG">
   <p id="msg" class="msg">Segure a imagem para salvar ou compartilhar.</p>
-  <div class="acts"><button id="shr" hidden>Enviar no WhatsApp</button><button id="shrp" hidden>Enviar PDF</button><button id="cpl">Copiar legenda</button><button id="sav">Salvar JPG</button><button id="svp" hidden>Salvar PDF</button><button id="tc">Tela cheia</button><button id="fch">Fechar</button></div>
+  <div class="acts"><button id="imp" hidden>Imprimir</button><button id="shr" hidden>Enviar no WhatsApp</button><button id="shrp" hidden>Enviar PDF</button><button id="cpl">Copiar legenda</button><button id="sav">Salvar JPG</button><button id="svp" hidden>Salvar PDF</button><button id="tc">Tela cheia</button><button id="fch">Fechar</button></div>
 </div></div>
 <div class="ov" id="hs"><div class="box">
   <div class="hhead"><b id="htit">Histórico</b><button id="hfx">Fechar</button></div>
@@ -2386,7 +2391,25 @@ $("sdel").onclick=async()=>{const b=$("sdel"),k=sup.det,x=k?supDoc(k):null;if(!x
     $("sdt").classList.remove("on");try{supRender()}catch(_){}}
   catch(err){$("sdm").textContent="Não consegui excluir ("+((err&&(err.code||err.message))||"erro")+")."}};
 function entDe(k){const x=supDoc(k);if(!x)return null;try{return normEnt(JSON.parse(x.j))}catch(e){return null}}
+/* expedição no computador: abrir o pedido mostra direto o documento */
+async function expAbreDoc(k){const e=entDe(k);if(!e)return;sup.det=k;
+  const temP=soma(e.pedido)>0,temT=soma(e.troca)>0;
+  if(!temP&&!temT){aviso("Esse pedido está vazio.");return}
+  msg("Gerando…");
+  try{try{await fonteOk()}catch(_){}
+    await comEntrada(e,async()=>{
+      const logo=await carregaImg(LOGO),sp=sigOk("pedido")?await carregaImg(assin.pedido):null,st=sigOk("troca")?await carregaImg(assin.troca):null;
+      const base=nomeArq("pedido").replace(/\.jpg$/,"");
+      if(temP&&temT){const f=await folhaA4(desenhar(sp,logo,"pedido"),desenhar(st,logo,"troca"));
+        ultimo={blob:f.jb,nome:base+"-pedido-troca.jpg",pdf:f.pdf,nomePdf:base+"-pedido-troca.pdf",url:f.url,dup:true}}
+      else{const m=temT?"troca":"pedido",c=desenhar(m==="troca"?st:sp,logo,m);
+        const jb=await new Promise(z=>c.toBlob(z,"image/jpeg",0.92));
+        const pdf=pdfDeJpeg(new Uint8Array(await jb.arrayBuffer()),c.width,c.height,595,842);
+        ultimo={blob:jb,nome:nomeArq(m),pdf,nomePdf:nomeArq(m).replace(/\.jpg$/,".pdf"),url:c.toDataURL("image/jpeg",0.92),dup:false}}});
+    abrirPrev(e.cliente+" · "+dBR(e.data)+(temP&&temT?" · pedido + troca na folha A4":"")+". Confira e imprima.")}
+  catch(er){diag(er,"exp-doc");aviso("Não consegui gerar o documento.")}}
 function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.det=k;
+  if(ehExp()){expAbreDoc(k);return}
   $("sdtt").textContent=e.cliente+" · "+dBR(e.data);ocMarca($("sdoc"),"Ocorrência",(sup.ent||{})[k.replace("/","_")]);
   const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0));
   let h="<p class='msg' style='margin:0 0 8px'><b>"+esc(nomeV(x.uid))+"</b> · "+esc(STN[e.status]||"Rascunho")+(e.fechadoEm?" em "+new Date(e.fechadoEm).toLocaleString("pt-BR").slice(0,17):"")+
@@ -2591,7 +2614,10 @@ function verComo(p){if(!ehDev())return;try{if(perfil)perfil.ucBase=null;$("ucb")
   if(ESP){location.reload();return}
   perfil.papel=p;fabDesliga();sup.admIni=0;sup.modo="tudo";try{localStorage.setItem("mpv:tela","")}catch(e){}
   $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
-function supPronto(){const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
+/* layout de computador no perfil da expedição */
+function pcPinta(){try{document.body.classList.toggle("pc",ehExp()&&innerWidth>=900)}catch(e){}}
+addEventListener("resize",()=>{try{pcPinta()}catch(e){}});
+function supPronto(){pcPinta();const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
   pintaAvisos();$("spfe").hidden=!ehSup();$("spfp").hidden=!ehSup()||perfil.papel==="supervisor";if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir();if(ehAdm())setTimeout(fiCarrega,2500)}
 async function iniciaNuvem(){
   if(!FIREBASE_CONFIG){const n=lsG("mpv:nome");if(n){perfil={nome:n};mostraVendedor()}else mostraLogin("local");
@@ -3272,7 +3298,34 @@ $("vwpp").onclick=()=>{const B=$("vwpp"),R0="Enviar no WhatsApp";
     if(podeShr({files:fs})){copiaFundo(t);navigator.share({files:fs}).then(()=>flash(B,R0,"Texto copiado: cole no WhatsApp")).catch(e=>{if(e&&e.name==="AbortError")return;flash(B,R0,"Não deu para enviar as fotos")});return}}
   if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
   abreWa(t)};
-function abrirPrev(t){$("shr").hidden=!podeCompart();$("shrp").hidden=!(ultimo.pdf&&podeCompart());$("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
+const ehExp=()=>!!perfil&&perfil.papel==="expedicao";
+/* manda a folha para a impressora do Windows, no tamanho certo */
+function imprimeDoc(){
+  const url=ultimo&&ultimo.url;if(!url){msg("Gere o documento primeiro.");return}
+  const deitado=!!(ultimo&&ultimo.dup);
+  const fr=document.createElement("iframe");
+  fr.setAttribute("aria-hidden","true");
+  fr.style.cssText="position:fixed;right:0;bottom:0;width:1px;height:1px;opacity:0;border:0";
+  document.body.appendChild(fr);
+  const d=fr.contentWindow.document;
+  d.open();
+  d.write('<!doctype html><html><head><meta charset="utf-8"><title>'+((ultimo&&ultimo.nome)||"documento")+'</title>'
+    +'<style>@page{size:A4 '+(deitado?"landscape":"portrait")+';margin:6mm}'
+    +'html,body{margin:0;padding:0;background:#fff}'
+    +'img{display:block;width:100%;height:auto;page-break-inside:avoid}</style></head>'
+    +'<body><img src="'+url+'" alt=""></body></html>');
+  d.close();
+  const im=d.images[0];
+  const vai=()=>{try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){msg("Não consegui abrir a impressão.")}
+    setTimeout(()=>{try{fr.remove()}catch(e){}},120000)};
+  if(im&&im.complete)setTimeout(vai,120);else if(im)im.onload=()=>setTimeout(vai,120);else setTimeout(vai,300);
+  msg("Mandando para a impressora…");
+}
+function abrirPrev(t){const ex=ehExp();
+  $("imp").hidden=!ex;
+  $("shr").hidden=ex||!podeCompart();$("shrp").hidden=ex||!(ultimo.pdf&&podeCompart());
+  $("cpl").hidden=ex;$("sav").hidden=ex;$("tc").hidden=ex;
+  $("svp").hidden=!ultimo.pdf;$("prev").src=ultimo.url;msg(t);$("ov").classList.add("on")}
 function rotGf(m){const n=Object.values(state[m]).filter(v=>v>0).length;return (m==="troca"?"Troca":"Pedido")+" · "+(n?n+(n===1?" item":" itens"):"vazio")}
 function tabLoja(){const n=$("cliente").value.trim(),cd=n?lojaAtual():null;
   if(!n)return "Informe a loja no pedido para usar a tabela dela.";
@@ -3296,6 +3349,7 @@ async function salvarArq(blob,nome){
 }
 $("sav").onclick=()=>salvarArq(ultimo.blob,ultimo.nome);
 $("svp").onclick=()=>salvarArq(ultimo.pdf,ultimo.nomePdf);
+$("imp").onclick=imprimeDoc;
 function pdfDeJpeg(bytes,w,h,pw=842,ph=595){
   const enc=new TextEncoder(),parts=[],offs=[];let len=0;
   const add=b=>{const u=typeof b==="string"?enc.encode(b):b;parts.push(u);len+=u.length};
@@ -4019,7 +4073,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="247";
+const VER="248";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
