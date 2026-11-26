@@ -1770,6 +1770,7 @@ function mostraVendedor(){aplicaAcesso();try{clNuvemIni()}catch(_){}
   const n=(perfil&&perfil.nome)||lsG("mpv:nome")||"",pp=(perfil&&perfil.papel)||lsG("mpv:papel")||"vendedor";
   $("vnd").textContent=n?rotP(pp)+": "+U(n):"";pintaMeta();try{ocMarca($("t-entrega"),rotAbaEnt(),null)}catch(_){}
   $("sair").hidden=true;$("msen").hidden=true;
+  try{pcPinta()}catch(_){}
   [garanteClientes,aplicaSeeds,motPronto,fabPronto].forEach(f=>{try{f()}catch(e){diag(e,"mostraVendedor:"+f.name)}});try{vcPinta()}catch(e){diag(e,"vcPinta")}try{ucBarra()}catch(_){}}
 function lgMsg(t,ok){const m=$("lgm");m.textContent=t||"";m.classList.toggle("ok",!!ok)}
 function lgModoSet(m){lgModo=m;const loc=m==="local",nova=m==="nova",mud=m==="mudar",ent=m==="entrar";
@@ -3817,7 +3818,7 @@ const podeProd=()=>!!(perfil&&/^(producao|admin|developer)$/.test(perfil.papel||
 const prEditando=()=>{const a=document.activeElement;return !!(a&&a.closest&&a.closest(".prt"))};
 const ehFab=()=>!!(perfil&&/^(producao|expedicao|faturamento)$/.test(perfil.papel||"")&&fbDb&&fbAuth&&fbAuth.currentUser);
 function fabPronto(){if((fab.dosp&&ehSup())||fab.dmot)return;if(!ehFab()){fabDesliga();return}fab.dosp=false;fabAbrir(perfil.papel)}
-function fabAbrir(m){fab.modo=m;fab.mx=!!perfil&&perfil.papel==="motorista";try{$("fab").classList.toggle("so",!!perfil&&perfil.papel==="admin")}catch(_){}if(fab.ud&&m!=="expedicao"){if(fab.un){fab.un();fab.un=null}fab.ud=null}if(fab.upd&&m!=="producao"){if(fab.upr){fab.upr();fab.upr=null}fab.upd=null}if(!fab.dia)fab.dia=(m==="expedicao"?addD(hojeISO(),-1):hojeISO());$("fabt").textContent=rotP(m);$("fabq").textContent=quemTxt();$("fabs").textContent="Voltar";$("fabs").hidden=!(fab.dosp||fab.dmot);$("fab").classList.add("on");fabBusca();
+function fabAbrir(m){try{pcPinta()}catch(_){}fab.modo=m;fab.mx=!!perfil&&perfil.papel==="motorista";try{$("fab").classList.toggle("so",!!perfil&&perfil.papel==="admin")}catch(_){}if(fab.ud&&m!=="expedicao"){if(fab.un){fab.un();fab.un=null}fab.ud=null}if(fab.upd&&m!=="producao"){if(fab.upr){fab.upr();fab.upr=null}fab.upd=null}if(!fab.dia)fab.dia=(m==="expedicao"?addD(hojeISO(),-1):hojeISO());$("fabt").textContent=rotP(m);$("fabq").textContent=quemTxt();$("fabs").textContent="Voltar";$("fabs").hidden=!(fab.dosp||fab.dmot);$("fab").classList.add("on");fabBusca();
   if(!fab.iv)fab.iv=setInterval(()=>{if(!document.hidden&&$("fab").classList.contains("on"))fabBusca(true)},90000)}
 function fabDesliga(){fab.dosp=false;fab.dmot=false;fab.mx=false;if(fab.upr){fab.upr();fab.upr=null}fab.upd=null;fab.pr={};if(fab.un){fab.un();fab.un=null}if(fab.ue){fab.ue();fab.ue=null}fab.ed=null;fab.ent={};if(fab.iv){clearInterval(fab.iv);fab.iv=null}fab.es=[];fab.ant=[];fab.sep={};fab.sepAnt={};fab.ud=null;$("fab").classList.remove("on")}
 const fabK=e=>e.k.replace("/","_");
@@ -4111,7 +4112,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="253";
+const VER="254";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
