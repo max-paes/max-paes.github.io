@@ -2419,7 +2419,7 @@ async function expAbreDoc(k){const e=entDe(k);if(!e)return;sup.det=k;
     abrirPrev(e.cliente+" · "+dBR(e.data)+(temP&&temT?" · pedido + troca na folha A4":"")+". Confira e imprima.")}
   catch(er){diag(er,"exp-doc");aviso("Não consegui gerar o documento.")}}
 function supDetalhe(k,silencioso){const e=entDe(k),x=supDoc(k);if(!e)return;sup.det=k;
-  if(ehExp()){expAbreDoc(k);return}
+  if(ehCPD()){expAbreDoc(k);return}
   $("sdtt").textContent=e.cliente+" · "+dBR(e.data);ocMarca($("sdoc"),"Ocorrência",(sup.ent||{})[k.replace("/","_")]);
   const v=e.visita||{},linhas=ITENS.filter(n=>(e.pedido[n]>0)||(e.troca[n]>0));
   let h="<p class='msg' style='margin:0 0 8px'><b>"+esc(nomeV(x.uid))+"</b> · "+esc(STN[e.status]||"Rascunho")+(e.fechadoEm?" em "+new Date(e.fechadoEm).toLocaleString("pt-BR").slice(0,17):"")+
@@ -2625,7 +2625,7 @@ function verComo(p){if(!ehDev())return;try{if(perfil)perfil.ucBase=null;$("ucb")
   perfil.papel=p;fabDesliga();sup.admIni=0;sup.modo="tudo";try{localStorage.setItem("mpv:tela","")}catch(e){}
   $("sp").classList.remove("on");mostraVendedor();supPronto();if(p==="supervisor")supAbrir()}
 /* layout de computador no perfil da expedição */
-function pcPinta(){try{document.body.classList.toggle("pc",ehExp()&&innerWidth>=900)}catch(e){}}
+function pcPinta(){try{document.body.classList.toggle("pc",ehCPD())}catch(e){}}
 addEventListener("resize",()=>{try{pcPinta()}catch(e){}});
 function supPronto(){pcPinta();const s=ehSup();$("sbtn").hidden=!s;if(!s){$("sp").classList.remove("on");return}
   pintaAvisos();$("spfe").hidden=!ehSup();$("spfp").hidden=!ehSup()||perfil.papel==="supervisor";if(perfil.papel==="supervisor"||perfil.papel==="admin"||telaSalva()==="sp")supAbrir();if(ehAdm())setTimeout(fiCarrega,2500)}
@@ -3309,6 +3309,9 @@ $("vwpp").onclick=()=>{const B=$("vwpp"),R0="Enviar no WhatsApp";
   if(navigator.share){navigator.share({text:t}).catch(e=>{if(e&&e.name==="AbortError")return;falhou()});return}
   abreWa(t)};
 const ehExp=()=>!!perfil&&perfil.papel==="expedicao";
+/* o jeito novo (documento direto, só Imprimir e Salvar PDF) é só no computador do CPD.
+   No celular, a expedição continua como sempre foi. */
+const ehCPD=()=>{try{return ehExp()&&innerWidth>=900}catch(e){return false}};
 /* manda a folha para a impressora do Windows, no tamanho certo */
 function imprimeDoc(){
   const url=ultimo&&ultimo.url;if(!url){msg("Gere o documento primeiro.");return}
@@ -3331,7 +3334,7 @@ function imprimeDoc(){
   if(im&&im.complete)setTimeout(vai,120);else if(im)im.onload=()=>setTimeout(vai,120);else setTimeout(vai,300);
   msg("Mandando para a impressora…");
 }
-function abrirPrev(t){const ex=ehExp();
+function abrirPrev(t){const ex=ehCPD();
   $("imp").hidden=!ex;
   $("shr").hidden=ex||!podeCompart();$("shrp").hidden=ex||!(ultimo.pdf&&podeCompart());
   $("cpl").hidden=ex;$("sav").hidden=ex;$("tc").hidden=ex;
@@ -4083,7 +4086,7 @@ $("mdj").onclick=async()=>{const D=mdDados();if(!D.length){$("mdm").textContent=
     $("md").classList.remove("on");abrirPrev("Relatório de entregas pronto. Toque em Salvar JPG ou Salvar PDF.")}
   catch(e){$("mdm").textContent="Não consegui gerar o relatório."}
   b.textContent="Gerar relatório (JPG)"};
-const VER="249";
+const VER="250";
 let swReg=null,pediuAtt=false,recarregando=false;
 function mostraAtt(w){const e=$("attb");if(!e||e.dataset.on==="1")return;e.dataset.on="1";pintaBarras();
   $("attok").onclick=()=>{$("attok").textContent="Atualizando…";pediuAtt=true;
